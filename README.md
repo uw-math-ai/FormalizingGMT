@@ -35,8 +35,6 @@ Suggested structure:
 
 ## 🔗 Pull Requests to `mathlib`
 
-> _List PRs you have opened or merged._
-
 Suggested table:
 
 | PR | Status | Description |
