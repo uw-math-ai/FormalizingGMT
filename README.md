@@ -35,10 +35,15 @@ Suggested structure:
 
 ## 🔗 Pull Requests to `mathlib`
 
-Suggested table:
-
 | PR | Status | Description |
 |----|--------|-------------|
 | #32824 | Merged | Prove that the diameter of a Euclidean ball is twice its radius |
 | #32851 | Merges | Introduces Theorem `exists_accPt_of_noAtoms` and lemma `discreteTopology_of_noAccPts ` |
 | #00000 | Draft | Work in progress on `lemma_zero_of_pre_zero` : If at every sufficiently fine scale (all r ≤ δ), the set S appears to have zero size when measured at that resolution, then the set actually has zero size when measured with perfect resolution.|
+
+---
+
+## To-Do for Repo
+
+- Fix versions of Lean and Mathlib in the Aristotle proofs
+- Comment on the connection between `mathlib` PRs and proofs we will use
