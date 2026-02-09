@@ -163,7 +163,6 @@ noncomputable def hausdorffContent (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n
   ⨅ (t : ℕ → Set (EuclideanSpace ℝ (Fin n))) (_ : E ⊆ ⋃ i, t i), ∑' i, (EMetric.diam (t i)) ^ s
 
 -- Proof involves nested infima manipulation requiring extended computation
-set_option maxHeartbeats 2000000 in
 theorem hausdorffContent_le_hausdorffMeasure
     (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (hs : 0 < s) :
   hausdorffContent s E ≤ hausdorffMeasure s E := by
