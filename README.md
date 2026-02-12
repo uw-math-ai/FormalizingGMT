@@ -13,6 +13,10 @@ This project aims to:
 
 The codebase is organized to keep mathlib‑ready components clean and modular.
 
+Here is a poster we presented, it is not up to date, but gives a glimpse into our project structure.
+![GMT Poster Presentation](.github/Assets/GMT%20Poster%20Presentation.png)
+
+
 ---
 
 ## Current Stage of the Project
@@ -22,13 +26,13 @@ The codebase is organized to keep mathlib‑ready components clean and modular.
 Suggested structure:
 
 - **Foundational components completed:**  
-  - Proofs of 9 / 11 Lemmas
+  - Proofs of 10 / 11 Lemmas
 
 - **Actively in progress:**  
-  - Proving sublemmas of Lemma 3.3
+  - Part II of Lemma 3.3
 
 - **Upcoming milestones:**  
-  - Full Proof of Lemma 3.3 and Full Proof of the theorem
+  - Full Proof of the Theorem
   - More submissions to `mathlib`
 
 ---
