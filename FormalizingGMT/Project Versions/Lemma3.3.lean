@@ -97,25 +97,6 @@ lemma lemma_1a_fix {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace 
       exact h_subadd.trans ( by rw [ ← ENNReal.tsum_mul_left ] ; exact ENNReal.tsum_le_tsum h_subset )
 
 /-
-If E(delta, tau) is non-empty and tau < 1, then s != 0.
--/
-lemma s_ne_zero_of_mem_E_delta_tau {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    {E : Set X} {s δ τ : ℝ} (hτ : τ < 1) {x : X} (hx : x ∈ E_delta_tau E s δ τ) : s ≠ 0 := by
-      intro hs
-      have := hx.2 {x} (Set.mem_singleton x) (by
-      simp +decide [ EMetric.diam_singleton ])
-      simp [hs] at this
-      skip
-      generalize_proofs at *; (
-      -- Since $x \in E$, we have $\{x\} \cap E = \{x\}$.
-      have h_inter : {x} ∩ E = {x} := by
-        exact Set.inter_eq_left.mpr ( by simp +decide [ hx.1 ] )
-      rw [h_inter] at this
-      simp at this
-      generalize_proofs at *; (
-      linarith))
-
-/-
 Checking Encodable instances.
 -/
 #synth Encodable ℕ
