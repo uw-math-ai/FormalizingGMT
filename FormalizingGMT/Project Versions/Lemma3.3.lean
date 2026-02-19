@@ -5,7 +5,14 @@ This is the full version of Lemma 3.3. There needs to be substantial edits.
 -/
 
 
-import Mathlib
+import Mathlib.MeasureTheory.Measure.Hausdorff
+import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+import Mathlib.Topology.Order.LiminfLimsup
+import Mathlib.Topology.Order.OrderClosed
+import Mathlib.Algebra.Order.Archimedean.Basic
+import Mathlib.Data.PNat.Basic
+import Mathlib.Tactic
 
 set_option linter.mathlibStandardSet false
 
@@ -14,11 +21,6 @@ open scoped Real
 open scoped Nat
 open scoped Classical
 open scoped Pointwise
-
-set_option maxHeartbeats 0
-set_option maxRecDepth 4000
-set_option synthInstance.maxHeartbeats 20000
-set_option synthInstance.maxSize 128
 
 set_option relaxedAutoImplicit false
 set_option autoImplicit false
@@ -51,14 +53,10 @@ def hContent {X : Type*} [EMetricSpace X] (d : ℝ) (δ : ℝ) (s : Set X) : ENN
 lemma hContent_le_hausdorffMeasure {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     {d : ℝ} {δ : ℝ} {s : Set X} (hδ : 0 < δ) :
     hContent d δ s ≤ MeasureTheory.Measure.hausdorffMeasure d s := by
-      -- By definition of the Hausdorff measure, we know that for any $r > 0$, the content at scale $r$ is less than or equal to the Hausdorff measure. Therefore, we can choose $r = \delta$.
-      have h_content_le_measure : ∀ r > 0, hContent d r s ≤ (MeasureTheory.Measure.hausdorffMeasure d) s := by
-        intro r hr;
-        rw [ MeasureTheory.Measure.hausdorffMeasure_apply ];
-        refine' le_ciSup _ ( ENNReal.ofReal r ) |> le_trans _;
-        · simp +decide [ hContent, ENNReal.ofReal_pos, hr ];
-        · exact?
-      exact h_content_le_measure δ hδ
+      unfold hContent
+      rw [MeasureTheory.Measure.hausdorffMeasure_apply]
+      exact le_iSup₂_of_le (ENNReal.ofReal δ) (ENNReal.ofReal_pos.mpr hδ) le_rfl
+
 
 /-
 Covering estimate for E(delta, tau).
@@ -86,12 +84,6 @@ lemma lemma_1a_fix {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace 
       exact h_subadd.trans ( by rw [ ← ENNReal.tsum_mul_left ] ; exact ENNReal.tsum_le_tsum h_subset )
 
 /-
-Checking Encodable instances.
--/
-#synth Encodable ℕ
-#synth Encodable {n : ℕ // n > 5}
-
-/-
 Definition of modified cover.
 -/
 def modified_cover {X : Type*} [EMetricSpace X] (U : ℕ → Set X) (E : Set X) (x : X) (n : ℕ) : Set X :=
@@ -106,7 +98,7 @@ lemma modified_cover_subset {X : Type*} [EMetricSpace X] (U : ℕ → Set X) (E 
       intro y hy
       obtain ⟨k, hk⟩ : ∃ k, y ∈ U k := by
         aesop;
-      simp_all +decide [ Set.ext_iff, modified_cover ];
+      simp_all +decide [modified_cover];
       exact ⟨ k, by rw [ if_pos ⟨ y, hk, hy.1 ⟩ ] ; exact hk ⟩
 
 
@@ -144,12 +136,16 @@ lemma lemma_1c_helper {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpa
     hContent s δ (E_delta_tau E s δ τ) ≤ ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s := by
       -- Let's define the modified cover $C'$.
       set C' : ℕ → Set X := fun i => modified_cover C (E_delta_tau E s δ τ) x i;
-      refine' le_trans ( h_impl C' _ _ _ ) ( mul_le_mul_left' ( modified_cover_sum_le hs C _ _ ) _ );
+      refine' le_trans ( h_impl C' _ _ _ ) ( mul_le_mul_right _ ( modified_cover_sum_le hs C _ _ ) );
       · exact fun y hy => modified_cover_subset C _ _ |> fun h => h <| Set.mem_inter hy ( h_cover hy );
       · intro i;
         refine' le_trans ( modified_cover_diam_le _ _ _ _ ) _;
         exact ciSup_le h_diam;
-      · exact?
+      · intro i;
+        simp only [C', modified_cover];
+        split_ifs with hi;
+        · exact hi;
+        · exact ⟨x, Set.mem_singleton x, hx⟩;
 
 
 /-
@@ -160,7 +156,7 @@ lemma lemma_1c {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     hContent s δ (E_delta_tau E s δ τ) ≤ ENNReal.ofReal τ * hContent s δ (E_delta_tau E s δ τ) := by
       by_cases h : E_delta_tau E s δ τ = ∅;
       · simp +decide [ h, hContent ];
-        refine' le_trans _ ( mul_le_mul_left' ( le_iInf fun t => le_iInf fun ht => _ ) _ );
+        refine' le_trans _ ( mul_le_mul_right _ ( le_iInf fun t => le_iInf fun ht => _ ) );
         rotate_left;
         exact 0;
         · exact zero_le _;
@@ -170,7 +166,7 @@ lemma lemma_1c {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
             (E_delta_tau E s δ τ ⊆ ⋃ i, C i) →
             (∀ i, EMetric.diam (C i) ≤ ENNReal.ofReal δ) →
             hContent s δ (E_delta_tau E s δ τ) ≤ ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s by
-              refine' le_trans _ ( mul_le_mul_left' ( le_iInf fun C => _ ) _ );
+              refine' le_trans _ ( mul_le_mul_right _ ( le_iInf fun C => _ ) );
               rotate_left;
               exact hContent s δ ( E_delta_tau E s δ τ );
               · refine' le_iInf fun hC => le_iInf fun hC' => _;
@@ -180,7 +176,7 @@ lemma lemma_1c {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
                 by_cases hn : ( C n ).Nonempty <;> simp +decide [ hn ];
                 · exact mul_le_of_le_one_left ( by positivity ) ( ENNReal.ofReal_le_one.mpr hτ1.le );
                 · simp_all +decide [ Set.not_nonempty_iff_eq_empty.mp hn ];
-              · refine' le_trans ( le_of_eq _ ) ( mul_le_mul_left' ( le_iInf fun C => _ ) _ );
+              · refine' le_trans ( le_of_eq _ ) ( mul_le_mul_right _ ( le_iInf fun C => _ ) );
                 rotate_left;
                 exact ( ENNReal.ofReal τ ) ⁻¹ * hContent s δ ( E_delta_tau E s δ τ );
                 · by_cases hC : E_delta_tau E s δ τ ⊆ ⋃ n, C n <;> by_cases hC' : ∀ n, EMetric.diam ( C n ) ≤ ENNReal.ofReal δ <;> simp +decide [ hC, hC' ];
@@ -215,6 +211,52 @@ lemma lemma_1d {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
       · exact h_fin;
       · exact ENNReal.mul_ne_top ENNReal.coe_ne_top h_fin
 
+
+/-
+If the Hausdorff content is zero at some scale, it is zero at any scale.
+-/
+lemma hContent_zero_mono {X : Type*} [EMetricSpace X]
+    {s : ℝ} {δ δ' : ℝ} {E : Set X} (hs : 0 < s) (hδ : 0 < δ) (hδ' : 0 < δ')
+    (h : hContent s δ E = 0) :
+    hContent s δ' E = 0 := by
+      refine' le_antisymm ( le_trans ( le_of_eq ( Eq.symm _ ) ) ( le_of_forall_gt_imp_ge_of_dense _ ) ) bot_le;
+      exact rfl;
+      intro ε hε;
+      -- Choose η such that η < ε and η^(1/s) ≤ δ'.
+      obtain ⟨η, hη₁, hη₂⟩ : ∃ η : ENNReal, 0 < η ∧ η < ε ∧ η^(1 / s) ≤ ENNReal.ofReal δ' := by
+        -- Since $\eta^{1/s} \leq \delta'$, we can choose $\eta$ such that $\eta \leq (\delta')^s$.
+        obtain ⟨η, hη₁, hη₂⟩ : ∃ η : ENNReal, 0 < η ∧ η < ε ∧ η ≤ (ENNReal.ofReal δ') ^ s := by
+          by_cases hη : ENNReal.ofReal δ' ^ s < ε;
+          · exact ⟨ ENNReal.ofReal δ' ^ s, by positivity, hη, le_rfl ⟩;
+          · rcases ENNReal.lt_iff_exists_nnreal_btwn.mp hε with ⟨ η, hη₁, hη₂ ⟩;
+            exact ⟨ η, by simpa using hη₁, hη₂, le_trans ( by simpa using hη₂.le ) ( le_of_not_gt hη ) ⟩;
+        refine' ⟨ η, hη₁, hη₂.1, _ ⟩;
+        exact le_trans ( ENNReal.rpow_le_rpow hη₂.2 ( by positivity ) ) ( by rw [ ← ENNReal.rpow_mul, mul_one_div_cancel hs.ne', ENNReal.rpow_one ] );
+      -- Since `hContent s δ E = 0`, for any `η > 0`, there exists a cover `{U_i}` such that `diam(U_i) ≤ δ` and `∑ diam(U_i)^s < η`.
+      obtain ⟨U, hU₁, hU₂⟩ : ∃ U : ℕ → Set X, E ⊆ ⋃ i, U i ∧ ∀ i, EMetric.diam (U i) ≤ ENNReal.ofReal δ ∧ ∑' i, (EMetric.diam (U i)) ^ s < η := by
+        contrapose! h;
+        refine' ne_of_gt ( lt_of_lt_of_le hη₁ ( le_iInf fun U => le_iInf fun hU => le_iInf fun hU' => _ ) );
+        obtain ⟨ i, hi ⟩ := h U hU;
+        refine' le_trans ( hi ( hU' i ) ) _;
+        refine' ENNReal.tsum_le_tsum fun n => _;
+        by_cases h : ( U n ).Nonempty <;> simp +decide [ h ];
+        simp_all +decide [ Set.not_nonempty_iff_eq_empty.mp h ];
+      -- Since `η^(1/s) ≤ δ'`, for each `i`, `diam(U_i)^s ≤ ∑ diam(U_j)^s < η`, so `diam(U_i) < η^(1/s) ≤ δ'`.
+      have h_diam_le : ∀ i, EMetric.diam (U i) ≤ ENNReal.ofReal δ' := by
+        intro i
+        have h_diam_le_i : (EMetric.diam (U i)) ^ s ≤ ∑' j, (EMetric.diam (U j)) ^ s := by
+          exact ENNReal.le_tsum i;
+        refine' le_trans _ hη₂.2;
+        exact le_trans ( by rw [ ← ENNReal.rpow_mul, mul_one_div_cancel hs.ne', ENNReal.rpow_one ] ) ( ENNReal.rpow_le_rpow ( h_diam_le_i.trans ( le_of_lt ( hU₂ i |>.2 ) ) ) ( by positivity ) );
+      refine' le_trans ( ciInf_le _ _ ) _;
+      exact ⟨ 0, Set.forall_mem_range.2 fun _ => zero_le _ ⟩;
+      exact U;
+      simp_all +decide;
+      refine' le_trans _ hη₂.1.le;
+      refine' le_trans _ ( le_of_lt ( hU₂ 0 |>.2 ) );
+      refine' ENNReal.tsum_le_tsum fun i => _;
+      by_cases hi : ( U i ).Nonempty <;> simp +decide [ hi ]
+
 /-
 If the Hausdorff content is zero, the Hausdorff measure is zero.
 -/
@@ -224,15 +266,16 @@ lemma hContent_zero_implies_hausdorffMeasure_zero {X : Type*} [EMetricSpace X] [
     MeasureTheory.Measure.hausdorffMeasure s E = 0 := by
       -- By Lemma 2, since the Hausdorff content of E at scale δ is zero, the Hausdorff measure of E at scale δ' is also zero.
       have h_zero_content : ∀ δ' > 0, hContent s δ' E = 0 := by
-        exact?;
-      simp +decide [ MeasureTheory.Measure.hausdorffMeasure_apply, h_zero_content ];
-      intro i hi; specialize h_zero_content ( ENNReal.toReal i ) ; rcases eq_or_ne i ⊤ with rfl | hi' <;> simp_all +decide ;
+        intro δ' hδ'
+        exact hContent_zero_mono hs hδ hδ' h
+      simp +decide [MeasureTheory.Measure.hausdorffMeasure_apply];
+      intro i hi; specialize h_zero_content (ENNReal.toReal i) ; rcases eq_or_ne i ⊤ with rfl | hi' <;> simp_all +decide ;
       · refine' le_antisymm _ _;
         · refine' le_trans _ ( le_of_eq h );
           refine' le_iInf fun t => le_iInf fun ht => le_iInf fun h => _;
           exact iInf_le_of_le t ( iInf_le_of_le ht le_rfl );
         · exact zero_le _;
-      · convert h_zero_content ( ENNReal.toReal_pos hi.ne' hi' ) using 1;
+      · convert h_zero_content (ENNReal.toReal_pos hi.ne' hi') using 1;
         unfold hContent; aesop;
 
 /-
@@ -255,11 +298,6 @@ The set of points where the density is consistently low has measure zero.
 def E_star_tau {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (τ : ℝ) : Set X :=
   ⋃ n : ℕ, E_delta_tau E s (1 / (n + 1)) τ
-
-/-
-Checking the name of Hausdorff measure.
--/
-#check MeasureTheory.Measure.hausdorffMeasure
 
 /-
 Definitions of density ratio and upper density.
@@ -331,7 +369,8 @@ lemma lemma_7_7 {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
           rw [ ENNReal.mul_rpow_of_nonneg _ _ ( by positivity ), ENNReal.ofReal_rpow_of_pos ( by positivity ) ] ; ring_nf;
           rw [ ENNReal.div_mul_cancel ] <;> norm_num [ Real.rpow_pos_of_pos ] ; ring;
         · simp +zetaDelta at *;
-          exact Or.inl ⟨ fun h => False.elim <| hr₁.not_le <| by simp +decide [ h, ENNReal.ofReal_eq_zero.mpr h ], fun h => False.elim <| absurd h <| by simp +decide [ ENNReal.mul_eq_top ] ⟩;
+          exact Or.inl ⟨ fun h => False.elim <| hr₁.not_le <| by simp +decide [ENNReal.ofReal_eq_zero.mpr
+                h], fun h => False.elim <| absurd h <| by simp +decide [ ENNReal.mul_eq_top ] ⟩;
         · exact Or.inl ( ENNReal.rpow_ne_top_of_nonneg hs.le ( ENNReal.ofReal_ne_top ) );
       have h_inf : ∀ r, EMetric.diam C < ENNReal.ofReal r → r ≤ δ → (MeasureTheory.Measure.hausdorffMeasure s (C ∩ E)) ≤ ENNReal.ofReal (1 - δ) * (ENNReal.ofReal r) ^ s := by
         intro r hr₁ hr₂
@@ -349,7 +388,7 @@ lemma lemma_7_7 {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
           · by_cases h : ENNReal.ofReal ( 1 - δ ) = 0 <;> simp_all +decide;
             grind;
         · aesop;
-      refine' le_trans h_inf ( mul_le_mul_left' _ _ );
+      refine' le_trans h_inf ( mul_le_mul_right _ _ );
       have h_inf : Filter.Tendsto (fun r => (ENNReal.ofReal r) ^ s) (nhdsWithin (EMetric.diam C).toReal (Set.Ioi (EMetric.diam C).toReal)) (nhds ((EMetric.diam C) ^ s)) := by
         have h_inf : Filter.Tendsto (fun r => ENNReal.ofReal r) (nhdsWithin (EMetric.diam C).toReal (Set.Ioi (EMetric.diam C).toReal)) (nhds (EMetric.diam C)) := by
           convert ENNReal.tendsto_ofReal ( Filter.tendsto_id.mono_left inf_le_left ) using 1;
@@ -404,4 +443,4 @@ theorem main_theorem {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpac
           · exact sub_pos_of_lt ( by simpa using inv_lt_one_of_one_lt₀ ( mod_cast Ne.bot_lt hk ) );
           · exact sub_lt_self _ ( by positivity );
       refine' MeasureTheory.measure_mono_null _ ( MeasureTheory.measure_iUnion_null fun k => h_bad_set_zero k );
-      exact?
+      exact lemma_7_8 E s hs h_fin
