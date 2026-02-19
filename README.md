@@ -29,7 +29,7 @@ Suggested structure:
   - Proofs of 10 / 11 Lemmas
 
 - **Actively in progress:**  
-  - Part II of Lemma 3.3
+  - Cleaning of Lemma 3.3
 
 - **Upcoming milestones:**  
   - Full Proof of the Theorem
@@ -42,7 +42,7 @@ Suggested structure:
 | PR | Status | Description |
 |----|--------|-------------|
 | #32824 | Merged | Prove that the diameter of a Euclidean ball is twice its radius |
-| #32851 | Merges | Introduces Theorem `exists_accPt_of_noAtoms` and lemma `discreteTopology_of_noAccPts ` |
+| #32851 | Merged | Introduces Theorem `exists_accPt_of_noAtoms` and lemma `discreteTopology_of_noAccPts ` |
 | #00000 | Draft | Work in progress on `lemma_zero_of_pre_zero` : If at every sufficiently fine scale (all r ≤ δ), the set S appears to have zero size when measured at that resolution, then the set actually has zero size when measured with perfect resolution.|
 
 ---
