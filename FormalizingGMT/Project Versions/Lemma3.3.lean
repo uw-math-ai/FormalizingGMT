@@ -40,17 +40,6 @@ def E_delta_tau {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
   {x ∈ E | ∀ C, x ∈ C → EMetric.diam C ≤ ENNReal.ofReal δ →
     MeasureTheory.Measure.hausdorffMeasure s (C ∩ E) ≤ ENNReal.ofReal τ * (EMetric.diam C) ^ s}
 
-/-
-We first show that if $0<\delta\leq\delta'$, then $E(\delta',1-\delta')\subset E(\delta,1-\delta)$.
--/
-lemma E_delta_tau_nested {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    {E : Set X} {s : ℝ} {δ δ' : ℝ} (hδ : 0 < δ) (hδ' : δ ≤ δ') :
-    E_delta_tau E s δ' (1 - δ') ⊆ E_delta_tau E s δ (1 - δ) := by
-      intro x hx;
-      refine' ⟨ hx.1, fun C hx' hx'' => _ ⟩;
-      refine' le_trans ( hx.2 C hx' _ ) _;
-      · exact le_trans hx'' ( ENNReal.ofReal_le_ofReal hδ' );
-      · gcongr
 
 /-
 Hausdorff content is less than or equal to Hausdorff measure.
@@ -68,7 +57,7 @@ lemma hContent_le_hausdorffMeasure {X : Type*} [EMetricSpace X] [MeasurableSpace
         rw [ MeasureTheory.Measure.hausdorffMeasure_apply ];
         refine' le_ciSup _ ( ENNReal.ofReal r ) |> le_trans _;
         · simp +decide [ hContent, ENNReal.ofReal_pos, hr ];
-        · exact?;
+        · exact?
       exact h_content_le_measure δ hδ
 
 /-
@@ -120,13 +109,6 @@ lemma modified_cover_subset {X : Type*} [EMetricSpace X] (U : ℕ → Set X) (E 
       simp_all +decide [ Set.ext_iff, modified_cover ];
       exact ⟨ k, by rw [ if_pos ⟨ y, hk, hy.1 ⟩ ] ; exact hk ⟩
 
-/-
-The modified cover intersects E.
--/
-lemma modified_cover_inter_nonempty {X : Type*} [EMetricSpace X] (U : ℕ → Set X) (E : Set X) (x : X) (hx : x ∈ E) :
-    ∀ k, (modified_cover U E x k ∩ E).Nonempty := by
-      unfold modified_cover;
-      aesop
 
 /-
 The diameter of each set in the modified cover is bounded by the supremum of diameters in the original cover.
@@ -168,15 +150,6 @@ lemma lemma_1c_helper {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpa
         refine' le_trans ( modified_cover_diam_le _ _ _ _ ) _;
         exact ciSup_le h_diam;
       · exact?
-
-/-
-The sum of powers of diameters is equal to the term used in hContent definition.
--/
-lemma sum_eq_content_term {X : Type*} [EMetricSpace X] {s : ℝ} (hs : 0 < s) (C : ℕ → Set X) :
-    ∑' i, (EMetric.diam (C i)) ^ s = ∑' i, ⨆ (_ : (C i).Nonempty), (EMetric.diam (C i)) ^ s := by
-      refine' tsum_congr fun i => _;
-      by_cases hi : ( C i ).Nonempty <;> simp +decide [ hi ];
-      simp_all +decide [ Set.not_nonempty_iff_eq_empty.mp hi ]
 
 
 /-
@@ -243,51 +216,6 @@ lemma lemma_1d {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
       · exact ENNReal.mul_ne_top ENNReal.coe_ne_top h_fin
 
 /-
-If the Hausdorff content is zero at some scale, it is zero at any scale.
--/
-lemma hContent_zero_mono {X : Type*} [EMetricSpace X]
-    {s : ℝ} {δ δ' : ℝ} {E : Set X} (hs : 0 < s) (hδ : 0 < δ) (hδ' : 0 < δ')
-    (h : hContent s δ E = 0) :
-    hContent s δ' E = 0 := by
-      refine' le_antisymm ( le_trans ( le_of_eq ( Eq.symm _ ) ) ( le_of_forall_gt_imp_ge_of_dense _ ) ) bot_le;
-      exact?;
-      intro ε hε;
-      -- Choose η such that η < ε and η^(1/s) ≤ δ'.
-      obtain ⟨η, hη₁, hη₂⟩ : ∃ η : ENNReal, 0 < η ∧ η < ε ∧ η^(1 / s) ≤ ENNReal.ofReal δ' := by
-        -- Since $\eta^{1/s} \leq \delta'$, we can choose $\eta$ such that $\eta \leq (\delta')^s$.
-        obtain ⟨η, hη₁, hη₂⟩ : ∃ η : ENNReal, 0 < η ∧ η < ε ∧ η ≤ (ENNReal.ofReal δ') ^ s := by
-          by_cases hη : ENNReal.ofReal δ' ^ s < ε;
-          · exact ⟨ ENNReal.ofReal δ' ^ s, by positivity, hη, le_rfl ⟩;
-          · rcases ENNReal.lt_iff_exists_nnreal_btwn.mp hε with ⟨ η, hη₁, hη₂ ⟩;
-            exact ⟨ η, by simpa using hη₁, hη₂, le_trans ( by simpa using hη₂.le ) ( le_of_not_gt hη ) ⟩;
-        refine' ⟨ η, hη₁, hη₂.1, _ ⟩;
-        exact le_trans ( ENNReal.rpow_le_rpow hη₂.2 ( by positivity ) ) ( by rw [ ← ENNReal.rpow_mul, mul_one_div_cancel hs.ne', ENNReal.rpow_one ] );
-      -- Since `hContent s δ E = 0`, for any `η > 0`, there exists a cover `{U_i}` such that `diam(U_i) ≤ δ` and `∑ diam(U_i)^s < η`.
-      obtain ⟨U, hU₁, hU₂⟩ : ∃ U : ℕ → Set X, E ⊆ ⋃ i, U i ∧ ∀ i, EMetric.diam (U i) ≤ ENNReal.ofReal δ ∧ ∑' i, (EMetric.diam (U i)) ^ s < η := by
-        contrapose! h;
-        refine' ne_of_gt ( lt_of_lt_of_le hη₁ ( le_iInf fun U => le_iInf fun hU => le_iInf fun hU' => _ ) );
-        obtain ⟨ i, hi ⟩ := h U hU;
-        refine' le_trans ( hi ( hU' i ) ) _;
-        refine' ENNReal.tsum_le_tsum fun n => _;
-        by_cases h : ( U n ).Nonempty <;> simp +decide [ h ];
-        simp_all +decide [ Set.not_nonempty_iff_eq_empty.mp h ];
-      -- Since `η^(1/s) ≤ δ'`, for each `i`, `diam(U_i)^s ≤ ∑ diam(U_j)^s < η`, so `diam(U_i) < η^(1/s) ≤ δ'`.
-      have h_diam_le : ∀ i, EMetric.diam (U i) ≤ ENNReal.ofReal δ' := by
-        intro i
-        have h_diam_le_i : (EMetric.diam (U i)) ^ s ≤ ∑' j, (EMetric.diam (U j)) ^ s := by
-          exact?;
-        refine' le_trans _ hη₂.2;
-        exact le_trans ( by rw [ ← ENNReal.rpow_mul, mul_one_div_cancel hs.ne', ENNReal.rpow_one ] ) ( ENNReal.rpow_le_rpow ( h_diam_le_i.trans ( le_of_lt ( hU₂ i |>.2 ) ) ) ( by positivity ) );
-      refine' le_trans ( ciInf_le _ _ ) _;
-      exact ⟨ 0, Set.forall_mem_range.2 fun _ => zero_le _ ⟩;
-      exact U;
-      simp_all +decide [ ciInf_eq_ite ];
-      refine' le_trans _ hη₂.1.le;
-      refine' le_trans _ ( le_of_lt ( hU₂ 0 |>.2 ) );
-      refine' ENNReal.tsum_le_tsum fun i => _;
-      by_cases hi : ( U i ).Nonempty <;> simp +decide [ hi ]
-
-/-
 If the Hausdorff content is zero, the Hausdorff measure is zero.
 -/
 lemma hContent_zero_implies_hausdorffMeasure_zero {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
@@ -327,16 +255,6 @@ The set of points where the density is consistently low has measure zero.
 def E_star_tau {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (τ : ℝ) : Set X :=
   ⋃ n : ℕ, E_delta_tau E s (1 / (n + 1)) τ
-
-lemma measure_E_star_tau_eq_zero {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    (E : Set X) (s : ℝ) (τ : ℝ) (hτ : 0 < τ) (hτ1 : τ < 1) (hs : 0 < s)
-    (h_fin : MeasureTheory.Measure.hausdorffMeasure s E ≠ ⊤) :
-    MeasureTheory.Measure.hausdorffMeasure s (E_star_tau E s τ) = 0 := by
-      -- Apply `lemma_1e` to conclude that the Hausdorff measure of `E_star_tau E s τ` is zero.
-      have h_star_zero : ∀ δ > 0, (MeasureTheory.Measure.hausdorffMeasure s) (E_delta_tau E s δ τ) = 0 := by
-        exact?;
-      convert MeasureTheory.measure_mono_null ( fun a ha => ?_ ) ( MeasureTheory.measure_iUnion_null fun n : ℕ => h_star_zero ( 1/ ( n+1 ) ) <| by positivity ) using 1;
-      grind
 
 /-
 Checking the name of Hausdorff measure.
@@ -410,7 +328,7 @@ lemma lemma_7_7 {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
         rw [ ENNReal.le_div_iff_mul_le ];
         · convert h_ball using 1;
           rw [ ENNReal.ofReal_div_of_pos ( by positivity ), ENNReal.ofReal_mul ( by positivity ) ];
-          rw [ ENNReal.mul_rpow_of_nonneg _ _ ( by positivity ), ENNReal.ofReal_rpow_of_pos ( by positivity ) ] ; ring;
+          rw [ ENNReal.mul_rpow_of_nonneg _ _ ( by positivity ), ENNReal.ofReal_rpow_of_pos ( by positivity ) ] ; ring_nf;
           rw [ ENNReal.div_mul_cancel ] <;> norm_num [ Real.rpow_pos_of_pos ] ; ring;
         · simp +zetaDelta at *;
           exact Or.inl ⟨ fun h => False.elim <| hr₁.not_le <| by simp +decide [ h, ENNReal.ofReal_eq_zero.mpr h ], fun h => False.elim <| absurd h <| by simp +decide [ ENNReal.mul_eq_top ] ⟩;
