@@ -448,7 +448,7 @@ Lemma 7.8: The bad set is contained in a countable union of E(δ, τ) sets.
 lemma lemma_7_8 {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (hs : 0 < s)
     (h_fin : MeasureTheory.Measure.hausdorffMeasure s E ≠ ⊤) :
-    {x ∈ E | upper_density E s x < ENNReal.ofReal (1 / 2 ^ s)} ⊆ ⋃ (k : ℕ+), E_delta_tau E s (1 / (k : ℝ)) (1 - 1 / (k : ℝ)) := by
+    {x ∈ E | upper_density E s x < ENNReal.ofReal (1 / 2 ^ s)} ⊆ ⋃ (k : ℕ+), E_delta_tau E s (1 / (k : ℝ)) (1 - 1 / (k : ℝ)) := by --It decided not to use the def of bad_set on this line...
       intro x hx; obtain ⟨ δ, hδ_pos, hδ ⟩ := lemma_7_6 E s x hx.1 hx.2; simp +decide [ E_delta_tau ] ; (
       obtain ⟨ k, hk ⟩ := exists_nat_one_div_lt hδ_pos;
       use hx.1, ⟨ k + 1, Nat.succ_pos k ⟩;
@@ -469,7 +469,7 @@ Main Theorem: The set of points where the upper density is less than 1/2^s has H
 theorem main_theorem {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (hs : 0 < s)
     (h_fin : MeasureTheory.Measure.hausdorffMeasure s E ≠ ⊤) :
-    MeasureTheory.Measure.hausdorffMeasure s {x ∈ E | upper_density E s x < ENNReal.ofReal (1 / 2 ^ s)} = 0 := by
+    MeasureTheory.Measure.hausdorffMeasure s {x ∈ E | upper_density E s x < ENNReal.ofReal (1 / 2 ^ s)} = 0 := by --Use def of bad set
       have h_bad_set_zero : ∀ k : ℕ+, (MeasureTheory.Measure.hausdorffMeasure s) (E_delta_tau E s (1 / (k : ℝ)) (1 - 1 / (k : ℝ))) = 0 := by
         intro k;
         by_cases hk : k = 1;
