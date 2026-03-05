@@ -11,6 +11,9 @@ To-dos:
 
 
 import Mathlib
+-- Canonical definitions live in Definitions.lean:
+-- IsSSet, densityRatio (closedBall), Ds, HasDs, upperDs, hausdorffContentInfty
+import FormalizingGMT.«Project Versions».Definitions
 
 open scoped BigOperators
 open scoped Real
@@ -35,9 +38,9 @@ Definition of an s-set.
 -/
 open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 
-/-- E is an s-set if E is H^s-measurable and 0 < H^s(E) < ∞ -/
-def IsSSet {n : ℕ} (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) : Prop :=
-  MeasurableSet E ∧ 0 < hausdorffMeasure s E ∧ hausdorffMeasure s E < ⊤
+/-- E is an s-set if E is H^s-measurable and 0 < H^s(E) < ⊤.
+    Canonical version in Definitions.lean. -/
+-- def IsSSet removed: imported from Definitions.lean
 
 /-
 Definition of s-density ratio and s-density. Note: The user text says "D^s(E,x) \
@@ -73,9 +76,13 @@ open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 
 variable {n : ℕ}
 
+-- TODO: Remove once ball → closedBall refactor is complete.
+-- GMT convention (Mattila): density uses closed balls. Canonical version
+-- (with closedBall) is in Definitions.lean as `densityRatio`.
+-- Keeping open-ball version here to preserve compilability of geometric proofs.
 noncomputable def densityRatio (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
     (x : EuclideanSpace ℝ (Fin n)) (r : ℝ) : ℝ≥0∞ :=
-  hausdorffMeasure s (E ∩ ball x r) / (ENNReal.ofReal ((2 * r) ^ s))
+  hausdorffMeasure s (E ∩ closedBall x r) / (ENNReal.ofReal ((2 * r) ^ s))
 
 /-- The s-density of E at x. -/
 noncomputable def Ds (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
@@ -158,9 +165,13 @@ open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 
 variable {n : ℕ}
 
-/-- The s-dimensional Hausdorff content of a set E. -/
+-- TODO: Remove once ball → closedBall refactor is complete.
+-- Canonical unrestricted Hausdorff content is
+-- `hausdorffContentInfty` in Definitions.lean (same body).
+/-- The s-dimensional Hausdorff content of a set E (no diameter cut-off). -/
 noncomputable def hausdorffContent (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) : ℝ≥0∞ :=
-  ⨅ (t : ℕ → Set (EuclideanSpace ℝ (Fin n))) (_ : E ⊆ ⋃ i, t i), ∑' i, (EMetric.diam (t i)) ^ s
+  ⨅ (t : ℕ → Set (EuclideanSpace ℝ (Fin n))) (_ : E ⊆ ⋃ i, t i),
+    ∑' i, (EMetric.diam (t i)) ^ s
 
 -- Proof involves nested infima manipulation requiring extended computation
 theorem hausdorffContent_le_hausdorffMeasure
@@ -211,6 +222,8 @@ open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 
 variable {n : ℕ}
 
+-- TODO: Remove once ball → closedBall refactor is complete.
+-- Canonical version is `upperDs` in Definitions.lean.
 noncomputable def upperDs (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
     (x : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
   limsup (densityRatio s E x) (𝓝[>] 0)

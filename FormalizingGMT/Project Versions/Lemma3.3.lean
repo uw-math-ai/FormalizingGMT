@@ -20,8 +20,13 @@ import Mathlib.Topology.Order.OrderClosed
 import Mathlib.Algebra.Order.Archimedean.Basic
 import Mathlib.Data.PNat.Basic
 import Mathlib.Tactic
+-- Definitions (E_delta_tau, hausdorffContent, modified_cover, E_star_tau,
+--             density_ratio, upper_density, bad_set) live in Definitions.lean
+import FormalizingGMT.«Project Versions».Definitions
 
 set_option linter.mathlibStandardSet false
+set_option linter.deprecated false
+set_option linter.unusedVariables false
 
 open scoped BigOperators
 open scoped Real
@@ -31,22 +36,6 @@ open scoped Pointwise
 
 
 noncomputable section
-
-/-
-Definition of the set E(δ, τ).
--/
-def E_delta_tau {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    (E : Set X) (s : ℝ) (δ : ℝ) (τ : ℝ) : Set X :=
-  {x ∈ E | ∀ C, x ∈ C → EMetric.diam C ≤ ENNReal.ofReal δ →
-    MeasureTheory.Measure.hausdorffMeasure s (C ∩ E) ≤ ENNReal.ofReal τ * (EMetric.diam C) ^ s}
-
-
-/-
-Definition of Hausdorff content at scale δ. When δ = ⊤, this gives the unrestricted Hausdorff content H^d_∞.
--/
-def hausdorffContent {X : Type*} [EMetricSpace X] (d : ℝ) (δ : ENNReal) (s : Set X) : ENNReal :=
-  ⨅ (t : ℕ → Set X) (_ : s ⊆ ⋃ n, t n) (_ : ∀ n, EMetric.diam (t n) ≤ δ),
-    ∑' n, ⨆ (_ : (t n).Nonempty), (EMetric.diam (t n)) ^ d
 
 lemma hausdorffContent_le_hausdorffMeasure {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     {d : ℝ} {δ : ℝ} {s : Set X} (hδ : 0 < δ) :
@@ -84,12 +73,6 @@ lemma hausdorffContent_E_delta_tau_le_tau_mul_cover_sum {X : Type*} [EMetricSpac
         ENNReal.tsum_le_tsum h_subset
     _ = ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s :=
         ENNReal.tsum_mul_left
-
-/-
-Definition of modified cover.
--/
-def modified_cover {X : Type*} [EMetricSpace X] (U : ℕ → Set X) (E : Set X) (x : X) (n : ℕ) : Set X :=
-  if (U n ∩ E).Nonempty then U n else {x}
 
 /-
 The modified cover covers the intersection of E and the original cover.
@@ -227,7 +210,7 @@ lemma hausdorffContent_E_delta_tau_eq_zero_of_ne_top {X : Type*} [EMetricSpace X
 If the Hausdorff content is zero at some scale, it is zero at any scale.
 -/
 lemma hausdorffContent_zero_mono {X : Type*} [EMetricSpace X]
-    {s : ℝ} {δ δ' : ℝ} {E : Set X} (hs : 0 < s) (hδ : 0 < δ) (hδ' : 0 < δ')
+    {s : ℝ} {δ δ' : ℝ} {E : Set X} (hs : 0 < s) (_hδ : 0 < δ) (hδ' : 0 < δ')
     (h : hausdorffContent s (ENNReal.ofReal δ) E = 0) :
     hausdorffContent s (ENNReal.ofReal δ') E = 0 := by
       refine' le_antisymm ( le_trans ( le_of_eq ( Eq.symm _ ) ) ( le_of_forall_gt_imp_ge_of_dense _ ) ) bot_le
@@ -305,28 +288,6 @@ lemma lemma_1e {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
       exact fun x hx => hx.1
 
 /-
-The set of points where the density is consistently low has measure zero (union over scales).
--/
-def E_star_tau {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    (E : Set X) (s : ℝ) (τ : ℝ) : Set X :=
-  ⋃ n : ℕ, E_delta_tau E s (1 / (n + 1)) τ
-
-/-
-Definitions of density ratio and upper density.
--/
-def density_ratio {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X] (E : Set X) (s : ℝ) (x : X) (r : ℝ) : ENNReal :=
-  MeasureTheory.Measure.hausdorffMeasure s (E ∩ EMetric.ball x (ENNReal.ofReal r)) / (ENNReal.ofReal (2 * r)) ^ s
-
-def upper_density {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X] (E : Set X) (s : ℝ) (x : X) : ENNReal :=
-  Filter.limsup (fun r => density_ratio E s x r) (nhdsWithin 0 (Set.Ioi 0))
-
-/-
-The set of points in E where the upper density is less than 1/2^s.
--/
-def bad_set {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X] (E : Set X) (s : ℝ) : Set X :=
-  {x ∈ E | upper_density E s x < ENNReal.ofReal (1 / (2 : ℝ) ^ s)}
-
-/-
 Lemma 7.6: From small density to small density ratio. If the upper density is strictly less than 1/2^s, then the density ratio is uniformly bounded by (1-δ)/2^s for small r.
 -/
 lemma lemma_7_6 {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
@@ -369,11 +330,11 @@ lemma lemma_7_7 {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (hs : 0 < s) (hδ : 0 < δ) (hx : x ∈ E ∩ C) (h_diam : EMetric.diam C < ENNReal.ofReal δ)
     (h_dens : ∀ r, 0 < r → r ≤ δ → density_ratio E s x r < ENNReal.ofReal ((1 - δ) / (2 : ℝ) ^ s)) :
     MeasureTheory.Measure.hausdorffMeasure s (C ∩ E) ≤ ENNReal.ofReal (1 - δ) * (EMetric.diam C) ^ s := by
-      -- Applying the definition of density ratio and the hypothesis h_dens, we get that for any $r$ such that $d < r \leq \delta$, $H^s(ball(x, r) \cap E) < (1 - \delta) * r^s$.
-      have h_ball : ∀ r, EMetric.diam C < ENNReal.ofReal r → r ≤ δ → (MeasureTheory.Measure.hausdorffMeasure s (EMetric.ball x (ENNReal.ofReal r) ∩ E)) < ENNReal.ofReal (1 - δ) * (ENNReal.ofReal r) ^ s := by
+      -- Applying the definition of density ratio and the hypothesis h_dens, we get that for any $r$ such that $d < r \leq \delta$, $H^s(closedBall(x, r) \cap E) < (1 - \delta) * r^s$.
+      have h_ball : ∀ r, EMetric.diam C < ENNReal.ofReal r → r ≤ δ → (MeasureTheory.Measure.hausdorffMeasure s (EMetric.closedBall x (ENNReal.ofReal r) ∩ E)) < ENNReal.ofReal (1 - δ) * (ENNReal.ofReal r) ^ s := by
         intro r hr₁ hr₂
-        have h_ball : (MeasureTheory.Measure.hausdorffMeasure s (EMetric.ball x (ENNReal.ofReal r) ∩ E)) / (ENNReal.ofReal (2 * r)) ^ s < ENNReal.ofReal ((1 - δ) / 2 ^ s) := by
-          convert h_dens r ( lt_of_le_of_ne ( le_of_not_gt fun h => by rw [ ENNReal.ofReal_eq_zero.mpr h.le ] at hr₁; exact hr₁.not_ge <| by simp +decide ) <| Ne.symm <| by rintro rfl; exact hr₁.not_le <| by simp +decide ) hr₂ using 1
+        have h_ball : (MeasureTheory.Measure.hausdorffMeasure s (EMetric.closedBall x (ENNReal.ofReal r) ∩ E)) / (ENNReal.ofReal (2 * r)) ^ s < ENNReal.ofReal ((1 - δ) / 2 ^ s) := by
+          convert h_dens r ( lt_of_le_of_ne ( le_of_not_gt fun h => by rw [ ENNReal.ofReal_eq_zero.mpr h.le ] at hr₁; exact hr₁.not_ge <| by simp +decide ) <| Ne.symm <| by rintro rfl; exact hr₁.not_ge <| by simp +decide ) hr₂ using 1
           unfold density_ratio
           rw [ Set.inter_comm ]
         contrapose! h_ball
@@ -385,14 +346,14 @@ lemma lemma_7_7 {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
           rw [ ENNReal.div_mul_cancel ] <;> norm_num [ Real.rpow_pos_of_pos ]
           ring
         · simp +zetaDelta at *
-          exact Or.inl ⟨ fun h => False.elim <| hr₁.not_le <| by simp +decide [ENNReal.ofReal_eq_zero.mpr
+          exact Or.inl ⟨ fun h => False.elim <| hr₁.not_ge <| by simp +decide [ENNReal.ofReal_eq_zero.mpr
                 h], fun h => False.elim <| absurd h <| by simp +decide [ ENNReal.mul_eq_top ] ⟩
         · exact Or.inl ( ENNReal.rpow_ne_top_of_nonneg hs.le ( ENNReal.ofReal_ne_top ) )
       have h_inf : ∀ r, EMetric.diam C < ENNReal.ofReal r → r ≤ δ → (MeasureTheory.Measure.hausdorffMeasure s (C ∩ E)) ≤ ENNReal.ofReal (1 - δ) * (ENNReal.ofReal r) ^ s := by
         intro r hr₁ hr₂
-        have h_subset : C ∩ E ⊆ EMetric.ball x (ENNReal.ofReal r) ∩ E := by
+        have h_subset : C ∩ E ⊆ EMetric.closedBall x (ENNReal.ofReal r) ∩ E := by
           intro y hy
-          exact ⟨ lt_of_le_of_lt ( EMetric.edist_le_diam_of_mem hy.1 hx.2 ) hr₁, hy.2 ⟩
+          exact ⟨ le_of_lt ( lt_of_le_of_lt ( EMetric.edist_le_diam_of_mem hy.1 hx.2 ) hr₁ ), hy.2 ⟩
         exact le_trans ( MeasureTheory.measure_mono h_subset ) ( le_of_lt ( h_ball r hr₁ hr₂ ) )
       -- Taking the infimum over $r \in (d, \delta]$, we get $H^s(C \cap E) \leq (1 - \delta) * d^s$.
       have h_inf : (MeasureTheory.Measure.hausdorffMeasure s (C ∩ E)) ≤ ENNReal.ofReal (1 - δ) * (⨅ r ∈ Set.Ioc (EMetric.diam C).toReal δ, (ENNReal.ofReal r) ^ s) := by
