@@ -72,6 +72,13 @@ noncomputable def density_ratio
       (E ∩ EMetric.closedBall x (ENNReal.ofReal r)) /
     (ENNReal.ofReal (2 * r)) ^ s
 
+noncomputable def density_ratio_radon
+    {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    (μ : MeasureTheory.Measure X)
+    (E : Set X) (x : X) (r : ℝ) : ENNReal :=
+  μ (E ∩ EMetric.closedBall x (ENNReal.ofReal r)) /
+    μ (EMetric.closedBall x (ENNReal.ofReal r))
+
 noncomputable def upper_density
     {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (x : X) : ENNReal :=
