@@ -26,16 +26,13 @@ In Mathlib, `Measure.Regular` encodes exactly these three properties:
   - extends `OuterRegular`              (condition iii)
   - has `innerRegular : μ.InnerRegularWRT IsCompact IsOpen` (condition ii)
 -/
-/-- A Radon measure in the sense of Mattila: finite on compact sets,
-    outer regular on all sets, and inner regular on open sets by compact sets.
-    This is exactly `Measure.Regular` in Mathlib. -/
-def IsRadon {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
-    (μ : Measure X) : Prop :=
-  μ.Regular
+-- `Measure.Regular` in Mathlib directly encodes all three Radon conditions
+-- (finite on compacts, outer regular, inner regular on opens by compacts),
+-- so no separate `IsRadon` definition is needed; use `μ.Regular` throughout.
 
-theorem isRadon_iff_regular {X : Type*} [TopologicalSpace X] [MeasurableSpace X]
-    [BorelSpace X] (μ : Measure X) : IsRadon μ ↔ μ.Regular :=
-  Iff.rfl
+
+
+
 
 /-
 Below we have the definitions that are used in our proofs.
@@ -45,7 +42,9 @@ generality, but this will take some work.
 
 -- From Lemma3.3 File
 
-def E_delta_tau {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
+/-- The set of points in `E` where every cover of diameter at most `δ` satisfies
+    the Hausdorff density bound controlled by `τ`. Used in the proof of Lemma 3.3. -/
+def cover_set {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (δ : ℝ) (τ : ℝ) : Set X :=
   {x ∈ E | ∀ C, x ∈ C → EMetric.diam C ≤ ENNReal.ofReal δ →
     MeasureTheory.Measure.hausdorffMeasure s (C ∩ E) ≤ ENNReal.ofReal τ * (EMetric.diam C) ^ s}
@@ -56,54 +55,83 @@ noncomputable def hausdorffContent
     ∑' n, ⨆ (_ : (t n).Nonempty), (EMetric.diam (t n)) ^ d
 
 open Classical in
-noncomputable def modified_cover {X : Type*} [EMetricSpace X]
+noncomputable def truncated_cover {X : Type*} [EMetricSpace X]
     (U : ℕ → Set X) (E : Set X) (x : X) (n : ℕ) : Set X :=
   if (U n ∩ E).Nonempty then U n else {x}
 
-def E_star_tau {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
+/-- The limiting version of `cover_set`: union over all scales `δ = 1/(n+1)`. -/
+def cover_limit_set {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (τ : ℝ) : Set X :=
-  ⋃ n : ℕ, E_delta_tau E s (1 / (n + 1)) τ
+  ⋃ n : ℕ, cover_set E s (1 / (n + 1)) τ
 
 -- GMT convention: density uses closed balls B̄(x, r) = {y | d(x,y) ≤ r}
-noncomputable def density_ratio
+/-- The s-dimensional density ratio of `E` with respect to measure `μ` at point `x`,
+    radius `r`: `μ(E ∩ B̄(x,r)) / μ(B̄(x,r))`. Intended for Radon measures (`μ.Regular`).
+    Passing `μ = hausdorffMeasure s` recovers the Hausdorff s-dimensional density. -/
+noncomputable def dimensional_density_ratio
     {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    (E : Set X) (s : ℝ) (x : X) (r : ℝ) : ENNReal :=
-  MeasureTheory.Measure.hausdorffMeasure s
-      (E ∩ EMetric.closedBall x (ENNReal.ofReal r)) /
-    (ENNReal.ofReal (2 * r)) ^ s
+    (μ : Measure X) (E : Set X) (x : X) (r : ℝ) : ENNReal :=
+  μ (E ∩ EMetric.closedBall x (ENNReal.ofReal r)) /
+    μ (EMetric.closedBall x (ENNReal.ofReal r))
 
-noncomputable def upper_density
+/-- Upper s-dimensional density of `E` with respect to `μ` at `x`:
+    `limsup_{r → 0⁺} μ(E ∩ B̄(x,r)) / μ(B̄(x,r))`. -/
+noncomputable def upper_dimensional_density
     {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    (E : Set X) (s : ℝ) (x : X) : ENNReal :=
-  Filter.limsup (fun r => density_ratio E s x r) (nhdsWithin 0 (Set.Ioi 0))
-
-def bad_set
-    {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    (E : Set X) (s : ℝ) : Set X :=
-  {x ∈ E | upper_density E s x < ENNReal.ofReal (1 / (2 : ℝ) ^ s)}
+    (μ : Measure X) (E : Set X) (x : X) : ENNReal :=
+  Filter.limsup (fun r => dimensional_density_ratio μ E x r) (nhdsWithin 0 (Set.Ioi 0))
 
 
 -- From Definitions File
-def IsSSet (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) : Prop :=
+/-- `E` has positive, finite s-dimensional Hausdorff measure and is measurable. -/
+def HasPositiveFiniteHausdorff (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) : Prop :=
   MeasurableSet E ∧ 0 < hausdorffMeasure s E ∧ hausdorffMeasure s E < ⊤
 
--- GMT convention: density uses closed balls B̄(x, r) = {y | d(x,y) ≤ r}
-noncomputable def densityRatio (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
-    (x : EuclideanSpace ℝ (Fin n)) (r : ℝ) : ℝ≥0∞ :=
-  hausdorffMeasure s (E ∩ closedBall x r) / (ENNReal.ofReal ((2 * r) ^ s))
 
-noncomputable def Ds (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
+/-- Lower s-dimensional density of `E` with respect to `hausdorffMeasure s` at `x`:
+    `liminf_{r → 0⁺} ℳˢ(E ∩ B̄(x,r)) / ℳˢ(B̄(x,r))`. -/
+noncomputable def lower_dimensional_density (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
     (x : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
-  liminf (densityRatio s E x) (𝓝[>] 0)
+  Filter.liminf (fun r => dimensional_density_ratio (hausdorffMeasure s) E x r) (𝓝[>] 0)
 
-def HasDs (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (x : EuclideanSpace ℝ (Fin n)) : Prop :=
-  ∃ y, Tendsto (densityRatio s E x) (𝓝[>] 0) (𝓝 y) ∧ Ds s E x = y
+/-- `E` has a density at `x` with respect to `hausdorffMeasure s` if the dimensional
+    density ratio converges as `r → 0⁺`. -/
+def has_density (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (x : EuclideanSpace ℝ (Fin n)) :
+Prop :=
+  ∃ y, Tendsto (fun r => dimensional_density_ratio (hausdorffMeasure s) E x r) (𝓝[>] 0) (𝓝 y)
 
 -- Unrestricted Hausdorff content H^s_∞(E): infimum over all countable covers, no diameter bound.
 noncomputable def hausdorffContentInfty (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) : ℝ≥0∞ :=
   ⨅ (t : ℕ → Set (EuclideanSpace ℝ (Fin n))) (_ : E ⊆ ⋃ i, t i),
     ∑' i, (EMetric.diam (t i)) ^ s
 
-noncomputable def upperDs (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
-    (x : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
-  limsup (densityRatio s E x) (𝓝[>] 0)
+/-
+s-density for a Radon measure μ (Mattila, §6).
+Convention: closed balls, denominator r^s (radius convention).
+  - muDensityRatio μ s x r  = μ(B̄(x,r)) / r^s
+  - upperMuDensity μ s x    = limsup_{r→0⁺} μ(B̄(x,r)) / r^s
+  - lowerMuDensity μ s x    = liminf_{r→0⁺} μ(B̄(x,r)) / r^s
+These are stated for a general metric space with a Borel σ-algebra;
+μ is intended to be a Radon measure (i.e. μ.Regular holds).
+-/
+
+/-- The s-density ratio of a measure μ at point x with radius r:
+    `μ(B̄(x, r)) / r ^ s`. Intended for Radon measures. -/
+noncomputable def muDensityRatio
+    {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    (μ : Measure X) (s : ℝ) (x : X) (r : ℝ) : ℝ≥0∞ :=
+  μ (Metric.closedBall x r) / ENNReal.ofReal (r ^ s)
+
+/-- Upper s-density of μ at x:
+    `limsup_{r → 0⁺} μ(B̄(x, r)) / r ^ s`. -/
+noncomputable def upperMuDensity
+    {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    (μ : Measure X) (s : ℝ) (x : X) : ℝ≥0∞ :=
+  Filter.limsup (muDensityRatio μ s x) (𝓝[>] 0)
+
+/-- Lower s-density of μ at x:
+    `liminf_{r → 0⁺} μ(B̄(x, r)) / r ^ s`. -/
+noncomputable def lowerMuDensity
+    {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    (μ : Measure X) (s : ℝ) (x : X) : ℝ≥0∞ :=
+  Filter.liminf (muDensityRatio μ s x) (𝓝[>] 0)

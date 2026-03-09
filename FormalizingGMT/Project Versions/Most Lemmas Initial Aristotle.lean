@@ -12,7 +12,8 @@ To-dos:
 
 import Mathlib
 -- Canonical definitions live in Definitions.lean:
--- IsSSet, densityRatio (closedBall), Ds, HasDs, upperDs, hausdorffContentInfty
+-- HasPositiveFiniteHausdorff, dimensional_density_ratio, lower_dimensional_density,
+-- has_density, upper_dimensional_density, hausdorffContentInfty
 import FormalizingGMT.«Project Versions».Definitions
 
 open scoped BigOperators
@@ -39,8 +40,8 @@ Definition of an s-set.
 open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 
 /-- E is an s-set if E is H^s-measurable and 0 < H^s(E) < ⊤.
-    Canonical version in Definitions.lean. -/
--- def IsSSet removed: imported from Definitions.lean
+    Canonical version in Definitions.lean as `HasPositiveFiniteHausdorff`. -/
+-- def HasPositiveFiniteHausdorff removed: imported from Definitions.lean
 
 /-
 Definition of s-density ratio and s-density. Note: The user text says "D^s(E,x) \
@@ -78,19 +79,21 @@ variable {n : ℕ}
 
 -- TODO: Remove once ball → closedBall refactor is complete.
 -- GMT convention (Mattila): density uses closed balls. Canonical version
--- (with closedBall) is in Definitions.lean as `densityRatio`.
--- Keeping open-ball version here to preserve compilability of geometric proofs.
-noncomputable def densityRatio (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
+-- is `dimensional_density_ratio` in Definitions.lean (takes an explicit measure μ).
+-- Keeping this local Hausdorff-measure/(2r)^s version to preserve compilability of geometric proofs.
+private noncomputable def densityRatio (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
     (x : EuclideanSpace ℝ (Fin n)) (r : ℝ) : ℝ≥0∞ :=
   hausdorffMeasure s (E ∩ closedBall x r) / (ENNReal.ofReal ((2 * r) ^ s))
 
-/-- The s-density of E at x. -/
-noncomputable def Ds (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
+/-- The s-density of E at x (liminf version). Canonical version in Definitions.lean
+    is `lower_dimensional_density`, built on `dimensional_density_ratio`. -/
+private noncomputable def Ds (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
     (x : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
   liminf (densityRatio s E x) (𝓝[>] 0)
 
-/-- The proposition that the s-density exists at x. -/
-def HasDs (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (x : EuclideanSpace ℝ (Fin n)) : Prop :=
+/-- The proposition that the s-density exists at x. Canonical version in Definitions.lean
+    is `has_density`, built on `dimensional_density_ratio`. -/
+private def HasDs (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (x : EuclideanSpace ℝ (Fin n)) : Prop :=
   ∃ y, Tendsto (densityRatio s E x) (𝓝[>] 0) (𝓝 y) ∧ Ds s E x = y
 
 /-
@@ -167,9 +170,9 @@ variable {n : ℕ}
 
 -- TODO: Remove once ball → closedBall refactor is complete.
 -- Canonical unrestricted Hausdorff content is
--- `hausdorffContentInfty` in Definitions.lean (same body).
+-- `hausdorffContentInfty` in Definitions.lean (same body, more general type).
 /-- The s-dimensional Hausdorff content of a set E (no diameter cut-off). -/
-noncomputable def hausdorffContent (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) : ℝ≥0∞ :=
+private noncomputable def hausdorffContent (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) : ℝ≥0∞ :=
   ⨅ (t : ℕ → Set (EuclideanSpace ℝ (Fin n))) (_ : E ⊆ ⋃ i, t i),
     ∑' i, (EMetric.diam (t i)) ^ s
 
@@ -206,7 +209,7 @@ open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 variable {n : ℕ}
 
 lemma exists_compact_subset_pos_measure (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
-    (hE : IsSSet s E) :
+    (hE : HasPositiveFiniteHausdorff s E) :
   ∃ F, F ⊆ E ∧ IsCompact F ∧ 0 < hausdorffMeasure s F := by
     contrapose! hE;
     -- Since $E$ is an $s$-set, we have $0 < \mu_H^s(E)$.
@@ -223,8 +226,9 @@ open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 variable {n : ℕ}
 
 -- TODO: Remove once ball → closedBall refactor is complete.
--- Canonical version is `upperDs` in Definitions.lean.
-noncomputable def upperDs (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
+-- Canonical version is `upper_dimensional_density` in Definitions.lean
+-- (takes an explicit measure μ; built on `dimensional_density_ratio`).
+private noncomputable def upperDs (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
     (x : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
   limsup (densityRatio s E x) (𝓝[>] 0)
 
@@ -327,7 +331,7 @@ variable {n : ℕ}
 
 lemma annular_density_ratio_lower_bound
     (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (hs : 0 < s) (_hs1 : s < 1)
-    (F : Set (EuclideanSpace ℝ (Fin n))) (_hF_subset : F ⊆ E) (_hF_sset : IsSSet s F)
+    (F : Set (EuclideanSpace ℝ (Fin n))) (_hF_subset : F ⊆ E) (_hF_sset : HasPositiveFiniteHausdorff s F)
     (ρ : ℝ) (_hρ : 0 < ρ)
     (h_density : ∀ x ∈ F, ∀ r, 0 < r → r ≤ ρ →
       hausdorffMeasure s (E ∩ ball x r) > ENNReal.ofReal ((1 / 2) * (2 * r) ^ s))
@@ -438,7 +442,7 @@ variable {n : ℕ}
 
 lemma measure_annulus_eq_sub
     (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (y : EuclideanSpace ℝ (Fin n))
-    (hE : IsSSet s E) (r η : ℝ) (hr : 0 < r) (hη : 0 < η) :
+    (hE : HasPositiveFiniteHausdorff s E) (r η : ℝ) (hr : 0 < r) (hη : 0 < η) :
     hausdorffMeasure s (E ∩ (ball y (r * (1 + η)) \ ball y (r * (1 - η)))) =
       hausdorffMeasure s (E ∩ ball y (r * (1 + η))) -
         hausdorffMeasure s (E ∩ ball y (r * (1 - η))) := by
@@ -458,7 +462,7 @@ variable {n : ℕ}
 
 lemma annular_density_ratio_limit
     (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (y : EuclideanSpace ℝ (Fin n))
-    (hE : IsSSet s E) (h_density : HasDs s E y) (h_finite : Ds s E y ≠ ⊤)
+    (hE : HasPositiveFiniteHausdorff s E) (h_density : HasDs s E y) (h_finite : Ds s E y ≠ ⊤)
     (η : ℝ) (hη : 0 < η) (hη1 : η < 1) :
   let A := fun r => ball y (r * (1 + η)) \ ball y (r * (1 - η))
   Tendsto (fun r => hausdorffMeasure s (E ∩ A r) / ENNReal.ofReal ((2 * r) ^ s)) (𝓝[>] 0)

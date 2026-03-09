@@ -20,8 +20,8 @@ import Mathlib.Topology.Order.OrderClosed
 import Mathlib.Algebra.Order.Archimedean.Basic
 import Mathlib.Data.PNat.Basic
 import Mathlib.Tactic
--- Definitions (E_delta_tau, hausdorffContent, modified_cover, E_star_tau,
---             density_ratio, upper_density, bad_set) live in Definitions.lean
+-- cover_set, hausdorffContent, truncated_cover, cover_limit_set,
+-- dimensional_density_ratio, upper_dimensional_density live in Definitions.lean
 import FormalizingGMT.«Project Versions».Definitions
 
 set_option linter.mathlibStandardSet false
@@ -36,6 +36,24 @@ open scoped Pointwise
 
 
 noncomputable section
+
+-- REPLACE THESE WITH THE DEFINITION ANNIE AND JOSH CREATE ONCE THEY FINISH IT
+private noncomputable def density_ratio
+    {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    (E : Set X) (s : ℝ) (x : X) (r : ℝ) : ENNReal :=
+  MeasureTheory.Measure.hausdorffMeasure s
+      (E ∩ EMetric.closedBall x (ENNReal.ofReal r)) /
+    (ENNReal.ofReal (2 * r)) ^ s
+
+private noncomputable def upper_density
+    {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    (E : Set X) (s : ℝ) (x : X) : ENNReal :=
+  Filter.limsup (fun r => density_ratio E s x r) (nhdsWithin 0 (Set.Ioi 0))
+
+
+
+
+
 
 lemma hausdorffContent_le_hausdorffMeasure {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     {d : ℝ} {δ : ℝ} {s : Set X} (hδ : 0 < δ) :
@@ -52,20 +70,20 @@ Covering estimate for E(delta, tau).
 lemma hausdorffContent_E_delta_tau_le_tau_mul_cover_sum {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (δ : ℝ) (τ : ℝ) (hδ : 0 < δ) (hτ : 0 < τ) (hτ1 : τ < 1)
     (C : ℕ → Set X)
-    (h_cover : E_delta_tau E s δ τ ⊆ ⋃ i, C i)
+    (h_cover : cover_set E s δ τ ⊆ ⋃ i, C i)
     (h_diam : ∀ i, EMetric.diam (C i) ≤ ENNReal.ofReal δ)
-    (h_inter : ∀ i, (C i ∩ E_delta_tau E s δ τ).Nonempty) :
-    hausdorffContent s (ENNReal.ofReal δ) (E_delta_tau E s δ τ) ≤ ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s := by
+    (h_inter : ∀ i, (C i ∩ cover_set E s δ τ).Nonempty) :
+    hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ) ≤ ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s := by
   -- For each $i$, since $C_i \cap E_{\delta,\tau}$ is nonempty, pick a witness and use the density condition.
-  have h_subset : ∀ i, MeasureTheory.Measure.hausdorffMeasure s (C i ∩ E_delta_tau E s δ τ) ≤
+  have h_subset : ∀ i, MeasureTheory.Measure.hausdorffMeasure s (C i ∩ cover_set E s δ τ) ≤
       ENNReal.ofReal τ * (EMetric.diam (C i)) ^ s := fun i => by
     obtain ⟨_, hx_i⟩ := h_inter i
     exact (MeasureTheory.measure_mono (Set.inter_subset_inter_right _ (fun _ hx => hx.1))).trans
       (hx_i.2.2 _ hx_i.1 (h_diam i))
-  calc hausdorffContent s (ENNReal.ofReal δ) (E_delta_tau E s δ τ)
-      ≤ MeasureTheory.Measure.hausdorffMeasure s (E_delta_tau E s δ τ) :=
+  calc hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ)
+      ≤ MeasureTheory.Measure.hausdorffMeasure s (cover_set E s δ τ) :=
         hausdorffContent_le_hausdorffMeasure hδ
-    _ ≤ ∑' i, MeasureTheory.Measure.hausdorffMeasure s (C i ∩ E_delta_tau E s δ τ) :=
+    _ ≤ ∑' i, MeasureTheory.Measure.hausdorffMeasure s (C i ∩ cover_set E s δ τ) :=
         (MeasureTheory.measure_mono fun x hx => by
           obtain ⟨i, hi⟩ := Set.mem_iUnion.mp (h_cover hx)
           exact Set.mem_iUnion.mpr ⟨i, hi, hx⟩).trans (MeasureTheory.measure_iUnion_le _)
@@ -77,13 +95,13 @@ lemma hausdorffContent_E_delta_tau_le_tau_mul_cover_sum {X : Type*} [EMetricSpac
 /-
 The modified cover covers the intersection of E and the original cover.
 -/
-lemma modified_cover_subset {X : Type*} [EMetricSpace X] (U : ℕ → Set X) (E : Set X) (x : X) :
-    E ∩ ⋃ n, U n ⊆ ⋃ k, modified_cover U E x k := by
+lemma truncated_cover_subset {X : Type*} [EMetricSpace X] (U : ℕ → Set X) (E : Set X) (x : X) :
+    E ∩ ⋃ n, U n ⊆ ⋃ k, truncated_cover U E x k := by
       -- Take any $y \in E \cap \bigcup U_n �$.� Then $y \in E$ and there exists $k$ such that $ �y� \in U_k$.
       intro y hy
       obtain ⟨k, hk⟩ : ∃ k, y ∈ U k := by
         aesop
-      simp_all +decide [modified_cover]
+      simp_all +decide [truncated_cover]
       exact ⟨ k, by
         rw [ if_pos ⟨ y, hk, hy.1 ⟩ ]
         exact hk ⟩
@@ -92,9 +110,9 @@ lemma modified_cover_subset {X : Type*} [EMetricSpace X] (U : ℕ → Set X) (E 
 /-
 The diameter of each set in the modified cover is bounded by the supremum of diameters in the original cover.
 -/
-lemma modified_cover_diam_le {X : Type*} [EMetricSpace X] (U : ℕ → Set X) (E : Set X) (x : X) (k : ℕ) :
-    EMetric.diam (modified_cover U E x k) ≤ ⨆ n, EMetric.diam (U n) := by
-      unfold modified_cover
+lemma truncated_cover_diam_le {X : Type*} [EMetricSpace X] (U : ℕ → Set X) (E : Set X) (x : X) (k : ℕ) :
+    EMetric.diam (truncated_cover U E x k) ≤ ⨆ n, EMetric.diam (U n) := by
+      unfold truncated_cover
       split_ifs with h
       · exact le_ciSup ( show BddAbove ( Set.range fun n => EMetric.diam ( U n ) ) from ⟨ ⊤, Set.forall_mem_range.2 fun n => le_top ⟩ ) k
       · exact le_trans ( by simp +decide ) ( le_ciSup ( show BddAbove ( Set.range fun n => EMetric.diam ( U n ) ) from ⟨ ⊤, Set.forall_mem_range.2 fun n => le_top ⟩ ) k )
@@ -102,12 +120,12 @@ lemma modified_cover_diam_le {X : Type*} [EMetricSpace X] (U : ℕ → Set X) (E
 /-
 The sum of powers of diameters of the modified cover is less than or equal to that of the original cover.
 -/
-lemma modified_cover_sum_le {X : Type*} [EMetricSpace X] {s : ℝ} (hs : 0 < s)
+lemma truncated_cover_sum_le {X : Type*} [EMetricSpace X] {s : ℝ} (hs : 0 < s)
     (U : ℕ → Set X) (E : Set X) (x : X) :
-    ∑' k, (EMetric.diam (modified_cover U E x k))^s ≤ ∑' n, (EMetric.diam (U n))^s := by
+    ∑' k, (EMetric.diam (truncated_cover U E x k))^s ≤ ∑' n, (EMetric.diam (U n))^s := by
       apply_rules [ ENNReal.tsum_le_tsum ]
       intro n
-      by_cases h : Set.Nonempty ( U n ∩ E ) <;> simp +decide [ *, modified_cover ]
+      by_cases h : Set.Nonempty ( U n ∩ E ) <;> simp +decide [ *, truncated_cover ]
 
 /-
 Reduce a general cover to one with nonempty intersections using a modified cover anchored at a fixed point.
@@ -116,24 +134,24 @@ Reduce a general cover to one with nonempty intersections using a modified cover
 lemma hausdorffContent_le_tau_mul_sum_of_anchor {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (δ : ℝ) (τ : ℝ) (hs : 0 < s)
     (h_impl : ∀ (C : ℕ → Set X),
-      (E_delta_tau E s δ τ ⊆ ⋃ i, C i) →
+      (cover_set E s δ τ ⊆ ⋃ i, C i) →
       (∀ i, EMetric.diam (C i) ≤ ENNReal.ofReal δ) →
-      (∀ i, (C i ∩ E_delta_tau E s δ τ).Nonempty) →
-      hausdorffContent s (ENNReal.ofReal δ) (E_delta_tau E s δ τ) ≤ ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s)
+      (∀ i, (C i ∩ cover_set E s δ τ).Nonempty) →
+      hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ) ≤ ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s)
     (C : ℕ → Set X)
-    (h_cover : E_delta_tau E s δ τ ⊆ ⋃ i, C i)
+    (h_cover : cover_set E s δ τ ⊆ ⋃ i, C i)
     (h_diam : ∀ i, EMetric.diam (C i) ≤ ENNReal.ofReal δ)
-    (x : X) (hx : x ∈ E_delta_tau E s δ τ) :
-    hausdorffContent s (ENNReal.ofReal δ) (E_delta_tau E s δ τ) ≤ ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s := by
+    (x : X) (hx : x ∈ cover_set E s δ τ) :
+    hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ) ≤ ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s := by
       -- Let's define the modified cover $C'$.
-      set C' : ℕ → Set X := fun i => modified_cover C (E_delta_tau E s δ τ) x i
-      refine' le_trans ( h_impl C' _ _ _ ) ( mul_le_mul_left' ( modified_cover_sum_le hs C _ _ ) _ )
-      · exact fun y hy => modified_cover_subset C _ _ |> fun h => h <| Set.mem_inter hy ( h_cover hy )
+      set C' : ℕ → Set X := fun i => truncated_cover C (cover_set E s δ τ) x i
+      refine' le_trans ( h_impl C' _ _ _ ) ( mul_le_mul_left' ( truncated_cover_sum_le hs C _ _ ) _ )
+      · exact fun y hy => truncated_cover_subset C _ _ |> fun h => h <| Set.mem_inter hy ( h_cover hy )
       · intro i
-        refine' le_trans ( modified_cover_diam_le _ _ _ _ ) _
+        refine' le_trans ( truncated_cover_diam_le _ _ _ _ ) _
         exact ciSup_le h_diam
       · intro i
-        simp only [C', modified_cover]
+        simp only [C', truncated_cover]
         split_ifs with hi
         · exact hi
         · exact ⟨x, Set.mem_singleton x, hx⟩
@@ -145,8 +163,8 @@ The Hausdorff content of E(delta, tau) satisfies a contraction inequality.
 -/
 lemma hausdorffContent_E_delta_tau_contraction {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (δ : ℝ) (τ : ℝ) (hδ : 0 < δ) (hτ : 0 < τ) (hτ1 : τ < 1) (hs : 0 < s) :
-    hausdorffContent s (ENNReal.ofReal δ) (E_delta_tau E s δ τ) ≤ ENNReal.ofReal τ * hausdorffContent s (ENNReal.ofReal δ) (E_delta_tau E s δ τ) := by
-      by_cases h : E_delta_tau E s δ τ = ∅
+    hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ) ≤ ENNReal.ofReal τ * hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ) := by
+      by_cases h : cover_set E s δ τ = ∅
       · simp +decide [ h, hausdorffContent ]
         refine' le_trans _ ( mul_le_mul_left' ( le_iInf fun t => le_iInf fun ht => _ ) _ )
         rotate_left
@@ -155,12 +173,12 @@ lemma hausdorffContent_E_delta_tau_contraction {X : Type*} [EMetricSpace X] [Mea
         · refine' le_trans ( ciInf_le _ ( fun _ => ∅ ) ) _ <;> simp +decide
       · -- By definition of Hausdorff content, it suffices to show that for any cover $C$ of $E_{\delta, \tau}$ with diameters $\le \delta$, we have $hausdorffContent \le \tau \sum diam(C_i)^s$.
         suffices h_suff : ∀ (C : ℕ → Set X),
-            (E_delta_tau E s δ τ ⊆ ⋃ i, C i) →
+            (cover_set E s δ τ ⊆ ⋃ i, C i) →
             (∀ i, EMetric.diam (C i) ≤ ENNReal.ofReal δ) →
-            hausdorffContent s (ENNReal.ofReal δ) (E_delta_tau E s δ τ) ≤ ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s by
+            hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ) ≤ ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s by
               refine' le_trans _ ( mul_le_mul_left' ( le_iInf fun C => _ ) _ )
               rotate_left
-              exact hausdorffContent s (ENNReal.ofReal δ) ( E_delta_tau E s δ τ )
+              exact hausdorffContent s (ENNReal.ofReal δ) ( cover_set E s δ τ )
               · refine' le_iInf fun hC => le_iInf fun hC' => _
                 refine' le_trans ( h_suff C hC hC' ) _
                 rw [ ← ENNReal.tsum_mul_left ]
@@ -170,8 +188,8 @@ lemma hausdorffContent_E_delta_tau_contraction {X : Type*} [EMetricSpace X] [Mea
                 · simp_all +decide [ Set.not_nonempty_iff_eq_empty.mp hn ]
               · refine' le_trans ( le_of_eq _ ) ( mul_le_mul_left' ( le_iInf fun C => _ ) _ )
                 rotate_left
-                exact ( ENNReal.ofReal τ ) ⁻¹ * hausdorffContent s (ENNReal.ofReal δ) ( E_delta_tau E s δ τ )
-                · by_cases hC : E_delta_tau E s δ τ ⊆ ⋃ n, C n <;> by_cases hC' : ∀ n, EMetric.diam ( C n ) ≤ ENNReal.ofReal δ <;> simp +decide [ hC, hC' ]
+                exact ( ENNReal.ofReal τ ) ⁻¹ * hausdorffContent s (ENNReal.ofReal δ) ( cover_set E s δ τ )
+                · by_cases hC : cover_set E s δ τ ⊆ ⋃ n, C n <;> by_cases hC' : ∀ n, EMetric.diam ( C n ) ≤ ENNReal.ofReal δ <;> simp +decide [ hC, hC' ]
                   rw [ ENNReal.inv_mul_le_iff ]
                   · convert h_suff C hC hC' using 1
                     congr! 2
@@ -182,7 +200,7 @@ lemma hausdorffContent_E_delta_tau_contraction {X : Type*} [EMetricSpace X] [Mea
                   · exact ENNReal.ofReal_ne_top
                 · rw [ ← mul_assoc, ENNReal.mul_inv_cancel ( by aesop ) ( by aesop ), one_mul ]
         -- Let $x \in E_{\delta, \tau}$.
-        obtain ⟨x, hx⟩ : ∃ x, x ∈ E_delta_tau E s δ τ := by
+        obtain ⟨x, hx⟩ : ∃ x, x ∈ cover_set E s δ τ := by
           exact Set.nonempty_iff_ne_empty.2 h
         intro C hC hC'
         apply hausdorffContent_le_tau_mul_sum_of_anchor
@@ -194,14 +212,14 @@ If the Hausdorff content is finite, it must be zero.
 -/
 lemma hausdorffContent_E_delta_tau_eq_zero_of_ne_top {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (δ : ℝ) (τ : ℝ) (hδ : 0 < δ) (hτ : 0 < τ) (hτ1 : τ < 1) (hs : 0 < s)
-    (h_fin : hausdorffContent s (ENNReal.ofReal δ) (E_delta_tau E s δ τ) ≠ ⊤) :
-    hausdorffContent s (ENNReal.ofReal δ) (E_delta_tau E s δ τ) = 0 := by
+    (h_fin : hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ) ≠ ⊤) :
+    hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ) = 0 := by
       -- By `hausdorffContent_E_delta_tau_contraction`, we have $hausdorffContent \le \tau * hausdorffContent$.
-      have h_le : (hausdorffContent s (ENNReal.ofReal δ) (E_delta_tau E s δ τ)) ≤ ENNReal.ofReal τ * (hausdorffContent s (ENNReal.ofReal δ) (E_delta_tau E s δ τ)) := by
+      have h_le : (hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ)) ≤ ENNReal.ofReal τ * (hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ)) := by
         convert hausdorffContent_E_delta_tau_contraction E s δ τ hδ hτ hτ1 hs using 1
-      by_cases h : hausdorffContent s (ENNReal.ofReal δ) ( E_delta_tau E s δ τ ) = 0 <;> simp_all +decide
+      by_cases h : hausdorffContent s (ENNReal.ofReal δ) ( cover_set E s δ τ ) = 0 <;> simp_all +decide
       rw [ ← ENNReal.toReal_le_toReal ] at h_le <;> norm_num at *
-      · exact absurd h_le ( by rw [ ENNReal.toReal_ofReal hτ.le ] ; nlinarith [ show 0 < ( hausdorffContent s (ENNReal.ofReal δ) ( E_delta_tau E s δ τ ) |> ENNReal.toReal ) from ENNReal.toReal_pos h h_fin ] )
+      · exact absurd h_le ( by rw [ ENNReal.toReal_ofReal hτ.le ] ; nlinarith [ show 0 < ( hausdorffContent s (ENNReal.ofReal δ) ( cover_set E s δ τ ) |> ENNReal.toReal ) from ENNReal.toReal_pos h h_fin ] )
       · exact h_fin
       · exact ENNReal.mul_ne_top ENNReal.coe_ne_top h_fin
 
@@ -279,7 +297,7 @@ If the Hausdorff measure of E is finite, then the Hausdorff measure of E(delta, 
 lemma lemma_1e {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (δ : ℝ) (τ : ℝ) (hδ : 0 < δ) (hτ : 0 < τ) (hτ1 : τ < 1) (hs : 0 < s)
     (h_fin : MeasureTheory.Measure.hausdorffMeasure s E ≠ ⊤) :
-    MeasureTheory.Measure.hausdorffMeasure s (E_delta_tau E s δ τ) = 0 := by
+    MeasureTheory.Measure.hausdorffMeasure s (cover_set E s δ τ) = 0 := by
       convert hausdorffContent_zero_implies_hausdorffMeasure_zero hs hδ _
       convert hausdorffContent_E_delta_tau_eq_zero_of_ne_top E s δ τ hδ hτ hτ1 hs _
       refine' ne_of_lt ( lt_of_le_of_lt _ ( lt_top_iff_ne_top.mpr h_fin ) )
@@ -291,7 +309,8 @@ lemma lemma_1e {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
 Lemma 7.6: From small density to small density ratio. If the upper density is strictly less than 1/2^s, then the density ratio is uniformly bounded by (1-δ)/2^s for small r.
 -/
 lemma lemma_7_6 {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    (E : Set X) (s : ℝ) (x : X) (hx : x ∈ bad_set E s) :
+    (E : Set X) (s : ℝ) (x : X)
+    (hx : x ∈ E ∧ upper_density E s x < ENNReal.ofReal (1 / (2 : ℝ) ^ s)) :
     ∃ δ > 0, ∀ r, 0 < r → r ≤ δ →
       density_ratio E s x r < ENNReal.ofReal ((1 - δ) / (2 : ℝ) ^ s) := by
         -- By Lemma 4.2, there exist ε > 0 and R > 0 such that for all r ∈ (0, R], density_ratio < 1/2^s - ε.
@@ -382,10 +401,11 @@ Lemma 7.8: The bad set is contained in a countable union of E(δ, τ) sets.
 lemma lemma_7_8 {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (hs : 0 < s)
     (h_fin : MeasureTheory.Measure.hausdorffMeasure s E ≠ ⊤) :
-    bad_set E s ⊆ ⋃ (k : ℕ+), E_delta_tau E s (1 / (k : ℝ)) (1 - 1 / (k : ℝ)) := by
+    {x ∈ E | upper_density E s x < ENNReal.ofReal (1 / (2 : ℝ) ^ s)} ⊆
+      ⋃ (k : ℕ+), cover_set E s (1 / (k : ℝ)) (1 - 1 / (k : ℝ)) := by
       intro x hx
       obtain ⟨ δ, hδ_pos, hδ ⟩ := lemma_7_6 E s x hx
-      simp +decide [ E_delta_tau ]
+      simp +decide [ cover_set ]
       (
       obtain ⟨ k, hk ⟩ := exists_nat_one_div_lt hδ_pos
       use hx.1, ⟨ k + 1, Nat.succ_pos k ⟩
@@ -406,15 +426,16 @@ Main Theorem: The set of points where the upper density is less than 1/2^s has H
 theorem main_theorem {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (hs : 0 < s)
     (h_fin : MeasureTheory.Measure.hausdorffMeasure s E ≠ ⊤) :
-    MeasureTheory.Measure.hausdorffMeasure s (bad_set E s) = 0 := by
-      have h_bad_set_zero : ∀ k : ℕ+, (MeasureTheory.Measure.hausdorffMeasure s) (E_delta_tau E s (1 / (k : ℝ)) (1 - 1 / (k : ℝ))) = 0 := by
+    MeasureTheory.Measure.hausdorffMeasure s
+      {x ∈ E | upper_density E s x < ENNReal.ofReal (1 / (2 : ℝ) ^ s)} = 0 := by
+      have h_bad_set_zero : ∀ k : ℕ+, (MeasureTheory.Measure.hausdorffMeasure s) (cover_set E s (1 / (k : ℝ)) (1 - 1 / (k : ℝ))) = 0 := by
         intro k
         by_cases hk : k = 1
-        · have h_subset : E_delta_tau E s 1 0 ⊆ E_delta_tau E s 1 (1 / 2) := by
+        · have h_subset : cover_set E s 1 0 ⊆ cover_set E s 1 (1 / 2) := by
             intro x hx
-            unfold E_delta_tau at *
+            unfold cover_set at *
             aesop
-          have h_zero : (MeasureTheory.Measure.hausdorffMeasure s) (E_delta_tau E s 1 (1 / 2)) = 0 := by
+          have h_zero : (MeasureTheory.Measure.hausdorffMeasure s) (cover_set E s 1 (1 / 2)) = 0 := by
             apply_rules [ lemma_1e ]
             · norm_num
             · norm_num
