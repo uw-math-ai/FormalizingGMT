@@ -30,6 +30,7 @@ In Mathlib, `Measure.Regular` encodes exactly these three properties:
 -- (finite on compacts, outer regular, inner regular on opens by compacts),
 -- so no separate `IsRadon` definition is needed; use `μ.Regular` throughout.
 
+-- I think we should double check above...
 
 
 
@@ -64,35 +65,10 @@ def cover_limit_set {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace
     (E : Set X) (s : ℝ) (τ : ℝ) : Set X :=
   ⋃ n : ℕ, cover_set E s (1 / (n + 1)) τ
 
--- GMT convention: density uses closed balls B̄(x, r) = {y | d(x,y) ≤ r}
-/-- The s-dimensional density ratio of `E` with respect to measure `μ` at point `x`,
-    radius `r`: `μ(E ∩ B̄(x,r)) / μ(B̄(x,r))`. Intended for Radon measures (`μ.Regular`).
-    Passing `μ = hausdorffMeasure s` recovers the Hausdorff s-dimensional density. -/
-noncomputable def dimensional_density_ratio
-    {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    (μ : Measure X) (E : Set X) (x : X) (r : ℝ) : ENNReal :=
-  μ (E ∩ EMetric.closedBall x (ENNReal.ofReal r)) /
-    μ (EMetric.closedBall x (ENNReal.ofReal r))
-
-/-- Upper s-dimensional density of `E` with respect to `μ` at `x`:
-    `limsup_{r → 0⁺} μ(E ∩ B̄(x,r)) / μ(B̄(x,r))`. -/
-noncomputable def upper_dimensional_density
-    {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    (μ : Measure X) (E : Set X) (x : X) : ENNReal :=
-  Filter.limsup (fun r => dimensional_density_ratio μ E x r) (nhdsWithin 0 (Set.Ioi 0))
-
-
 -- From Definitions File
 /-- `E` has positive, finite s-dimensional Hausdorff measure and is measurable. -/
 def HasPositiveFiniteHausdorff (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) : Prop :=
   MeasurableSet E ∧ 0 < hausdorffMeasure s E ∧ hausdorffMeasure s E < ⊤
-
-
-/-- Lower s-dimensional density of `E` with respect to `hausdorffMeasure s` at `x`:
-    `liminf_{r → 0⁺} ℳˢ(E ∩ B̄(x,r)) / ℳˢ(B̄(x,r))`. -/
-noncomputable def lower_dimensional_density (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
-    (x : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
-  Filter.liminf (fun r => dimensional_density_ratio (hausdorffMeasure s) E x r) (𝓝[>] 0)
 
 /-- `E` has a density at `x` with respect to `hausdorffMeasure s` if the dimensional
     density ratio converges as `r → 0⁺`. -/
@@ -117,21 +93,21 @@ These are stated for a general metric space with a Borel σ-algebra;
 
 /-- The s-density ratio of a measure μ at point x with radius r:
     `μ(B̄(x, r)) / r ^ s`. Intended for Radon measures. -/
-noncomputable def muDensityRatio
+noncomputable def dimensional_density_ratio
     {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : Measure X) (s : ℝ) (x : X) (r : ℝ) : ℝ≥0∞ :=
-  μ (Metric.closedBall x r) / ENNReal.ofReal (r ^ s)
+  μ (Metric.closedBall x r) / ENNReal.ofReal ((2 * r) ^ s)
 
 /-- Upper s-density of μ at x:
     `limsup_{r → 0⁺} μ(B̄(x, r)) / r ^ s`. -/
-noncomputable def upperMuDensity
+noncomputable def upper_dimensional_density
     {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : Measure X) (s : ℝ) (x : X) : ℝ≥0∞ :=
-  Filter.limsup (muDensityRatio μ s x) (𝓝[>] 0)
+  Filter.limsup (dimensional_density_ratio μ s x) (𝓝[>] 0)
 
 /-- Lower s-density of μ at x:
     `liminf_{r → 0⁺} μ(B̄(x, r)) / r ^ s`. -/
-noncomputable def lowerMuDensity
+noncomputable def lower_dimensional_density
     {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : Measure X) (s : ℝ) (x : X) : ℝ≥0∞ :=
-  Filter.liminf (muDensityRatio μ s x) (𝓝[>] 0)
+  Filter.liminf (dimensional_density_ratio μ s x) (𝓝[>] 0)
