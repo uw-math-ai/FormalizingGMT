@@ -11,6 +11,15 @@ To-dos:
 
 
 import Mathlib
+import Mathlib.MeasureTheory.Measure.Hausdorff
+import Mathlib.MeasureTheory.Measure.Regular
+import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+import Mathlib.Topology.Order.LiminfLimsup
+import Mathlib.Topology.Order.OrderClosed
+import Mathlib.Algebra.Order.Archimedean.Basic
+import Mathlib.Data.PNat.Basic
+import Mathlib.Tactic
 -- Canonical definitions live in Definitions.lean:
 -- HasPositiveFiniteHausdorff, dimensional_density_ratio, lower_dimensional_density,
 -- has_density, upper_dimensional_density, hausdorffContentInfty
@@ -23,6 +32,7 @@ open scoped Pointwise
 
 set_option maxRecDepth 4000
 set_option synthInstance.maxSize 128
+set_option linter.style.longLine false
 
 set_option relaxedAutoImplicit false
 set_option autoImplicit false
@@ -39,62 +49,9 @@ Definition of an s-set.
 -/
 open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 
-/-- E is an s-set if E is H^s-measurable and 0 < H^s(E) < ⊤.
-    Canonical version in Definitions.lean as `HasPositiveFiniteHausdorff`. -/
--- def HasPositiveFiniteHausdorff removed: imported from Definitions.lean
-
-/-
-Definition of s-density ratio and s-density. Note: The user text says "D^s(E,x) \
-exists", which implies a limit. I defined Ds as liminf to have a value always, but \
-HasDs checks if it is a limit.
-Actually, looking at the text "D^s(E,x) fails to exist", it implies we should \
-distinguish between existence and the value.
-If I define Ds as liminf, then "Ds exists" is trivial if I just mean the value exists.
-The user means the limit exists.
-So `HasDs` is the condition.
-And when they write `D^s(E,x)` in a context where it exists, they mean the limit.
-If it doesn't exist, `Ds` (liminf) is still defined but might not be the limit \
-(limit might not exist).
-However, usually "density exists" means limsup = liminf.
-I'll define `Ds` as `liminf` (or `limsup`? The text uses `limsup` in Lemma 2.4 \
-"upper density lower bound").
-Wait, Lemma 2.4 mentions `limsup`.
-But the main theorem talks about `D^s(E,x)` existing.
-If `D^s(E,x)` exists, then `liminf = limsup`.
-So defining `Ds` as `liminf` is consistent with the value when it exists.
-I will stick with `liminf` for `Ds` and `HasDs` for the limit existence.
-Actually, `HasDs` should probably just be `Tendsto`.
-And `Ds` should be the value.
-If `Tendsto ... (𝓝 y)`, then `y` is the density.
-I'll define `Ds` as `liminf`.
-And `HasDs` as `Tendsto ... (𝓝 (Ds s E x))`.
-This ensures that if `HasDs` holds, `Ds` is the limit.
-One detail: `(2*r)^s` might be undefined for negative `r`, but we take limit at `𝓝[>] 0`.
-Also `ENNReal.ofReal` handles negative values by returning 0.
-I'll proceed with this.
--/
 open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 
 variable {n : ℕ}
-
--- TODO: Remove once ball → closedBall refactor is complete.
--- GMT convention (Mattila): density uses closed balls. Canonical version
--- is `dimensional_density_ratio` in Definitions.lean (takes an explicit measure μ).
--- Keeping this local Hausdorff-measure/(2r)^s version to preserve compilability of geometric proofs.
-private noncomputable def densityRatio (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
-    (x : EuclideanSpace ℝ (Fin n)) (r : ℝ) : ℝ≥0∞ :=
-  hausdorffMeasure s (E ∩ closedBall x r) / (ENNReal.ofReal ((2 * r) ^ s))
-
-/-- The s-density of E at x (liminf version). Canonical version in Definitions.lean
-    is `lower_dimensional_density`, built on `dimensional_density_ratio`. -/
-private noncomputable def Ds (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
-    (x : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
-  liminf (densityRatio s E x) (𝓝[>] 0)
-
-/-- The proposition that the s-density exists at x. Canonical version in Definitions.lean
-    is `has_density`, built on `dimensional_density_ratio`. -/
-private def HasDs (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (x : EuclideanSpace ℝ (Fin n)) : Prop :=
-  ∃ y, Tendsto (densityRatio s E x) (𝓝[>] 0) (𝓝 y) ∧ Ds s E x = y
 
 /-
 Lemma 4.1: The diameter of a ball B(x,r) in Euclidean space is 2r (assuming dimension n ≠ 0).
@@ -168,30 +125,18 @@ open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 
 variable {n : ℕ}
 
--- TODO: Remove once ball → closedBall refactor is complete.
--- Canonical unrestricted Hausdorff content is
--- `hausdorffContentInfty` in Definitions.lean (same body, more general type).
-/-- The s-dimensional Hausdorff content of a set E (no diameter cut-off). -/
-private noncomputable def hausdorffContent (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) : ℝ≥0∞ :=
-  ⨅ (t : ℕ → Set (EuclideanSpace ℝ (Fin n))) (_ : E ⊆ ⋃ i, t i),
-    ∑' i, (EMetric.diam (t i)) ^ s
-
--- Proof involves nested infima manipulation requiring extended computation
 theorem hausdorffContent_le_hausdorffMeasure
     (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (hs : 0 < s) :
-  hausdorffContent s E ≤ hausdorffMeasure s E := by
-    -- By definition of Hausdorff measure, we know that
+  hausdorffContentInfty s E ≤ hausdorffMeasure s E := by
     simp only [hausdorffMeasure]
     rw [MeasureTheory.Measure.mkMetric_apply]
-    -- For any $r > 0$, the infimum of the sums over covers with
-    -- diameters $\leq r$ is at least the Hausdorff content.
     have h_inf_ge_hausdorff_content :
         ∀ r > 0, ⨅ (t : ℕ → Set (EuclideanSpace ℝ (Fin n))),
           ⨅ (_ : E ⊆ Set.iUnion t), ⨅ (_ : ∀ n, EMetric.diam (t n) ≤ r),
-          ∑' n, ⨆ (_ : (t n).Nonempty), EMetric.diam (t n) ^ s ≥ hausdorffContent s E := by
+          ∑' n, ⨆ (_ : (t n).Nonempty), EMetric.diam (t n) ^ s ≥ hausdorffContentInfty s E := by
       intro r hr
       refine le_iInf fun t => le_iInf fun ht => le_iInf fun ht' => ?_
-      unfold hausdorffContent
+      unfold hausdorffContentInfty
       refine iInf₂_le_of_le t ht ?_
       refine ENNReal.tsum_le_tsum fun i => ?_
       by_cases hi : (t i).Nonempty
@@ -224,13 +169,6 @@ Definition of upper s-density.
 open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 
 variable {n : ℕ}
-
--- TODO: Remove once ball → closedBall refactor is complete.
--- Canonical version is `upper_dimensional_density` in Definitions.lean
--- (takes an explicit measure μ; built on `dimensional_density_ratio`).
-private noncomputable def upperDs (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n)))
-    (x : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
-  limsup (densityRatio s E x) (𝓝[>] 0)
 
 /-
 Lemma 2.5: If H^s(E) > 0 with s > 0, then E has an accumulation point.
@@ -382,15 +320,17 @@ variable {n : ℕ}
 
 lemma limit_density_ratio_scaled
     (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (y : EuclideanSpace ℝ (Fin n))
-    (h_density : HasDs s E y) (c : ℝ) (hc : 0 < c) :
-  Tendsto (fun r => hausdorffMeasure s (E ∩ ball y (r * c)) / ENNReal.ofReal ((2 * r) ^ s)) (𝓝[>] 0)
-    (𝓝 (Ds s E y * ENNReal.ofReal (c ^ s))) := by
-      -- Recognize that the scaled density ratio is the original density ratio multiplied by $c^s$.
+    (h_density : Tendsto
+      (fun r => dimensional_density_ratio ((hausdorffMeasure s).restrict E) s y r)
+      (𝓝[>] 0)
+      (𝓝 (dimensional_lower_density ((hausdorffMeasure s).restrict E) s y)))
+    (c : ℝ) (hc : 0 < c) :
+  Tendsto (fun r => hausdorffMeasure s (E ∩ closedBall y (r * c)) / ENNReal.ofReal ((2 * r) ^ s)) (𝓝[>] 0)
+    (𝓝 (dimensional_lower_density ((hausdorffMeasure s).restrict E) s y * ENNReal.ofReal (c ^ s))) := by
       have h_scaled : ∀ r > 0,
-          (hausdorffMeasure s (E ∩ ball y (r * c))) / (ENNReal.ofReal ((2 * r) ^ s)) =
-          (hausdorffMeasure s (E ∩ ball y (r * c))) /
+          (hausdorffMeasure s (E ∩ closedBall y (r * c))) / (ENNReal.ofReal ((2 * r) ^ s)) =
+          (hausdorffMeasure s (E ∩ closedBall y (r * c))) /
             (ENNReal.ofReal ((2 * r * c) ^ s)) * ENNReal.ofReal (c ^ s) := by
-        -- By properties of exponents, rewrite denominator as $(2r)^s \cdot c^s$.
         intro r hr
         have h_denom :
             ENNReal.ofReal ((2 * r * c) ^ s) =
@@ -404,30 +344,27 @@ lemma limit_density_ratio_scaled
             (by simp_all only [ne_eq, ofReal_ne_top, not_false_eq_true])]
         · exact Or.inr (ne_of_gt (ENNReal.ofReal_pos.mpr (Real.rpow_pos_of_pos hc _)))
         · exact Or.inl <| ENNReal.ofReal_ne_top
-      -- Apply the fact that the original density ratio tends to Ds s E y.
       have h_original :
-          Filter.Tendsto (fun r => (hausdorffMeasure s (E ∩ ball y (r * c))) /
-            (ENNReal.ofReal ((2 * r * c) ^ s))) (𝓝[>] 0) (𝓝 (Ds s E y)) := by
-        obtain ⟨ y, hy, hy' ⟩ := h_density
-        convert hy.comp
-          (show Filter.Tendsto (fun r : ℝ => r * c) (𝓝[>] 0) (𝓝[>] 0) from ?_) using 2
-        · unfold densityRatio
-          subst hy'
-          simp_all only [gt_iff_lt, Function.comp_apply]
-          ring_nf
-        · rw [tendsto_nhdsWithin_iff]
-          subst hy'
+          Filter.Tendsto (fun r => (hausdorffMeasure s (E ∩ closedBall y (r * c))) /
+            (ENNReal.ofReal ((2 * r * c) ^ s))) (𝓝[>] 0)
+            (𝓝 (dimensional_lower_density ((hausdorffMeasure s).restrict E) s y)) := by
+        have hmul : Filter.Tendsto (fun r : ℝ => r * c) (𝓝[>] 0) (𝓝[>] 0) := by
+          rw [tendsto_nhdsWithin_iff]
           simp_all only [gt_iff_lt, mem_Ioi, mul_pos_iff_of_pos_right]
-          apply And.intro
-          · exact tendsto_nhdsWithin_of_tendsto_nhds
-              (Continuous.tendsto' (by continuity) _ _ (by norm_num))
-          · exact self_mem_nhdsWithin
-      -- Apply the fact that multiplication by a constant preserves limits.
+          exact ⟨tendsto_nhdsWithin_of_tendsto_nhds
+            (Continuous.tendsto' (by continuity) _ _ (by norm_num)), self_mem_nhdsWithin⟩
+        have hz' : Filter.Tendsto
+            (fun r => dimensional_density_ratio ((hausdorffMeasure s).restrict E) s y (r * c))
+            (𝓝[>] 0)
+            (𝓝 (dimensional_lower_density ((hausdorffMeasure s).restrict E) s y)) := by
+          simpa [Function.comp] using h_density.comp hmul
+        simpa [dimensional_density_ratio, MeasureTheory.Measure.restrict_apply,
+          Metric.isClosed_closedBall.measurableSet, Set.inter_comm, mul_assoc] using hz'
       have h_final :
-          Filter.Tendsto (fun r => (hausdorffMeasure s (E ∩ ball y (r * c))) /
+          Filter.Tendsto (fun r => (hausdorffMeasure s (E ∩ closedBall y (r * c))) /
             (ENNReal.ofReal ((2 * r * c) ^ s)) * ENNReal.ofReal (c ^ s))
-            (𝓝[>] 0) (𝓝 (Ds s E y * ENNReal.ofReal (c ^ s))) := by
-        -- Multiplication by a constant preserves limits in ENNReal.
+            (𝓝[>] 0)
+            (𝓝 (dimensional_lower_density ((hausdorffMeasure s).restrict E) s y * ENNReal.ofReal (c ^ s))) := by
         apply ENNReal.Tendsto.mul_const h_original
         exact Or.inr ENNReal.ofReal_ne_top
       exact h_final.congr'
@@ -462,27 +399,36 @@ variable {n : ℕ}
 
 lemma annular_density_ratio_limit
     (s : ℝ) (E : Set (EuclideanSpace ℝ (Fin n))) (y : EuclideanSpace ℝ (Fin n))
-    (hE : HasPositiveFiniteHausdorff s E) (h_density : HasDs s E y) (h_finite : Ds s E y ≠ ⊤)
+    (hE : HasPositiveFiniteHausdorff s E)
+    (h_density : Tendsto
+      (fun r => dimensional_density_ratio ((hausdorffMeasure s).restrict E) s y r)
+      (𝓝[>] 0)
+      (𝓝 (dimensional_lower_density ((hausdorffMeasure s).restrict E) s y)))
+    (h_finite : dimensional_lower_density ((hausdorffMeasure s).restrict E) s y ≠ ⊤)
     (η : ℝ) (hη : 0 < η) (hη1 : η < 1) :
-  let A := fun r => ball y (r * (1 + η)) \ ball y (r * (1 - η))
+  let A := fun r => closedBall y (r * (1 + η)) \ closedBall y (r * (1 - η))
   Tendsto (fun r => hausdorffMeasure s (E ∩ A r) / ENNReal.ofReal ((2 * r) ^ s)) (𝓝[>] 0)
-    (𝓝 (Ds s E y * ENNReal.ofReal ((1 + η) ^ s - (1 - η) ^ s))) := by
+    (𝓝 (dimensional_lower_density ((hausdorffMeasure s).restrict E) s y *
+      ENNReal.ofReal ((1 + η) ^ s - (1 - η) ^ s))) := by
       -- Using the measure of the annulus = difference of measures of balls,
       -- we write the limit as difference of limits of density ratios.
       have h_diff :
           Filter.Tendsto (fun r =>
-            (μH[s] (E ∩ ball y (r * (1 + η)))) / ENNReal.ofReal ((2 * r) ^ s) -
-            (μH[s] (E ∩ ball y (r * (1 - η)))) / ENNReal.ofReal ((2 * r) ^ s))
-            (𝓝[>] 0) (𝓝 (Ds s E y * ENNReal.ofReal ((1 + η) ^ s) -
-              Ds s E y * ENNReal.ofReal ((1 - η) ^ s))) := by
+            (μH[s] (E ∩ closedBall y (r * (1 + η)))) / ENNReal.ofReal ((2 * r) ^ s) -
+            (μH[s] (E ∩ closedBall y (r * (1 - η)))) / ENNReal.ofReal ((2 * r) ^ s))
+            (𝓝[>] 0)
+            (𝓝 (dimensional_lower_density ((hausdorffMeasure s).restrict E) s y * ENNReal.ofReal ((1 + η) ^ s) -
+              dimensional_lower_density ((hausdorffMeasure s).restrict E) s y * ENNReal.ofReal ((1 - η) ^ s))) := by
         -- Difference of convergent functions converges to difference of limits.
         have h_diff :
             Filter.Tendsto (fun r =>
-              (μH[s] (E ∩ ball y (r * (1 + η)))) / ENNReal.ofReal ((2 * r) ^ s))
-              (𝓝[>] 0) (𝓝 (Ds s E y * ENNReal.ofReal ((1 + η) ^ s))) ∧
+              (μH[s] (E ∩ closedBall y (r * (1 + η)))) / ENNReal.ofReal ((2 * r) ^ s))
+              (𝓝[>] 0)
+              (𝓝 (dimensional_lower_density ((hausdorffMeasure s).restrict E) s y * ENNReal.ofReal ((1 + η) ^ s))) ∧
             Filter.Tendsto (fun r =>
-              (μH[s] (E ∩ ball y (r * (1 - η)))) / ENNReal.ofReal ((2 * r) ^ s))
-              (𝓝[>] 0) (𝓝 (Ds s E y * ENNReal.ofReal ((1 - η) ^ s))) := by
+              (μH[s] (E ∩ closedBall y (r * (1 - η)))) / ENNReal.ofReal ((2 * r) ^ s))
+              (𝓝[>] 0)
+              (𝓝 (dimensional_lower_density ((hausdorffMeasure s).restrict E) s y * ENNReal.ofReal ((1 - η) ^ s))) := by
           exact ⟨by simpa using limit_density_ratio_scaled s E y h_density (1 + η) (by linarith),
             by simpa using limit_density_ratio_scaled s E y h_density (1 - η) (by linarith)⟩
         refine ENNReal.Tendsto.sub h_diff.1 h_diff.2 ?_
@@ -491,16 +437,16 @@ lemma annular_density_ratio_limit
       · filter_upwards [ self_mem_nhdsWithin ] with r hr;
         -- The measure of the annulus is the difference of the measures of the two balls.
         have h_annulus :
-            μH[s] (E ∩ (Metric.ball y (r * (1 + η)) \ Metric.ball y (r * (1 - η)))) =
-              μH[s] (E ∩ Metric.ball y (r * (1 + η))) -
-              μH[s] (E ∩ Metric.ball y (r * (1 - η))) := by
+            μH[s] (E ∩ (Metric.closedBall y (r * (1 + η)) \ Metric.closedBall y (r * (1 - η)))) =
+              μH[s] (E ∩ Metric.closedBall y (r * (1 + η))) -
+              μH[s] (E ∩ Metric.closedBall y (r * (1 - η))) := by
           rw [← MeasureTheory.measure_diff]
           · congr 1
             exact Set.inter_diff_distrib_left E
-              (ball y (r * (1 + η))) (ball y (r * (1 - η)))
+              (closedBall y (r * (1 + η))) (closedBall y (r * (1 - η)))
           · exact Set.inter_subset_inter_right _
-              (Metric.ball_subset_ball <| by nlinarith [hr.out])
-          · exact hE.1.nullMeasurableSet.inter measurableSet_ball.nullMeasurableSet
+              (Metric.closedBall_subset_closedBall <| by nlinarith [hr.out])
+          · exact hE.1.nullMeasurableSet.inter measurableSet_closedBall.nullMeasurableSet
           · exact ne_of_lt
               (lt_of_le_of_lt (MeasureTheory.measure_mono Set.inter_subset_left) hE.2.2)
         rw [h_annulus, ENNReal.sub_div]
@@ -524,6 +470,7 @@ variable {n : ℕ}
 
 -- Mean Value Theorem proof requires extended computation for derivative bounds
 set_option maxHeartbeats 400000 in
+-- This proof uses heavy symbolic differentiation and normalization steps.
 lemma asymptotic_estimate (s : ℝ) (hs : 0 < s) (hs1 : s < 1) :
     IsBigO (𝓝 0) (fun η => (1 + η) ^ s - (1 - η) ^ s - 2 * s * η) (fun η => η ^ 2) := by
   refine Asymptotics.IsBigO.of_bound 2 ?_
