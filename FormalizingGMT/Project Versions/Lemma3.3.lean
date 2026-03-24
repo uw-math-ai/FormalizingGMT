@@ -55,18 +55,18 @@ Covering estimate for E(delta, tau).
 (formerly: lemma_1a_fix)
 -/
 lemma hausdorffContent_E_delta_tau_le_tau_mul_cover_sum {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    (E : Set X) (s : ℝ) (δ : ℝ) (τ : ℝ) (hδ : 0 < δ) (hτ : 0 < τ) (hτ1 : τ < 1)
+    (E : Set X) (s : ℝ) (δ : ℝ) (τ : ℝ) (hδ : 0 < δ)
     (C : ℕ → Set X)
     (h_cover : cover_set E s δ τ ⊆ ⋃ i, C i)
     (h_diam : ∀ i, EMetric.diam (C i) ≤ ENNReal.ofReal δ)
     (h_inter : ∀ i, (C i ∩ cover_set E s δ τ).Nonempty) :
     hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ) ≤ ENNReal.ofReal τ * ∑' i, (EMetric.diam (C i)) ^ s := by
-  -- For each $i$, since $C_i \cap E_{\delta,\tau}$ is nonempty, pick a witness and use the density condition.
   have h_subset : ∀ i, MeasureTheory.Measure.hausdorffMeasure s (C i ∩ cover_set E s δ τ) ≤
-      ENNReal.ofReal τ * (EMetric.diam (C i)) ^ s := fun i => by
-    obtain ⟨_, hx_i⟩ := h_inter i
-    exact (MeasureTheory.measure_mono (Set.inter_subset_inter_right _ (fun _ hx => hx.1))).trans
-      (hx_i.2.2 _ hx_i.1 (h_diam i))
+      ENNReal.ofReal τ * (EMetric.diam (C i)) ^ s := by
+    intro i
+    obtain ⟨x, hx⟩ := h_inter i
+    exact (MeasureTheory.measure_mono (Set.inter_subset_inter_right _ (fun _ hy => hy.1))).trans
+      (hx.2.2 _ hx.1 (h_diam i))
   calc hausdorffContent s (ENNReal.ofReal δ) (cover_set E s δ τ)
       ≤ MeasureTheory.Measure.hausdorffMeasure s (cover_set E s δ τ) :=
         hausdorffContent_le_hausdorffMeasure hδ
@@ -191,7 +191,7 @@ lemma hausdorffContent_E_delta_tau_contraction {X : Type*} [EMetricSpace X] [Mea
           exact Set.nonempty_iff_ne_empty.2 h
         intro C hC hC'
         apply hausdorffContent_le_tau_mul_sum_of_anchor
-        exacts [ hs, fun C hC hC' hC'' => hausdorffContent_E_delta_tau_le_tau_mul_cover_sum E s δ τ hδ hτ hτ1 C hC hC' hC'', hC, hC', hx ]
+        exacts [ hs, fun C hC hC' hC'' => hausdorffContent_E_delta_tau_le_tau_mul_cover_sum E s δ τ hδ C hC hC' hC'', hC, hC', hx ]
 
 /-
 General ENNReal algebraic fact: if x ≤ τ * x with τ < 1 and x ≠ ⊤, then x = 0.
@@ -454,10 +454,7 @@ theorem main_theorem {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace
             unfold cover_set at *
             aesop
           have h_zero : (MeasureTheory.Measure.hausdorffMeasure s) (cover_set E s 1 (1 / 2)) = 0 := by
-            apply_rules [ lemma_1e ]
-            · norm_num
-            · norm_num
-            · norm_num
+            apply_rules [ lemma_1e ] <;> norm_num
           convert MeasureTheory.measure_mono_null h_subset h_zero using 1
           aesop
         · convert lemma_1e E s ( 1 / ( k : ℝ ) ) ( 1 - ( 1 / ( k : ℝ ) ) ) _ _ _ hs h_fin using 1
