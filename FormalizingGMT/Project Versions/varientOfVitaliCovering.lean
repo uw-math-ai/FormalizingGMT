@@ -16,10 +16,23 @@ section VariantVitali
 
 variable {α ι : Type*} [PseudoMetricSpace α]
 
+
+-- Please break this up into lemmas and clean up the proofs. Lemmas should be reusable and general
+
+/-
+source
+theorem Vitali.exists_disjoint_subfamily_covering_enlargement_closedBall {α : Type u_1}  {ι : Type u_2}  [PseudoMetricSpace α]  (t : Set ι) (x : ι → α)  (r : ι → ℝ)  (R : ℝ)  (hr : ∀ a ∈ t, r a ≤ R)  (τ : ℝ) (hτ : 3 < τ) :
+∃ u ⊆ t,
+  (u.PairwiseDisjoint fun (a : ι) => Metric.closedBall (x a) (r a)) ∧     ∀ a ∈ t, ∃ b ∈ u, Metric.closedBall (x a) (r a) ⊆ Metric.closedBall (x b) (τ * r b)
+-/
+
+
+--This should be an assumption using the convention in source 'theorem Vitali.exists_disjoint_subfamily_covering_enlargement_closedBall'
 /-- `A` is covered by the closed balls indexed by `t`. -/
 def CoversByClosedBalls (A : Set α) (t : Set ι) (c : ι → α) (r : ι → ℝ) : Prop :=
   A ⊆ ⋃ a ∈ t, Metric.closedBall (c a) (r a)
 
+--Maybe keep this definition
 /-- Fine-at-each-point hypothesis written in the same shape as the `hf` assumption used in
 Mathlib's Vitali covering theorems. -/
 def FineOnByClosedBalls (A : Set α) (t : Set ι) (c : ι → α) (r : ι → ℝ) : Prop :=
