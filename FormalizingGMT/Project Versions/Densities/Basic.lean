@@ -52,4 +52,54 @@ def has_density
   ∃ y, Tendsto (dimensional_density_ratio μ s x) (𝓝[>] 0) (𝓝 y)
 
 -- Section 2: Basic facts
--- (proofs of comparison, non-negativity, and existence from lower/upper densities are TODO)
+
+/-- Comparison between lower and upper density: Θ_*^s(μ, x) ≤ Θ^{*s}(μ, x). -/
+lemma lower_le_upper_density
+    {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    (μ : Measure X) (s : ℝ) (x : X) :
+    dimensional_lower_density μ s x ≤ dimensional_upper_density μ s x := by
+  apply_rules [Filter.liminf_le_limsup]
+  · exact ⟨⊤, by simp⟩
+  · exact ⟨0, Filter.eventually_map.2 <| Filter.eventually_of_mem self_mem_nhdsWithin
+      fun r hr => zero_le _⟩
+
+/-- Non-negativity of lower density: 0 ≤ Θ_*^s(μ, x). -/
+lemma lower_density_nonneg
+    {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    (μ : Measure X) (s : ℝ) (x : X) :
+    0 ≤ dimensional_lower_density μ s x :=
+  zero_le _
+
+/-- Non-negativity of upper density: 0 ≤ Θ^{*s}(μ, x). -/
+lemma upper_density_nonneg
+    {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    (μ : Measure X) (s : ℝ) (x : X) :
+    0 ≤ dimensional_upper_density μ s x :=
+  zero_le _
+
+/-- If the lower and upper densities are equal, then the density limit exists. -/
+lemma density_exists_of_lower_eq_upper
+    {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
+    (μ : Measure X) (s : ℝ) (x : X)
+    (h : dimensional_lower_density μ s x = dimensional_upper_density μ s x) :
+    has_density μ s x := by
+  refine ⟨dimensional_lower_density μ s x, ?_⟩
+  have h_lim_aux : Filter.limsup (dimensional_density_ratio μ s x) (𝓝[>] 0) =
+      dimensional_lower_density μ s x := h.symm
+  refine' tendsto_order.2 ⟨_, _⟩
+  · intro a' ha'
+    contrapose! ha'
+    refine' csSup_le _ _
+    · refine' ⟨0, _⟩; norm_num
+    · intro b hb
+      exact le_of_not_gt fun hba => ha' <| by
+        filter_upwards [hb] with r hr using not_le_of_gt <| lt_of_lt_of_le hba hr
+  · intro a ha
+    contrapose! ha
+    rw [← h_lim_aux]
+    refine' le_csInf _ _ <;> norm_num
+    · refine' ⟨⊤, _⟩; norm_num
+    · intro b hb
+      exact le_of_not_gt fun hb' => ha <| by
+        filter_upwards [hb] with r hr
+        exact not_le_of_gt <| lt_of_le_of_lt hr hb'
