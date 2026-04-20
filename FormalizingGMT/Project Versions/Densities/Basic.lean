@@ -57,11 +57,11 @@ def has_density
 lemma lower_le_upper_density
     {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : Measure X) (s : ℝ) (x : X) :
-    dimensional_lower_density μ s x ≤ dimensional_upper_density μ s x := by
-  apply_rules [Filter.liminf_le_limsup]
-  · exact ⟨⊤, by simp⟩
-  · exact ⟨0, Filter.eventually_map.2 <| Filter.eventually_of_mem self_mem_nhdsWithin
-      fun r hr => zero_le _⟩
+    dimensional_lower_density μ s x ≤ dimensional_upper_density μ s x :=
+  Filter.liminf_le_limsup
+    (⟨⊤, by simp⟩)
+    (⟨0, Filter.eventually_map.2 <| Filter.eventually_of_mem self_mem_nhdsWithin
+      fun _ _ => zero_le _⟩)
 
 /-- Non-negativity of lower density: 0 ≤ Θ_*^s(μ, x). -/
 lemma lower_density_nonneg
@@ -77,29 +77,14 @@ lemma upper_density_nonneg
     0 ≤ dimensional_upper_density μ s x :=
   zero_le _
 
-/-- If the lower and upper densities are equal, then the density limit exists. -/
+/-- If the lower and upper densities are equal, then the density limit exists.
+
+Uses `tendsto_of_liminf_eq_limsup` from Mathlib, which directly gives convergence
+when `liminf = limsup` in a conditionally complete linear order with order topology
+(which `ℝ≥0∞` satisfies). -/
 lemma density_exists_of_lower_eq_upper
     {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : Measure X) (s : ℝ) (x : X)
     (h : dimensional_lower_density μ s x = dimensional_upper_density μ s x) :
-    has_density μ s x := by
-  refine ⟨dimensional_lower_density μ s x, ?_⟩
-  have h_lim_aux : Filter.limsup (dimensional_density_ratio μ s x) (𝓝[>] 0) =
-      dimensional_lower_density μ s x := h.symm
-  refine' tendsto_order.2 ⟨_, _⟩
-  · intro a' ha'
-    contrapose! ha'
-    refine' csSup_le _ _
-    · refine' ⟨0, _⟩; norm_num
-    · intro b hb
-      exact le_of_not_gt fun hba => ha' <| by
-        filter_upwards [hb] with r hr using not_le_of_gt <| lt_of_lt_of_le hba hr
-  · intro a ha
-    contrapose! ha
-    rw [← h_lim_aux]
-    refine' le_csInf _ _ <;> norm_num
-    · refine' ⟨⊤, _⟩; norm_num
-    · intro b hb
-      exact le_of_not_gt fun hb' => ha <| by
-        filter_upwards [hb] with r hr
-        exact not_le_of_gt <| lt_of_le_of_lt hr hb'
+    has_density μ s x :=
+  ⟨_, tendsto_of_liminf_eq_limsup rfl h.symm⟩
