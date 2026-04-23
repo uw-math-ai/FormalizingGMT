@@ -11,6 +11,8 @@ section DensityAtPointsNotInE
 
 variable {n : ℕ} {s : ℝ}
 
+-- Maybe use instance here (try to use instances to proof golf)
+
 lemma isLocallyFiniteMeasure_of_closedBall_formula
   {α : Type*} [PseudoMetricSpace α] [MeasurableSpace α] (μ : Measure α)
     (hball : ∀ x : α,
