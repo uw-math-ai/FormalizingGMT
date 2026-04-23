@@ -1,8 +1,3 @@
-import Mathlib.MeasureTheory.Measure.Hausdorff
-import Mathlib.MeasureTheory.Covering.Besicovitch
-import Mathlib.MeasureTheory.Covering.BesicovitchVectorSpace
-import FormalizingGMT.«Project Versions».Definitions
-
 open Set Metric Filter
 open MeasureTheory MeasureTheory.Measure
 open scoped Topology
@@ -88,29 +83,13 @@ lemma tendsto_dimensional_density_ratio_of_ball_formula
 theorem theorem2_6_density_at_points_not_in_E
     {E : Set (Fin n → ℝ)}
     (hE_meas : MeasurableSet E)
-    (hE_finite : (hausdorffMeasure s) E < ⊤)
-    (hball : ∀ x : Fin n → ℝ,
-      ∀ᶠ r in nhdsWithin (0 : ℝ) (Set.Ioi 0),
-        (hausdorffMeasure s) (closedBall x r) = ENNReal.ofReal ((2 * r) ^ s)) :
+    (hE_finite : (hausdorffMeasure s) E < ⊤) :
     ∀ᵐ x ∂(hausdorffMeasure s).restrict Eᶜ,
       Tendsto (dimensional_density_ratio ((hausdorffMeasure s).restrict E) s x)
         (nhdsWithin (0 : ℝ) (Set.Ioi 0))
         (𝓝 (0 : ENNReal)) :=
   by
-  let μ : Measure (Fin n → ℝ) := hausdorffMeasure s
-  haveI : IsLocallyFiniteMeasure μ :=
-    isLocallyFiniteMeasure_of_closedBall_formula (s := s) μ (by simpa [μ] using hball)
-  have h_rel : ∀ᵐ x ∂μ.restrict Eᶜ,
-      Tendsto (fun r => μ (E ∩ closedBall x r) / μ (closedBall x r))
-        (nhdsWithin (0 : ℝ) (Set.Ioi 0)) (𝓝 (0 : ENNReal)) :=
-    ae_tendsto_inter_closedBall_div_zero_on_compl μ hE_meas
-  have h_target : ∀ᵐ x ∂μ.restrict Eᶜ,
-      Tendsto (dimensional_density_ratio (μ.restrict E) s x)
-        (nhdsWithin (0 : ℝ) (Set.Ioi 0)) (𝓝 (0 : ENNReal)) :=
-    tendsto_dimensional_density_ratio_of_ball_formula (s := s) μ h_rel
-      (by simpa [μ] using hball)
-  let _ := hE_finite
-  simpa [μ] using h_target
+  sorry
 
 
 end DensityAtPointsNotInE
