@@ -1,0 +1,36 @@
+% Macros for print version only.
+
+% Dummy macros only used in web version.
+\newcommand{\lean}[1]{}
+\newcommand{\discussion}[1]{}
+\newcommand{\leanok}{}
+\newcommand{\mathlibok}{}
+\newcommand{\notready}{}
+
+% Make sure arguments of \uses and \proves are labels.
+\ExplSyntaxOn
+\NewDocumentCommand{\uses}{m}
+ {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+  \ignorespaces}
+\NewDocumentCommand{\proves}{m}
+ {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+  \ignorespaces}
+\ExplSyntaxOff
+% Macros for print version only.
+
+% Dummy macros only used in web version.
+\newcommand{\lean}[1]{}
+\newcommand{\discussion}[1]{}
+\newcommand{\leanok}{}
+\newcommand{\mathlibok}{}
+\newcommand{\notready}{}
+
+% Make sure arguments of \uses and \proves are labels.
+\ExplSyntaxOn
+\NewDocumentCommand{\uses}{m}
+ {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+  \ignorespaces}
+\NewDocumentCommand{\proves}{m}
+ {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+  \ignorespaces}
+\ExplSyntaxOff

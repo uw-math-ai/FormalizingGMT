@@ -51,3 +51,15 @@ Suggested structure:
 
 - Fix versions of Lean and Mathlib in the Aristotle proofs
 - Comment on the connection between `mathlib` PRs and proofs we will use
+
+---
+
+## Blueprint
+
+The Lean blueprint lives in `blueprint/src` and is written in LaTeX so it can
+compile to a dependency graph and linked web view.
+
+Local build (from repo root):
+- `leanblueprint web` (build the web version)
+- `leanblueprint serve` (serve the built web version)
+- `leanblueprint pdf` (build the PDF)

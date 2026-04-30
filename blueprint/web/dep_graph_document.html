@@ -1,0 +1,1650 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dependency graph</title>
+  <meta name="generator" content="plasTeX" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles/theme-white.css" />
+  <link rel="stylesheet" href="styles/dep_graph.css" />
+  
+  <script type="text/x-mathjax-config">
+  
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+  
+  </script>
+
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">  </script>
+
+
+<link rel="stylesheet" href="styles/extra_styles.css" />
+
+</head>
+
+<body>
+<header>
+  <a class="toc" href="index.html">Home</a>
+  <h1 id="doc_title">Dependencies</h1>
+</header>
+<div class="wrapper">
+<div class="content">
+  <div id="Legend">
+    <span id="legend_title" class="title">Legend
+    <div class="btn">
+       <div class="bar"></div>
+       <div class="bar"></div>
+       <div class="bar"></div>
+    </div></span> 
+    <dl class="legend">
+      
+      <dt>Boxes</dt><dd>definitions</dd>
+      
+      <dt>Ellipses</dt><dd>theorems and lemmas</dd>
+      
+      <dt>Blue border</dt><dd>the <em>statement</em> of this result is ready to be formalized; all prerequisites are done</dd>
+      
+      <dt>Orange border</dt><dd>the <em>statement</em> of this result is not ready to be formalized; the blueprint needs more work</dd>
+      
+      <dt>Blue background</dt><dd>the <em>proof</em> of this result is ready to be formalized; all prerequisites are done</dd>
+      
+      <dt>Green border</dt><dd>the <em>statement</em> of this result is formalized</dd>
+      
+      <dt>Green background</dt><dd>the <em>proof</em> of this result is formalized</dd>
+      
+      <dt>Dark green background</dt><dd>the <em>proof</em> of this result and all its ancestors are formalized</dd>
+      
+      <dt>Dark green border</dt><dd>this is in Mathlib</dd>
+      
+    </dl>
+  </div>
+    <div id="graph"></div>
+<div id="statements">
+
+    
+    <div class="dep-modal-container" id="def:cover_limit_set_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:cover_limit_set" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">5</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:cover_limit_set">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/cover_limit_set">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:cover_set_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:cover_set" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">4</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:cover_set">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/cover_set">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:dimensional_density_ratio_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:dimensional_density_ratio" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">7</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:dimensional_density_ratio">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/dimensional_density_ratio">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:dimensional_lower_density_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:dimensional_lower_density" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">9</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:dimensional_lower_density">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/dimensional_lower_density">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:dimensional_upper_density_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:dimensional_upper_density" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">8</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:dimensional_upper_density">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/dimensional_upper_density">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:has_density_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:has_density" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">11</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:has_density">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/has_density">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:HasPositiveFiniteHausdorff_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:HasPositiveFiniteHausdorff" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">3</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:HasPositiveFiniteHausdorff">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HasPositiveFiniteHausdorff">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:hausdorffContent_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:hausdorffContent" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">1</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:hausdorffContent">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/hausdorffContent">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:hausdorffContentInfty_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:hausdorffContentInfty" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">2</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:hausdorffContentInfty">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/hausdorffContentInfty">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:HD_density_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:HD_density" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">35</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:HD_density">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HausdorffDensity.density">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:HD_upperDensity_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:HD_upperDensity" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">36</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:HD_upperDensity">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HausdorffDensity.upperDensity">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:IsRadon_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:IsRadon" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">10</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:IsRadon">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/IsRadon">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:truncated_cover_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:truncated_cover" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">6</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:truncated_cover">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/truncated_cover">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:ae_tendsto_inter_closedBall_div_zero_on_compl_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:ae_tendsto_inter_closedBall_div_zero_on_compl" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">32</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:ae_tendsto_inter_closedBall_div_zero_on_compl">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/ae_tendsto_inter_closedBall_div_zero_on_compl">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:closedBall_subset_closedBall_five_mul_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:closedBall_subset_closedBall_five_mul" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">46</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:closedBall_subset_closedBall_five_mul">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/closedBall_subset_closedBall_five_mul">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:closedBall_subset_removed_of_fine_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:closedBall_subset_removed_of_fine" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">47</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:closedBall_subset_removed_of_fine">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/closedBall_subset_removed_of_fine">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:density_exists_of_lower_eq_upper_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:density_exists_of_lower_eq_upper" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">15</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:density_exists_of_lower_eq_upper">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/density_exists_of_lower_eq_upper">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:hausdorffContent_E_delta_tau_contraction_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:hausdorffContent_E_delta_tau_contraction" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">22</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:hausdorffContent_E_delta_tau_contraction">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/hausdorffContent_E_delta_tau_contraction">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:hausdorffContent_E_delta_tau_eq_zero_of_ne_top_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:hausdorffContent_E_delta_tau_eq_zero_of_ne_top" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">23</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:hausdorffContent_E_delta_tau_eq_zero_of_ne_top">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/hausdorffContent_E_delta_tau_eq_zero_of_ne_top">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:hausdorffContent_E_delta_tau_le_tau_mul_cover_sum_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:hausdorffContent_E_delta_tau_le_tau_mul_cover_sum" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">17</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:hausdorffContent_E_delta_tau_le_tau_mul_cover_sum">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/hausdorffContent_E_delta_tau_le_tau_mul_cover_sum">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:hausdorffContent_le_hausdorffMeasure_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:hausdorffContent_le_hausdorffMeasure" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">16</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:hausdorffContent_le_hausdorffMeasure">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/hausdorffContent_le_hausdorffMeasure">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:hausdorffContent_le_tau_mul_sum_of_anchor_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:hausdorffContent_le_tau_mul_sum_of_anchor" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">21</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:hausdorffContent_le_tau_mul_sum_of_anchor">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/hausdorffContent_le_tau_mul_sum_of_anchor">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:hausdorffContent_zero_implies_hausdorffMeasure_zero_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:hausdorffContent_zero_implies_hausdorffMeasure_zero" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">25</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:hausdorffContent_zero_implies_hausdorffMeasure_zero">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/hausdorffContent_zero_implies_hausdorffMeasure_zero">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:hausdorffContent_zero_mono_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:hausdorffContent_zero_mono" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">24</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:hausdorffContent_zero_mono">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/hausdorffContent_zero_mono">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:isLocallyFiniteMeasure_of_closedBall_formula_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:isLocallyFiniteMeasure_of_closedBall_formula" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">31</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:isLocallyFiniteMeasure_of_closedBall_formula">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/isLocallyFiniteMeasure_of_closedBall_formula">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:lemma_1e_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:lemma_1e" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">26</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:lemma_1e">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/lemma_1e">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:lemma_7_6_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:lemma_7_6" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">27</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:lemma_7_6">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/lemma_7_6">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:lemma_7_7_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:lemma_7_7" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">28</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:lemma_7_7">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/lemma_7_7">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:lemma_7_8_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:lemma_7_8" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">29</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:lemma_7_8">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/lemma_7_8">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:lower_density_nonneg_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:lower_density_nonneg" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">13</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:lower_density_nonneg">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/lower_density_nonneg">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:lower_le_upper_density_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:lower_le_upper_density" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">12</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:lower_le_upper_density">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/lower_le_upper_density">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:not_mem_finset_of_inter_nonempty_and_subset_compl_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:not_mem_finset_of_inter_nonempty_and_subset_compl" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">48</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:not_mem_finset_of_inter_nonempty_and_subset_compl">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/not_mem_finset_of_inter_nonempty_and_subset_compl">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:tendsto_dimensional_density_ratio_of_ball_formula_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:tendsto_dimensional_density_ratio_of_ball_formula" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">33</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:tendsto_dimensional_density_ratio_of_ball_formula">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/tendsto_dimensional_density_ratio_of_ball_formula">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:truncated_cover_diam_le_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:truncated_cover_diam_le" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">19</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:truncated_cover_diam_le">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/truncated_cover_diam_le">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:truncated_cover_subset_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:truncated_cover_subset" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">18</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:truncated_cover_subset">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/truncated_cover_subset">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:truncated_cover_sum_le_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:truncated_cover_sum_le" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">20</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:truncated_cover_sum_le">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/truncated_cover_sum_le">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:upper_density_nonneg_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:upper_density_nonneg" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">14</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:upper_density_nonneg">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/upper_density_nonneg">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:hausdorff_restriction_regular_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:hausdorff_restriction_regular" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">51</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:hausdorff_restriction_regular">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/hausdorff_restriction_regular">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:HD_badSet_null_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:HD_badSet_null" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">44</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:HD_badSet_null">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HausdorffDensity.badSet_null">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:HD_besicovitch_cover_at_scale_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:HD_besicovitch_cover_at_scale" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">41</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:HD_besicovitch_cover_at_scale">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HausdorffDensity.besicovitch_cover_at_scale">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:HD_ENNReal_eq_zero_of_le_inv_add_eps_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:HD_ENNReal_eq_zero_of_le_inv_add_eps" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">38</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:HD_ENNReal_eq_zero_of_le_inv_add_eps">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HausdorffDensity.ENNReal.eq_zero_of_le_inv_add_eps">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:HD_ENNReal_eq_zero_of_le_mul_self_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:HD_ENNReal_eq_zero_of_le_mul_self" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">37</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:HD_ENNReal_eq_zero_of_le_mul_self">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HausdorffDensity.ENNReal.eq_zero_of_le_mul_self">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:HD_frequently_high_density_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:HD_frequently_high_density" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">39</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:HD_frequently_high_density">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HausdorffDensity.frequently_high_density">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:HD_gauge_sum_le_of_density_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:HD_gauge_sum_le_of_density" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">42</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:HD_gauge_sum_le_of_density">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HausdorffDensity.gauge_sum_le_of_density">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:HD_hausdorffMeasure_le_of_covers_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:HD_hausdorffMeasure_le_of_covers" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">40</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:HD_hausdorffMeasure_le_of_covers">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HausdorffDensity.hausdorffMeasure_le_of_covers">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:HD_superlevelSet_null_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:HD_superlevelSet_null" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">43</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:HD_superlevelSet_null">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HausdorffDensity.superlevelSet_null">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:HD_upperDensity_le_one_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:HD_upperDensity_le_one" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">45</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:HD_upperDensity_le_one">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/HausdorffDensity.upperDensity_le_one">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:main_theorem_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:main_theorem" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">30</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:main_theorem">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/main_theorem">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:restriction_radon_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:restriction_radon" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">50</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:restriction_radon">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/restriction_radon">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:theorem2_6_density_at_points_not_in_E_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:theorem2_6_density_at_points_not_in_E" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">34</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:theorem2_6_density_at_points_not_in_E">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/theorem2_6_density_at_points_not_in_E">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:vitali_variant_classical_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:vitali_variant_classical" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">49</span></div>
+    <div class="thm_thmcontent">
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:vitali_variant_classical">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://uw-math-ai.github.io/FormalizingGMT/docs/find/#doc/vitali_variant_classical">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+</div>
+</div> <!-- content -->
+</div> <!-- wrapper -->
+<script src="js/jquery.min.js" type="text/javascript"></script>
+
+<script src="js/d3.min.js"></script>
+<script src="js/hpcc.min.js"></script>
+<script src="js/d3-graphviz.js"></script>
+
+<script type="text/javascript">
+const graphContainer = d3.select("#graph");
+const width = graphContainer.node().clientWidth;
+const height = graphContainer.node().clientHeight;
+
+
+graphContainer.graphviz({useWorker: true})
+    .width(width)
+    .height(height)
+    .fit(true)
+    .renderDot(`strict digraph "" {	graph [bgcolor=transparent];	node [label="\N",		penwidth=1.8	];	edge [arrowhead=vee];	"def:has_density"	[color=green,		fillcolor="#B0ECA3",		label=has_density,		shape=box,		style=filled];	"lem:density_exists_of_lower_eq_upper"	[color=green,		label=density_exists_of_lower_eq_upper,		shape=ellipse];	"def:has_density" -> "lem:density_exists_of_lower_eq_upper"	[style=dashed];	"lem:hausdorffContent_E_delta_tau_contraction"	[color=green,		label=hausdorffContent_E_delta_tau_contraction,		shape=ellipse];	"lem:hausdorffContent_E_delta_tau_eq_zero_of_ne_top"	[color=green,		label=hausdorffContent_E_delta_tau_eq_zero_of_ne_top,		shape=ellipse];	"lem:hausdorffContent_E_delta_tau_contraction" -> "lem:hausdorffContent_E_delta_tau_eq_zero_of_ne_top"	[style=dashed];	"lem:lemma_1e"	[color=green,		label=lemma_1e,		shape=ellipse];	"lem:hausdorffContent_E_delta_tau_eq_zero_of_ne_top" -> "lem:lemma_1e"	[style=dashed];	"thm:main_theorem"	[color=green,		label=main_theorem,		shape=ellipse];	"lem:lemma_1e" -> "thm:main_theorem"	[style=dashed];	"lem:hausdorffContent_zero_implies_hausdorffMeasure_zero"	[color=green,		label=hausdorffContent_zero_implies_hausdorffMeasure_zero,		shape=ellipse];	"lem:hausdorffContent_zero_implies_hausdorffMeasure_zero" -> "lem:lemma_1e"	[style=dashed];	"lem:ae_tendsto_inter_closedBall_div_zero_on_compl"	[color=green,		label=ae_tendsto_inter_closedBall_div_zero_on_compl,		shape=ellipse];	"thm:theorem2_6_density_at_points_not_in_E"	[color="#FFAA33",		label=theorem2_6_density_at_points_not_in_E,		shape=ellipse];	"lem:ae_tendsto_inter_closedBall_div_zero_on_compl" -> "thm:theorem2_6_density_at_points_not_in_E"	[style=dashed];	"thm:HD_hausdorffMeasure_le_of_covers"	[color=green,		label=HD_hausdorffMeasure_le_of_covers,		shape=ellipse];	"def:hausdorffContent"	[color=green,		fillcolor="#B0ECA3",		label=hausdorffContent,		shape=box,		style=filled];	"lem:hausdorffContent_zero_mono"	[color=green,		label=hausdorffContent_zero_mono,		shape=ellipse];	"def:hausdorffContent" -> "lem:hausdorffContent_zero_mono"	[style=dashed];	"lem:hausdorffContent_E_delta_tau_le_tau_mul_cover_sum"	[color=green,		label=hausdorffContent_E_delta_tau_le_tau_mul_cover_sum,		shape=ellipse];	"def:hausdorffContent" -> "lem:hausdorffContent_E_delta_tau_le_tau_mul_cover_sum"	[style=dashed];	"lem:hausdorffContent_le_tau_mul_sum_of_anchor"	[color=green,		label=hausdorffContent_le_tau_mul_sum_of_anchor,		shape=ellipse];	"def:hausdorffContent" -> "lem:hausdorffContent_le_tau_mul_sum_of_anchor"	[style=dashed];	"lem:hausdorffContent_le_hausdorffMeasure"	[color=green,		label=hausdorffContent_le_hausdorffMeasure,		shape=ellipse];	"def:hausdorffContent" -> "lem:hausdorffContent_le_hausdorffMeasure"	[style=dashed];	"lem:hausdorffContent_zero_mono" -> "lem:hausdorffContent_zero_implies_hausdorffMeasure_zero"	[style=dashed];	"lem:hausdorffContent_le_tau_mul_sum_of_anchor" -> "lem:hausdorffContent_E_delta_tau_contraction"	[style=dashed];	"def:dimensional_density_ratio"	[color=green,		fillcolor="#B0ECA3",		label=dimensional_density_ratio,		shape=box,		style=filled];	"def:dimensional_density_ratio" -> "def:has_density"	[style=dashed];	"lem:tendsto_dimensional_density_ratio_of_ball_formula"	[color=green,		label=tendsto_dimensional_density_ratio_of_ball_formula,		shape=ellipse];	"def:dimensional_density_ratio" -> "lem:tendsto_dimensional_density_ratio_of_ball_formula"	[style=dashed];	"def:dimensional_lower_density"	[color=green,		fillcolor="#B0ECA3",		label=dimensional_lower_density,		shape=box,		style=filled];	"def:dimensional_density_ratio" -> "def:dimensional_lower_density"	[style=dashed];	"def:dimensional_upper_density"	[color=green,		fillcolor="#B0ECA3",		label=dimensional_upper_density,		shape=box,		style=filled];	"def:dimensional_density_ratio" -> "def:dimensional_upper_density"	[style=dashed];	"lem:tendsto_dimensional_density_ratio_of_ball_formula" -> "thm:theorem2_6_density_at_points_not_in_E"	[style=dashed];	"def:dimensional_lower_density" -> "lem:density_exists_of_lower_eq_upper"	[style=dashed];	"lem:lower_le_upper_density"	[color=green,		label=lower_le_upper_density,		shape=ellipse];	"def:dimensional_lower_density" -> "lem:lower_le_upper_density"	[style=dashed];	"lem:lower_density_nonneg"	[color=green,		label=lower_density_nonneg,		shape=ellipse];	"def:dimensional_lower_density" -> "lem:lower_density_nonneg"	[style=dashed];	"def:dimensional_upper_density" -> "lem:density_exists_of_lower_eq_upper"	[style=dashed];	"def:dimensional_upper_density" -> "lem:lower_le_upper_density"	[style=dashed];	"lem:lemma_7_6"	[color=green,		label=lemma_7_6,		shape=ellipse];	"def:dimensional_upper_density" -> "lem:lemma_7_6"	[style=dashed];	"lem:upper_density_nonneg"	[color=green,		label=upper_density_nonneg,		shape=ellipse];	"def:dimensional_upper_density" -> "lem:upper_density_nonneg"	[style=dashed];	"lem:lemma_7_7"	[color=green,		label=lemma_7_7,		shape=ellipse];	"lem:lemma_7_6" -> "lem:lemma_7_7"	[style=dashed];	"lem:lemma_7_8"	[color=green,		label=lemma_7_8,		shape=ellipse];	"lem:lemma_7_7" -> "lem:lemma_7_8"	[style=dashed];	"lem:lemma_7_8" -> "thm:main_theorem"	[style=dashed];	"lem:truncated_cover_sum_le"	[color=green,		label=truncated_cover_sum_le,		shape=ellipse];	"lem:truncated_cover_sum_le" -> "lem:hausdorffContent_le_tau_mul_sum_of_anchor"	[style=dashed];	"lem:closedBall_subset_removed_of_fine"	[color=green,		label=closedBall_subset_removed_of_fine,		shape=ellipse];	"thm:vitali_variant_classical"	[color=green,		label=vitali_variant_classical,		shape=ellipse];	"lem:closedBall_subset_removed_of_fine" -> "thm:vitali_variant_classical"	[style=dashed];	"lem:not_mem_finset_of_inter_nonempty_and_subset_compl"	[color=green,		label=not_mem_finset_of_inter_nonempty_and_subset_compl,		shape=ellipse];	"lem:not_mem_finset_of_inter_nonempty_and_subset_compl" -> "thm:vitali_variant_classical"	[style=dashed];	"thm:HD_gauge_sum_le_of_density"	[color=green,		label=HD_gauge_sum_le_of_density,		shape=ellipse];	"thm:HD_superlevelSet_null"	[color=green,		label=HD_superlevelSet_null,		shape=ellipse];	"thm:HD_gauge_sum_le_of_density" -> "thm:HD_superlevelSet_null"	[style=dashed];	"thm:HD_badSet_null"	[color=green,		label=HD_badSet_null,		shape=ellipse];	"thm:HD_superlevelSet_null" -> "thm:HD_badSet_null"	[style=dashed];	"thm:HD_upperDensity_le_one"	[color=green,		label=HD_upperDensity_le_one,		shape=ellipse];	"thm:HD_badSet_null" -> "thm:HD_upperDensity_le_one"	[style=dashed];	"def:cover_set"	[color=green,		fillcolor="#B0ECA3",		label=cover_set,		shape=box,		style=filled];	"def:cover_set" -> "lem:hausdorffContent_E_delta_tau_le_tau_mul_cover_sum"	[style=dashed];	"def:cover_set" -> "lem:hausdorffContent_le_tau_mul_sum_of_anchor"	[style=dashed];	"def:cover_set" -> "lem:lemma_7_8"	[style=dashed];	"def:cover_limit_set"	[color=green,		fillcolor="#B0ECA3",		label=cover_limit_set,		shape=box,		style=filled];	"def:cover_set" -> "def:cover_limit_set"	[style=dashed];	"def:truncated_cover"	[color=green,		fillcolor="#B0ECA3",		label=truncated_cover,		shape=box,		style=filled];	"def:truncated_cover" -> "lem:truncated_cover_sum_le"	[style=dashed];	"lem:truncated_cover_subset"	[color=green,		label=truncated_cover_subset,		shape=ellipse];	"def:truncated_cover" -> "lem:truncated_cover_subset"	[style=dashed];	"lem:truncated_cover_diam_le"	[color=green,		label=truncated_cover_diam_le,		shape=ellipse];	"def:truncated_cover" -> "lem:truncated_cover_diam_le"	[style=dashed];	"lem:truncated_cover_subset" -> "lem:hausdorffContent_le_tau_mul_sum_of_anchor"	[style=dashed];	"lem:truncated_cover_diam_le" -> "lem:hausdorffContent_le_tau_mul_sum_of_anchor"	[style=dashed];	"def:HD_density"	[color=green,		fillcolor="#B0ECA3",		label=HD_density,		shape=box,		style=filled];	"def:HD_density" -> "thm:HD_gauge_sum_le_of_density"	[style=dashed];	"def:HD_upperDensity"	[color=green,		fillcolor="#B0ECA3",		label=HD_upperDensity,		shape=box,		style=filled];	"def:HD_density" -> "def:HD_upperDensity"	[style=dashed];	"thm:HD_frequently_high_density"	[color=green,		label=HD_frequently_high_density,		shape=ellipse];	"def:HD_upperDensity" -> "thm:HD_frequently_high_density"	[style=dashed];	"thm:HD_besicovitch_cover_at_scale"	[color=green,		label=HD_besicovitch_cover_at_scale,		shape=ellipse];	"thm:HD_frequently_high_density" -> "thm:HD_besicovitch_cover_at_scale"	[style=dashed];	"thm:HD_besicovitch_cover_at_scale" -> "thm:HD_superlevelSet_null"	[style=dashed];	"thm:HD_ENNReal_eq_zero_of_le_mul_self"	[color=green,		label=HD_ENNReal_eq_zero_of_le_mul_self,		shape=ellipse];	"def:HasPositiveFiniteHausdorff"	[color=green,		fillcolor="#B0ECA3",		label=HasPositiveFiniteHausdorff,		shape=box,		style=filled];	"thm:hausdorff_restriction_regular"	[color=green,		label=hausdorff_restriction_regular,		shape=ellipse];	"def:hausdorffContentInfty"	[color=green,		fillcolor="#B0ECA3",		label=hausdorffContentInfty,		shape=box,		style=filled];	"lem:isLocallyFiniteMeasure_of_closedBall_formula"	[color=green,		label=isLocallyFiniteMeasure_of_closedBall_formula,		shape=ellipse];	"def:IsRadon"	[color=green,		fillcolor="#B0ECA3",		label=IsRadon,		shape=box,		style=filled];	"thm:HD_ENNReal_eq_zero_of_le_inv_add_eps"	[color=green,		label=HD_ENNReal_eq_zero_of_le_inv_add_eps,		shape=ellipse];	"thm:HD_ENNReal_eq_zero_of_le_inv_add_eps" -> "thm:HD_superlevelSet_null"	[style=dashed];	"lem:closedBall_subset_closedBall_five_mul"	[color=green,		label=closedBall_subset_closedBall_five_mul,		shape=ellipse];	"lem:closedBall_subset_closedBall_five_mul" -> "thm:vitali_variant_classical"	[style=dashed];	"thm:restriction_radon"	[color=green,		label=restriction_radon,		shape=ellipse];	"thm:restriction_radon" -> "thm:hausdorff_restriction_regular"	[style=dashed];}`)
+    .on("end", interactive);
+
+latexLabelEscaper = function(label) {
+  return label.replace(/\./g, '\\.').replace(/:/g, '\\:')
+}
+
+clickNode = function() {
+  $("#statements div").hide()
+  var node_id = $('text', this).text();
+  $('.thm').hide();
+  $('#'+latexLabelEscaper(node_id)).show().children().show();
+}
+function interactive() {
+    $("span#legend_title").on("click", function () {
+           $(this).siblings('dl').toggle();
+        })
+
+    d3.selectAll('.node')
+        .attr('pointer-events', 'fill')
+        .on('click', function () {
+           var title = d3.select(this).selectAll('title').text().trim();
+           $('#statements > div').hide()
+           $('.thm').hide();
+           $('#'+latexLabelEscaper(title)+'_modal').show().children().show().children().show();
+           $('#statements').show()
+        });
+
+    d3.selectAll('.dep-closebtn').on('click', function() {
+        var modal =
+            d3.select(this).node().parentNode.parentNode.parentNode ;
+        d3.select(modal).style('display', 'none');
+    });
+}
+
+</script>
+
+</body>
+</html>
