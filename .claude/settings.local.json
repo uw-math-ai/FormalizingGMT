@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__lean-lsp__lean_hover_info",
+      "mcp__lean-lsp__lean_multi_attempt"
+    ]
+  }
+}

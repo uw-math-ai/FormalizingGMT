@@ -61,21 +61,21 @@ lemma lower_le_upper_density
   Filter.liminf_le_limsup
     (⟨⊤, by simp⟩)
     (⟨0, Filter.eventually_map.2 <| Filter.eventually_of_mem self_mem_nhdsWithin
-      fun _ _ => zero_le _⟩)
+      fun _ _ => zero_le⟩)
 
 /-- Non-negativity of lower density: 0 ≤ Θ_*^s(μ, x). -/
 lemma lower_density_nonneg
     {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : Measure X) (s : ℝ) (x : X) :
     0 ≤ dimensional_lower_density μ s x :=
-  zero_le _
+  zero_le
 
 /-- Non-negativity of upper density: 0 ≤ Θ^{*s}(μ, x). -/
 lemma upper_density_nonneg
     {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : Measure X) (s : ℝ) (x : X) :
     0 ≤ dimensional_upper_density μ s x :=
-  zero_le _
+  zero_le
 
 /-- If the lower and upper densities are equal, then the density limit exists.
 
