@@ -1,3 +1,6 @@
+/- This file contains Theorem 1.25 in [EG] -/
+
+
 import Mathlib.MeasureTheory.Covering.Vitali
 import Mathlib.Tactic
 

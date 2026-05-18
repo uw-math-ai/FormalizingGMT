@@ -1,3 +1,7 @@
+/- This file contains the upper bound in Theorem 2.7 in [EG]. 
+It needs to be modified so it does not assume that the ambient space
+satisfies HasBesicovitchCovering -/
+
 import Mathlib
 open MeasureTheory Measure Filter Metric Set ENNReal Topology
 open scoped NNReal

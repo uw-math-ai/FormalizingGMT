@@ -1,5 +1,5 @@
 /-
-This is the full version of Lemma 3.3. There needs to be substantial edits.
+This is the full version of the lower bound in Theorm 2.7 in [EG]. There needs to be substantial edits.
 -Match definitions to Mathlib
 -Proof Golf
 
