@@ -14,7 +14,7 @@ This project aims to:
 The codebase is organized to keep mathlib‑ready components clean and modular.
 
 Here is a poster we presented, it is not up to date, but gives a glimpse into our project structure.
-![GMT Poster Presentation](.github/Assets/GMT%20Poster%20Presentation.png)
+![GMT Poster Presentation](.github/Assets/URS%20Formalizing%20GMTpng.png)
 
 
 ---
