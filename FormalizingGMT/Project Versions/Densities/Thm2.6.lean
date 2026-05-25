@@ -5,7 +5,13 @@ import Mathlib.MeasureTheory.Covering.BesicovitchVectorSpace
 import Mathlib.Topology.Order.LiminfLimsup
 import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 import Mathlib.Tactic
+
+/- Necessary basic definitions -/
+import FormalizingGMT.«Project Versions».Measures.Basic
 import FormalizingGMT.«Project Versions».Densities.Basic
+import FormalizingGMT.«Project Versions».Aux_definitions
+
+
 -- Local definitions for Theorem 2.6
 open MeasureTheory Measure Metric Set Filter ENNReal
 open scoped NNReal Topology
