@@ -19,7 +19,10 @@ set_option autoImplicit false
 def IsBorelRegular {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : OuterMeasure X) : Prop :=
   ‹MeasurableSpace X› ≤ μ.caratheodory ∧
-  ∀ (E : Set X), ∃ (F : Set X), MeasurableSet F ∧ E ⊆ F ∧ μ E = μ F
+  ∀ (E : Set X), ∃ (F : Set X),
+    MeasurableSet F ∧
+    E ⊆ F ∧
+    μ E = μ F
 
 /-- An outer measure `μ` on a topological space `X` (equipped with the Borel σ-algebra) is a
 **Radon measure** if:
@@ -27,7 +30,7 @@ def IsBorelRegular {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSp
 2. The associated Borel measure (via `toMeasure`) satisfies `Measure.Regular`. -/
 def IsRadon {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : OuterMeasure X) : Prop :=
-  ∃ (h : ‹MeasurableSpace X› ≤ μ.caratheodory), (μ.toMeasure h).Regular
+  (IsBorelRegular μ) ∧ ∃ (h : ‹MeasurableSpace X› ≤ μ.caratheodory), (μ.toMeasure h).Regular
 
 /-!
 ## Hausdorff content

@@ -1,8 +1,6 @@
 import Mathlib
 
 import FormalizingGMT.«Project Versions».Measures.Basic
-import FormalizingGMT.«Project Versions».Densities.Basic
-import FormalizingGMT.«Project Versions».Aux_definitions
 
 open scoped BigOperators Real Nat Classical Pointwise
 
@@ -81,6 +79,54 @@ lemma toMeasure_restrict_eq (μ : OuterMeasure X) (B : Set X)
     (OuterMeasure.restrict B μ).toMeasure h' = (μ.toMeasure h).restrict B := by
   ext s hs; simp +decide [ *, MeasureTheory.Measure.restrict_apply ] ;
 
+/-
+For a Borel regular outer measure and a Carathéodory-measurable set E with μ(E) < ∞,
+for any set S there exists a Borel set F ⊇ S with (μ↾E)(S) = (μ↾E)(F).
+
+The construction is: let G ⊇ S∩E be Borel with μ(G) = μ(S∩E), let C ⊇ E be Borel with
+μ(C) = μ(E), and let D ⊇ S∩(C\E) be Borel with μ(D) = μ(S∩(C\E)) = 0.
+Then F = G ∪ Cᶜ ∪ D works.
+-/
+lemma IsBorelRegular.exists_borel_superset_restrict
+    (μ : OuterMeasure X) (hμ : IsBorelRegular μ) (E : Set X)
+    (hE_meas : μ.IsCaratheodory E) (hE_fin : μ E < ⊤)
+    (S : Set X) :
+    ∃ F : Set X, MeasurableSet F ∧ S ⊆ F ∧
+      (OuterMeasure.restrict E μ) S = (OuterMeasure.restrict E μ) F := by
+  -- By assumption, there exists a Borel set $C \supseteq E$ with $\mu(C) = \mu(E)$.
+  obtain ⟨C, hC_meas, hC⟩ : ∃ C : Set X, MeasurableSet C ∧ E ⊆ C ∧ μ E = μ C := by
+    exact hμ.2 E;
+  -- By assumption, there exists a Borel set $G \supseteq S \cap E$ with $\mu(G) = \mu(S \cap E)$.
+  obtain ⟨G, hG_meas, hG⟩ : ∃ G : Set X, MeasurableSet G ∧ S ∩ E ⊆ G ∧ μ G = μ (S ∩ E) := by
+    have := hμ.2 ( S ∩ E ) ; aesop;
+  -- By assumption, there exists a Borel set $D \supseteq S \cap (C \setminus E)$ with $\mu(D) = \mu(S \cap (C \setminus E)) = 0$.
+  obtain ⟨D, hD_meas, hD⟩ : ∃ D : Set X, MeasurableSet D ∧ S ∩ (C \ E) ⊆ D ∧ μ D = 0 := by
+    have hD_zero : μ (C \ E) = 0 := by
+      apply measure_diff_eq_zero μ E C hC.left hC.right hE_meas hE_fin;
+    have := hμ.2 ( C \ E );
+    exact ⟨ this.choose, this.choose_spec.1, Set.Subset.trans ( Set.inter_subset_right ) this.choose_spec.2.1, this.choose_spec.2.2.symm.trans hD_zero ⟩;
+  refine' ⟨ G ∪ Cᶜ ∪ D, _, _, _ ⟩;
+  · exact MeasurableSet.union ( MeasurableSet.union hG_meas ( hC_meas.compl ) ) hD_meas;
+  · grind +splitImp;
+  · have h_eq : μ (S ∩ E) ≤ μ ((G ∪ Cᶜ ∪ D) ∩ E) ∧ μ ((G ∪ Cᶜ ∪ D) ∩ E) ≤ μ (G ∩ E) + μ (D ∩ E) := by
+      refine' ⟨ μ.mono _, _ ⟩;
+      · exact fun x hx => ⟨ Or.inl <| Or.inl <| hG.1 hx, hx.2 ⟩;
+      · refine' le_trans ( μ.mono _ ) ( MeasureTheory.measure_union_le _ _ );
+        grind;
+    have h_eq : μ (G ∩ E) ≤ μ G ∧ μ (D ∩ E) ≤ μ D := by
+      exact ⟨ μ.mono ( Set.inter_subset_left ), μ.mono ( Set.inter_subset_left ) ⟩;
+    simp_all +decide [ OuterMeasure.restrict_apply ];
+    grobner
+
+/-- The restriction of a Borel regular outer measure to a Carathéodory-measurable set
+of finite measure is again Borel regular. -/
+lemma IsBorelRegular.restrict_isBorelRegular
+    (μ : OuterMeasure X) (hμ : IsBorelRegular μ) (E : Set X)
+    (hE_meas : μ.IsCaratheodory E) (hE_fin : μ E < ⊤) :
+    IsBorelRegular (OuterMeasure.restrict E μ) := by
+  exact ⟨caratheodory_restrict_of_caratheodory μ E hμ.1,
+    fun S => IsBorelRegular.exists_borel_superset_restrict μ hμ E hE_meas hE_fin S⟩
+
 /-- **Theorem 1.7 / Theorem 0.3**: If `μ` is a Borel regular outer measure on a topological
 space `X` (with the Borel σ-algebra), and `E ⊆ X` is a μ-measurable set with `μ(E) < ∞`,
 then the restriction `μ.restrict E` is a Radon measure.
@@ -117,7 +163,9 @@ theorem IsBorelRegular.restrict_isRadon
     rw [step1]
     exact toMeasure_restrict_eq μ B hB_meas hμ.1 h_cara_B
   -- Build the IsRadon proof
-  refine ⟨h_cara, ?_⟩
+  have h_br : IsBorelRegular (OuterMeasure.restrict E μ) :=
+    IsBorelRegular.restrict_isBorelRegular μ hμ E hE_meas hE_fin
+  refine ⟨h_br, h_cara, ?_⟩
   rw [h_eq_meas]
   -- The restricted measure is finite, hence Regular by Mathlib instances
   have : IsFiniteMeasure ((μ.toMeasure hμ.1).restrict B) := by
