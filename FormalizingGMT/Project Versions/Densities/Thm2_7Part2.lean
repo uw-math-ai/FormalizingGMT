@@ -6,6 +6,7 @@ import Mathlib
 
 /- Necessary basic definitions -/
 import FormalizingGMT.«Project Versions».Measures.Basic
+import FormalizingGMT.«Project Versions».Measures.HausdorffMeasure
 import FormalizingGMT.«Project Versions».Densities.Basic
 import FormalizingGMT.«Project Versions».Aux_definitions
 
