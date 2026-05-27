@@ -116,7 +116,7 @@ lemma IsBorelRegular.exists_borel_superset_restrict
     have h_eq : μ (G ∩ E) ≤ μ G ∧ μ (D ∩ E) ≤ μ D := by
       exact ⟨ μ.mono ( Set.inter_subset_left ), μ.mono ( Set.inter_subset_left ) ⟩;
     simp_all +decide [ OuterMeasure.restrict_apply ];
-    grobner
+    grind
 
 /-- The restriction of a Borel regular outer measure to a Carathéodory-measurable set
 of finite measure is again Borel regular. -/
