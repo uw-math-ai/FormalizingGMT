@@ -1,6 +1,7 @@
 import Mathlib
 
 import FormalizingGMT.«Project Versions».Measures.Basic
+import FormalizingGMT.«Project Versions».Measures.Thm1_7
 import FormalizingGMT.«Project Versions».Densities.Basic
 import FormalizingGMT.«Project Versions».Aux_definitions
 
