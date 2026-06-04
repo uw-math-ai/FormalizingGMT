@@ -44,7 +44,7 @@ noncomputable def hausdorffContentInfty
 def HasPositiveFiniteHausdorff
     {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (s : ℝ) (E : Set X) : Prop :=
-  @MeasurableSet X (MeasureTheory.OuterMeasure.mkMetric (fun r => r ^ s)).caratheodory E ∧
+  MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E ∧
     0 < MeasureTheory.Measure.hausdorffMeasure s E ∧
     MeasureTheory.Measure.hausdorffMeasure s E < ⊤
 
@@ -92,7 +92,7 @@ theorem hausdorff_restrict_isRadon
     {X : Type*} [MetricSpace X] [SigmaCompactSpace X]
     [MeasurableSpace X] [BorelSpace X]
     (s : ℝ) (hs : 0 ≤ s) (E : Set X)
-    (hE_meas : (OuterMeasure.mkMetric (X := X) (fun r => r ^ s)).IsCaratheodory E)
+    (hE_meas : MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E)
     (hE_fin : (OuterMeasure.mkMetric (X := X) (fun r => r ^ s)) E < ⊤) :
     IsRadon (OuterMeasure.restrict E (OuterMeasure.mkMetric (X := X) (fun r => r ^ s))) := by
   exact IsBorelRegular.restrict_isRadon _ (hausdorff_isBorelRegular s hs) E hE_meas hE_fin
