@@ -70,7 +70,7 @@ lemma hausdorff_measure_eq_outer (s : ℝ) (S : Set X) :
     such that Hs(E \ K) < ε. This is left sorry'd as instructed. -/
 lemma approx_by_closed_inside
     {s : ℝ} (hs : 0 ≤ s) {E : Set X}
-    (hE_meas : (Hs_outer (X := X) s).IsCaratheodory E)
+    (hE_meas : MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E)
     (hE_fin : (Hs_outer (X := X) s) E < ⊤)
     {ε : ℝ≥0∞} (hε : 0 < ε) :
     ∃ K : Set X, IsClosed K ∧ K ⊆ E ∧ (Hs_outer s) (E \ K) < ε := by
@@ -199,7 +199,7 @@ lemma density_bound_inv {t : ℝ≥0∞} (ht : 0 < t) (ht_top : t ≠ ⊤)
     the tsum of Hs_restrict values is bounded by Hs(E \ K). -/
 lemma tsum_restrict_le_of_disjoint (s : ℝ)
     {E : Set X}
-    (hE_car : (Hs_outer (X := X) s).IsCaratheodory E)
+    (hE_car : MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E)
     {K : Set X} (hK_sub : K ⊆ E)
     {u : Set X} (hu_count : u.Countable)
     (ρ : X → ℝ)
@@ -229,7 +229,7 @@ lemma tsum_restrict_le_of_disjoint (s : ℝ)
 
 lemma vitali_cover_at_scale (s : ℝ) (hs : 0 ≤ s)
     {E : Set X}
-    (hE_meas : (Hs_outer (X := X) s).IsCaratheodory E)
+    (hE_meas : MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E)
     {t : ℝ≥0∞} (ht : 0 < t) (ht_top : t ≠ ⊤)
     {K : Set X} (hK_closed : IsClosed K) (hK_sub : K ⊆ E)
     (k : ℕ) :
@@ -344,7 +344,7 @@ Core result: H^s(A_t) = 0. The proof fixes ε > 0, gets K from approx_by_closed_
 -/
 theorem A_t_null (s : ℝ) (hs : 0 ≤ s)
     {E : Set X}
-    (hE_meas : (Hs_outer (X := X) s).IsCaratheodory E)
+    (hE_meas : MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E)
     (hE_fin : (Hs_outer (X := X) s) E < ⊤)
     {t : ℝ≥0∞} (ht : 0 < t) (ht_top : t ≠ ⊤) :
     μH[s] (A_set (X := X) s E t) = 0 := by
@@ -375,7 +375,7 @@ for H^s-almost every x ∈ X \ E, the s-dimensional upper density of H^s|_E at x
 -/
 theorem theorem2_6_density_at_points_not_in_E
     {s : ℝ} (hs : 0 ≤ s) {E : Set X}
-    (hE_meas : (Hs_outer (X := X) s).IsCaratheodory E)
+    (hE_meas : MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E)
     (hE_fin : (Hs_outer (X := X) s) E < ⊤) :
     μH[s] {x | x ∉ E ∧
       dimensional_upper_density (Hs_restrict s E) s x ≠ 0} = 0 := by
