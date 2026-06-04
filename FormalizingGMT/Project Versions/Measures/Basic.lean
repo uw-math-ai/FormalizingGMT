@@ -33,3 +33,6 @@ def IsRadon {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
   (IsBorelRegular μ) ∧ ∃ (h : ‹MeasurableSpace X› ≤ μ.caratheodory), (μ.toMeasure h).Regular
 
 
+def BorelOuterMeasurable {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
+   (μ : OuterMeasure X) : Prop :=
+   ‹MeasurableSpace X› ≤ μ.caratheodory
