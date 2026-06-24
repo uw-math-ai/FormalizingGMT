@@ -118,7 +118,7 @@ lemma IsBorelRegular.exists_borel_superset_restrict
     simp_all +decide [ OuterMeasure.restrict_apply ];
     grind
 
-/-- The restriction of a Borel regular outer measure to a Carathéodory-measurable set
+/-- **Restriction of a Borel regular measure is Borel regular**:The restriction of a Borel regular outer measure to a Carathéodory-measurable set
 of finite measure is again Borel regular. -/
 lemma IsBorelRegular.restrict_isBorelRegular
     (μ : OuterMeasure X) (hμ : IsBorelRegular μ) (E : Set X)
@@ -127,7 +127,25 @@ lemma IsBorelRegular.restrict_isBorelRegular
   exact ⟨caratheodory_restrict_of_caratheodory μ E hμ.1,
     fun S => IsBorelRegular.exists_borel_superset_restrict μ hμ E hE_meas hE_fin S⟩
 
-/-- **Theorem 1.7 / Theorem 0.3**: If `μ` is a Borel regular outer measure on a topological
+
+
+/- **TODO: Approximation of measurable finite measure sets by closed sets from inside**: Let μ be a Borel regular outer measure on a topological space X. Then for every μ-measurable set E⊆X with μ(E) < ∞ and ε > 0, there exists a closed set F ⊆ E such that μ(E \ F)<ε. -/
+
+/- Reference: Mattila's book, Theorem 1.10 (1), page 11.-/
+/- **Note:** This lemma should be used to prove lemma approx_by_closed_inside in Thm2_6.lean.-/
+
+
+/- **TODO: Approximation of measurable sets by open sets from outside**: Let μ be a Borel regular outer measure on a topological space X. Let E⊆ X be a μ-measurable set with μ(E) < ∞ and let ε > 0. If there are open sets V_1,v_2,... such that E ⊆ ⋃ i:ℕ V_i and μ(V_i) < ∞ for all i, then there exists an open set F ⊇ E such that μ(F \ E)<ε. -/
+
+/- Reference: Mattila's book, Theorem 1.10 (2), page 11.-/
+
+
+/- **TODO: Radon measure iff Borel regular and locally finite**: Let μ be an outer measure on a topological space X. Then μ is a Radon measure if and only if μ is locally finite and Borel regular. -/
+
+/- Refernce: Mattila's book, Corollary 1.11, page 12.-/
+
+
+/-- **Restriction of a Borel regular measure is Radon**: If `μ` is a Borel regular outer measure on a topological
 space `X` (with the Borel σ-algebra), and `E ⊆ X` is a μ-measurable set with `μ(E) < ∞`,
 then the restriction `μ.restrict E` is a Radon measure.
 
