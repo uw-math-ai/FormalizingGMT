@@ -131,6 +131,13 @@ lemma IsBorelRegular.restrict_isBorelRegular
 
 /- **TODO: Approximation of measurable finite measure sets by closed sets from inside**: Let μ be a Borel regular outer measure on a topological space X. Then for every μ-measurable set E⊆X with μ(E) < ∞ and ε > 0, there exists a closed set F ⊆ E such that μ(E \ F)<ε. -/
 
+theorem closed_approx_of_isBorelRegular
+    (μ : OuterMeasure X) (hμ : IsBorelRegular μ)
+    (E : Set X) (hE : μ.IsCaratheodory E) (hEfin : μ E < ∞)
+    (ε : ℝ≥0∞) (hε : 0 < ε) :
+    ∃ F : Set X, IsClosed F ∧ F ⊆ E ∧ μ (E \ F) < ε := by
+  sorry
+
 /- Reference: Mattila's book, Theorem 1.10 (1), page 11.-/
 /- **Note:** This lemma should be used to prove lemma approx_by_closed_inside in Thm2_6.lean.-/
 
