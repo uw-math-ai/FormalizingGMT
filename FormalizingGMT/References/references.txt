@@ -1,0 +1,4 @@
+Bogachev - Measure Theory I
+Mattila - Geometry of Sets and Measures in Euclidean Spaces
+Evans, Gariepy - Measure Theory and Fine Properties of Functions
+Falconer - The Geometry of Fractal Sets
