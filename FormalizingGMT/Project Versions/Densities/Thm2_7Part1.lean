@@ -20,9 +20,11 @@ import Mathlib.Topology.Order.OrderClosed
 import Mathlib.Algebra.Order.Archimedean.Basic
 import Mathlib.Data.PNat.Basic
 import Mathlib.Tactic
--- cover_set, hausdorffContent, truncated_cover, cover_limit_set,
--- dimensional_density_ratio, upper_dimensional_density live in Definitions.lean
-import FormalizingGMT.«Project Versions».Definitions
+
+/- Necessary basic definitions -/
+import FormalizingGMT.«Project Versions».Measures.Basic
+import FormalizingGMT.«Project Versions».Densities.Basic
+import FormalizingGMT.«Project Versions».Aux_definitions
 
 set_option linter.mathlibStandardSet false
 set_option linter.deprecated false
@@ -35,11 +37,9 @@ open scoped Classical
 open scoped Pointwise
 
 
+
+
 noncomputable section
-
-
-
-
 
 
 lemma hausdorffContent_le_hausdorffMeasure {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]

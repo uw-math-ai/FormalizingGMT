@@ -1,8 +1,18 @@
-/- This file contains the upper bound in Theorem 2.7 in [EG]. 
+/- This file contains the upper bound in Theorem 2.7 in [EG].
 It needs to be modified so it does not assume that the ambient space
 satisfies HasBesicovitchCovering -/
 
 import Mathlib
+
+/- Necessary basic definitions -/
+import FormalizingGMT.«Project Versions».Measures.Basic
+import FormalizingGMT.«Project Versions».Measures.HausdorffMeasure
+import FormalizingGMT.«Project Versions».Densities.Basic
+import FormalizingGMT.«Project Versions».Aux_definitions
+
+open scoped BigOperators Real Nat Pointwise
+open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
+
 open MeasureTheory Measure Filter Metric Set ENNReal Topology
 open scoped NNReal
 set_option maxHeartbeats 800000
