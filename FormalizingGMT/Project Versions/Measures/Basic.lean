@@ -23,7 +23,7 @@ class BorelOuterMeasure {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [Bo
   measurable_le_caratheodory : ‹MeasurableSpace X› ≤ μ.caratheodory
 
 
-/- **TODO: regular** outer measure: an outer measure `μ` on a space `X` is
+/- **TODO (Theo): regular** outer measure: an outer measure `μ` on a space `X` is
 regular if for every set `E`, there exists a `μ`-measurable set set `F ⊇ E` with `μ E = μ F`. -/
 
 /-- **Borel regular** outer measure: an outer measure `μ` on a topological space `X`
@@ -55,7 +55,7 @@ of μ is the set of points x ∈ X such that every neighborhood of x has positiv
 ## Basic facts about regular outer measures
 -/
 
-/- **TODO** Lemma: If `μ` is a regular outer measure on a space `X` and
+/- **TODO (Theo)** Lemma: If `μ` is a regular outer measure on a space `X` and
 `A⊆X`, then `A` is `μ`-measurable if and only if `μ(A)+μ(X∖A)=μ(X)`.
 
-Reference: Bogachev - Measure Theory I, Proposition -/
+Reference: Bogachev - Measure Theory I, Proposition 1.11.7-/

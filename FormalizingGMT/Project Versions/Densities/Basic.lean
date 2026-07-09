@@ -34,10 +34,10 @@ noncomputable def dimensional_lower_density
   Filter.liminf (dimensional_density_ratio μ s x) (𝓝[>] 0)
 
 /-- The s-dimensional density of μ at x exists if the density ratio converges as r → 0⁺. -/
-def has_density
+class HasDensity
     {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
-    (μ : OuterMeasure X) (s : ℝ) (x : X) : Prop :=
-  ∃ y, Tendsto (dimensional_density_ratio μ s x) (𝓝[>] 0) (𝓝 y)
+    (μ : OuterMeasure X) (s : ℝ) (x : X) : Prop where
+  exists_tendsto : ∃ y, Tendsto (dimensional_density_ratio μ s x) (𝓝[>] 0) (𝓝 y)
 
 /-- The s-dimensional density of μ at x (Definition 1.5).
 
@@ -84,7 +84,7 @@ lemma density_exists_of_lower_eq_upper
     {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : OuterMeasure X) (s : ℝ) (x : X)
     (h : dimensional_lower_density μ s x = dimensional_upper_density μ s x) :
-    has_density μ s x :=
+    HasDensity μ s x :=
   ⟨_, tendsto_of_liminf_eq_limsup rfl h.symm⟩
 
 /-- Lemma 2.4: If Θ_*^s(μ, x) ≥ α, then Θ^{*s}(μ, x) ≥ α. -/
