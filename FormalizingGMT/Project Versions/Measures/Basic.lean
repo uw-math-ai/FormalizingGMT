@@ -47,8 +47,13 @@ class IsRadon {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X
   regular_toMeasure :
     (μ.toMeasure (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))).Regular
 
-/- **TODO (Nathan): Support** of a measure: let μ be an outer measure on a topological space X. The support
-of μ is the set of points x ∈ X such that every neighborhood of x has positive μ-measure. -/
+/-- **Support** of an outer measure: an outer measure `μ` on a topological space `X` has
+support the set of points `x` such that every neighborhood of `x` has positive `μ`-measure.
+(By monotonicity of `μ`, this equals the set of `x` whose every *open* neighborhood has positive
+measure.) -/
+def MeasureTheory.OuterMeasure.support {X : Type*} [TopologicalSpace X]
+    (μ : OuterMeasure X) : Set X :=
+  {x | ∀ U ∈ 𝓝 x, 0 < μ U}
 
 
 /-!
