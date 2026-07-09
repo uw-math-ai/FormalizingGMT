@@ -84,7 +84,7 @@ lemma density_exists_of_lower_eq_upper
     {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : OuterMeasure X) (s : ℝ) (x : X)
     (h : dimensional_lower_density μ s x = dimensional_upper_density μ s x) :
-    has_density μ s x :=
+    HasDensity μ s x :=
   ⟨_, tendsto_of_liminf_eq_limsup rfl h.symm⟩
 
 /-- Lemma 2.4: If Θ_*^s(μ, x) ≥ α, then Θ^{*s}(μ, x) ≥ α. -/
