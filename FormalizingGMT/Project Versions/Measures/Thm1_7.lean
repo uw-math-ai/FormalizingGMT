@@ -236,6 +236,27 @@ with μ E < ∞ and let ε > 0. If there are open sets V_i such that E ⊆ ⋃ i
 
 /- Reference: Mattila's book, Theorem 1.10 (2), page 11.-/
 
+theorem open_approx_of_isBorelRegular
+    (μ : OuterMeasure X) (hμ : IsBorelRegular μ)
+    (E : Set X) (hE : μ.IsCaratheodory E) (hEfin : μ E < ∞)
+    (V : ℕ → Set X) (hV_open : ∀ i, IsOpen (V i))
+    (hEV : E ⊆ ⋃ i, V i) (hVfin : ∀ i, μ (V i) < ∞)
+    (ε : ℝ≥0∞) (hε : 0 < ε) :
+    ∃ F : Set X, IsOpen F ∧ E ⊆ F ∧ μ (F \ E) < ε := by
+  by_contra! h_contra;
+  obtain ⟨δ, hδpos, hδsum⟩ : ∃ δ : ℕ → ℝ≥0∞, (∀ i, 0 < δ i) ∧ (∑' i, δ i < ε) := ENNReal.exists_pos_sum_of_countable' hε.ne' ℕ;
+  -- For each $i$, apply the assumption `closed_approx_of_isBorelRegular` to the set $W_i = V_i \setminus E$.
+  have h_closed_approx_i (i : ℕ) : ∃ C : Set X, IsClosed C ∧ C ⊆ V i \ E ∧ μ ((V i \ E) \ C) < δ i := by
+    apply closed_approx_of_isBorelRegular μ hμ (V i \ E) (by
+    convert μ.isCaratheodory_diff
+      (hμ.measurable_le_caratheodory _ ((hV_open i).measurableSet)) hE using 1) (by
+    exact lt_of_le_of_lt ( μ.mono ( show V i \ E ⊆ V i from Set.diff_subset ) ) ( hVfin i )) (δ i) (hδpos i);
+  choose C hCclosed hCsub hCdiff using h_closed_approx_i;
+  refine' not_lt_of_ge ( h_contra ( ⋃ i, V i \ C i ) ( isOpen_iUnion fun i => IsOpen.sdiff ( hV_open i ) ( hCclosed i ) ) _ ) _;
+  · exact fun x hx => by rcases Set.mem_iUnion.1 ( hEV hx ) with ⟨ i, hi ⟩ ; exact Set.mem_iUnion.2 ⟨ i, ⟨ hi, fun hi' => by have := hCsub i hi'; aesop ⟩ ⟩ ;
+  · refine' lt_of_le_of_lt ( MeasureTheory.measure_mono _ ) ( lt_of_le_of_lt ( MeasureTheory.measure_iUnion_le _ ) ( lt_of_le_of_lt ( ENNReal.tsum_le_tsum fun i => le_of_lt ( hCdiff i ) ) hδsum ) );
+    simp +contextual [ Set.subset_def ]
+
 
 /- **TODO: Radon measure iff Borel regular and locally finite**:
 Let μ be an outer measure on a topological space X. Then μ is a Radon measure if and only if μ is

@@ -13,7 +13,7 @@ measure theory. -/
 ## Notions of regularity for outer measures
 -/
 
-/- **TODO: Locally finite** outer measure: an outer measure on a topological space is locally
+/- **TODO (Nathan): Locally finite** outer measure: an outer measure on a topological space is locally
 finite if it assigns finite measure to every compact set. -/
 
 /- **Borel** outer measure: an outer measure `μ` on a topological space `X` equipped with the
@@ -21,6 +21,10 @@ Borel σ-algebra is a Borel outer measure if all Borel sets are measurable for `
 class BorelOuterMeasure {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : OuterMeasure X) : Prop where
   measurable_le_caratheodory : ‹MeasurableSpace X› ≤ μ.caratheodory
+
+
+/- **TODO: regular** outer measure: an outer measure `μ` on a space `X` is
+regular if for every set `E`, there exists a `μ`-measurable set set `F ⊇ E` with `μ E = μ F`. -/
 
 /-- **Borel regular** outer measure: an outer measure `μ` on a topological space `X`
 equipped with the Borel σ-algebra is Borel regular if:
@@ -43,5 +47,15 @@ class IsRadon {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X
   regular_toMeasure :
     (μ.toMeasure (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))).Regular
 
-/- **TODO: Support** of a measure: let μ be an outer measure on a topological space X. The support
+/- **TODO (Nathan): Support** of a measure: let μ be an outer measure on a topological space X. The support
 of μ is the set of points x ∈ X such that every neighborhood of x has positive μ-measure. -/
+
+
+/-!
+## Basic facts about regular outer measures
+-/
+
+/- **TODO** Lemma: If `μ` is a regular outer measure on a space `X` and
+`A⊆X`, then `A` is `μ`-measurable if and only if `μ(A)+μ(X∖A)=μ(X)`.
+
+Reference: Bogachev - Measure Theory I, Proposition -/
