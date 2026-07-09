@@ -58,4 +58,4 @@ of μ is the set of points x ∈ X such that every neighborhood of x has positiv
 /- **TODO (Theo)** Lemma: If `μ` is a regular outer measure on a space `X` and
 `A⊆X`, then `A` is `μ`-measurable if and only if `μ(A)+μ(X∖A)=μ(X)`.
 
-Reference: Bogachev - Measure Theory I, Proposition -/
+Reference: Bogachev - Measure Theory I, Proposition 1.11.7-/
