@@ -51,7 +51,7 @@ class IsRadon {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X
 support the set of points `x` such that every neighborhood of `x` has positive `μ`-measure.
 (By monotonicity of `μ`, this equals the set of `x` whose every *open* neighborhood has positive
 measure.) -/
-def MeasureTheory.OuterMeasure.support {X : Type*} [TopologicalSpace X]
+def SupportOuterMeasure {X : Type*} [TopologicalSpace X]
     (μ : OuterMeasure X) : Set X :=
   {x | ∀ U ∈ 𝓝 x, 0 < μ U}
 
