@@ -13,8 +13,8 @@ measure theory. -/
 ## Notions of regularity for outer measures
 -/
 
-/- **TODO (Nathan): Locally finite** outer measure: an outer measure on a topological space is locally
-finite if it assigns finite measure to every compact set. -/
+/- **TODO (Nathan): Locally finite** outer measure: an outer measure on a topological space is
+locally finite if it assigns finite measure to every compact set. -/
 
 /- **Borel** outer measure: an outer measure `μ` on a topological space `X` equipped with the
 Borel σ-algebra is a Borel outer measure if all Borel sets are measurable for `μ`. -/
@@ -23,10 +23,11 @@ class BorelOuterMeasure {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [Bo
   measurable_le_caratheodory : ‹MeasurableSpace X› ≤ μ.caratheodory
 
 
-/- **TODO (Theo): regular** outer measure: an outer measure `μ` on a space `X` is
-regular if for every set `E`, there exists a `μ`-measurable set set `F ⊇ E` with `μ E = μ F`. -/
-class IsRegularOuterMeasure {X : Type*} (μ : OuterMeasure X) : Prop where
-  exists_caratheodory_superset :
+/- **TODO (Theo): regular** outer measure: an outer measure `μ` on a space `X` is regular if
+for every set `E`, there exists a `μ`-measurable set `F ⊇ E` with `μ E = μ F`. -/
+class RegularOuterMeasure {X : Type*}
+    (μ : OuterMeasure X) : Prop where
+  exists_measurable_superset :
     ∀ E : Set X, ∃ F : Set X,
       μ.IsCaratheodory F ∧
       E ⊆ F ∧
@@ -43,6 +44,14 @@ class IsBorelRegular {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [Borel
       MeasurableSet F ∧
       E ⊆ F ∧
       μ E = μ F
+
+instance IsBorelRegular.toRegularOuterMeasure {X : Type*} [TopologicalSpace X]
+    [MeasurableSpace X] [BorelSpace X] (μ : OuterMeasure X) [IsBorelRegular μ] :
+    RegularOuterMeasure μ where
+  exists_measurable_superset E := by
+    obtain ⟨F, hF, hEF, hμF⟩ :=
+      IsBorelRegular.exists_measurable_superset (μ := μ) E
+    exact ⟨F, BorelOuterMeasure.measurable_le_caratheodory (μ := μ) F hF, hEF, hμF⟩
 
 /-- **Radon** outer measure: an outer measure `μ` on a topological space `X` equipped with the
 Borel σ-algebra is a Radon outer measure if:
@@ -70,50 +79,29 @@ def SupportOuterMeasure {X : Type*} [TopologicalSpace X]
 `A⊆X`, then `A` is `μ`-measurable if and only if `μ(A)+μ(X∖A)=μ(X)`.
 
 Reference: Bogachev - Measure Theory I, Proposition 1.11.7-/
-theorem isCaratheodory_iff_add_compl_eq_univ_of_isRegularOuterMeasure
-    {X : Type*} (μ : OuterMeasure X) (hμ : IsRegularOuterMeasure μ)
-    (hμ_univ : μ univ < ∞) (A : Set X) :
+lemma isCaratheodory_of_measure_eq_zero {X : Type*} {μ : OuterMeasure X} {A : Set X}
+    (hA : μ A = 0) : μ.IsCaratheodory A := by
+  rw [OuterMeasure.isCaratheodory_iff_le']; intro T
+  simpa [measure_mono_null inter_subset_right hA] using
+    (measure_mono (diff_subset : T \ A ⊆ T) : μ (T \ A) ≤ μ T)
+
+lemma isCaratheodory_of_measure_add_compl_eq_univ
+    {X : Type*} (μ : OuterMeasure X) [RegularOuterMeasure μ]
+    (hμ : μ univ < ∞) {A : Set X} (hA : μ A + μ Aᶜ = μ univ) :
+    μ.IsCaratheodory A := by
+  rcases RegularOuterMeasure.exists_measurable_superset (μ := μ) A with ⟨F, hF, hAF, hμAF⟩
+  have hfin (E : Set X) : μ E ≠ ∞ := ne_of_lt <| (measure_mono (subset_univ E)).trans_lt hμ
+  have hAc : μ Aᶜ = μ Fᶜ := (ENNReal.add_right_inj (hfin F)).mp <| by
+    simpa [hμAF, Set.diff_eq] using hA.trans (hF univ)
+  have hFA : μ (F \ A) = 0 := (ENNReal.add_left_inj (hfin Fᶜ)).mp <| by
+    simpa [hAc, Set.diff_eq, Set.compl_inter, Set.inter_assoc, Set.inter_comm,
+      Set.inter_left_comm, inter_eq_self_of_subset_right (compl_subset_compl.mpr hAF)]
+      using (hF Aᶜ).symm
+  convert μ.isCaratheodory_diff hF (isCaratheodory_of_measure_eq_zero hFA) using 1; aesop
+
+lemma isCaratheodory_iff_measure_add_compl_eq_univ
+    {X : Type*} (μ : OuterMeasure X) [RegularOuterMeasure μ]
+    (hμ : μ univ < ∞) (A : Set X) :
     μ.IsCaratheodory A ↔ μ A + μ Aᶜ = μ univ := by
-  constructor
-  · intro hA
-    simpa [Set.diff_eq] using (hA univ).symm
-  · intro hA_eq
-    obtain ⟨F, hF_meas, hAF, hμAF⟩ := hμ.exists_caratheodory_superset A
-    have hμF_ne_top : μ F ≠ ∞ :=
-      ne_of_lt ((measure_mono (subset_univ F)).trans_lt hμ_univ)
-    have hμFc_ne_top : μ Fᶜ ≠ ∞ :=
-      ne_of_lt ((measure_mono (subset_univ Fᶜ)).trans_lt hμ_univ)
-    have h_compl_eq : μ Aᶜ = μ Fᶜ := by
-      rw [← ENNReal.add_right_inj hμF_ne_top]
-      calc
-        μ F + μ Aᶜ = μ A + μ Aᶜ := by rw [hμAF]
-        _ = μ univ := hA_eq
-        _ = μ F + μ Fᶜ := by simpa [Set.diff_eq] using hF_meas univ
-    have h_diff_zero : μ (F \ A) = 0 := by
-      have hFc_subset_Ac : Fᶜ ⊆ Aᶜ := fun x hxF hxA => hxF (hAF hxA)
-      have hsplit : μ Aᶜ = μ (F \ A) + μ Fᶜ := by
-        simpa [Set.compl_inter, Set.diff_eq, Set.inter_assoc, Set.inter_comm,
-          Set.inter_left_comm, inter_eq_self_of_subset_right hFc_subset_Ac] using hF_meas Aᶜ
-      rw [h_compl_eq] at hsplit
-      have hcancel : μ (F \ A) + μ Fᶜ = 0 + μ Fᶜ := by
-        simpa using hsplit.symm
-      exact (ENNReal.add_left_inj hμFc_ne_top).mp hcancel
-    have h_diff_meas : μ.IsCaratheodory (F \ A) := by
-      rw [OuterMeasure.isCaratheodory_iff_le']
-      intro T
-      have hT_inter_zero : μ (T ∩ (F \ A)) = 0 :=
-        measure_mono_null (show T ∩ (F \ A) ⊆ F \ A from inter_subset_right) h_diff_zero
-      calc
-        μ (T ∩ (F \ A)) + μ (T \ (F \ A)) = μ (T \ (F \ A)) := by
-          simp [hT_inter_zero]
-        _ ≤ μ T := measure_mono diff_subset
-    have hA_eq_set : F \ (F \ A) = A := by
-      ext x
-      constructor
-      · intro hx
-        by_contra hxA
-        exact hx.2 ⟨hx.1, hxA⟩
-      · intro hx
-        exact ⟨hAF hx, fun h => h.2 hx⟩
-    rw [← hA_eq_set]
-    exact μ.isCaratheodory_diff hF_meas h_diff_meas
+  refine ⟨fun hA => ?_, isCaratheodory_of_measure_add_compl_eq_univ μ hμ⟩
+  simpa [Set.diff_eq] using (hA univ).symm

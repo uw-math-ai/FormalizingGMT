@@ -238,7 +238,7 @@ with μ E < ∞ and let ε > 0. If there are open sets V_i such that E ⊆ ⋃ i
 
 theorem open_approx_of_isBorelRegular
     (μ : OuterMeasure X) (hμ : IsBorelRegular μ)
-    (E : Set X) (hE : μ.IsCaratheodory E) (hEfin : μ E < ∞)
+    (E : Set X) (hE : μ.IsCaratheodory E) (_hEfin : μ E < ∞)
     (V : ℕ → Set X) (hV_open : ∀ i, IsOpen (V i))
     (hEV : E ⊆ ⋃ i, V i) (hVfin : ∀ i, μ (V i) < ∞)
     (ε : ℝ≥0∞) (hε : 0 < ε) :
