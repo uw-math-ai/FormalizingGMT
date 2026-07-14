@@ -15,6 +15,10 @@ measure theory. -/
 
 /- **TODO (Nathan): Locally finite** outer measure: an outer measure on a topological space is
 locally finite if it assigns finite measure to every compact set. -/
+class IsFiniteOnCompactOuterMeasure {X : Type*} [TopologicalSpace X]
+    (μ : OuterMeasure X) : Prop where
+  measure_lt_top_of_isCompact :
+    ∀ ⦃K : Set X⦄, IsCompact K → μ K < ∞
 
 /- **Borel** outer measure: an outer measure `μ` on a topological space `X` equipped with the
 Borel σ-algebra is a Borel outer measure if all Borel sets are measurable for `μ`. -/
