@@ -13,7 +13,7 @@ measure theory. -/
 ## Notions of regularity for outer measures
 -/
 
-/- **TODO (Nathan): Locally finite** outer measure: an outer measure on a topological space is
+/- **Locally finite** outer measure: an outer measure on a topological space is
 locally finite if it assigns finite measure to every compact set. -/
 class IsFiniteOnCompactOuterMeasure {X : Type*} [TopologicalSpace X]
     (μ : OuterMeasure X) : Prop where
@@ -27,7 +27,7 @@ class BorelOuterMeasure {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [Bo
   measurable_le_caratheodory : ‹MeasurableSpace X› ≤ μ.caratheodory
 
 
-/- **TODO (Theo): regular** outer measure: an outer measure `μ` on a space `X` is regular if
+/- **Regular** outer measure: an outer measure `μ` on a space `X` is regular if
 for every set `E`, there exists a `μ`-measurable set `F ⊇ E` with `μ E = μ F`. -/
 class RegularOuterMeasure {X : Type*}
     (μ : OuterMeasure X) : Prop where
@@ -49,13 +49,7 @@ class IsBorelRegular {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [Borel
       E ⊆ F ∧
       μ E = μ F
 
-instance IsBorelRegular.toRegularOuterMeasure {X : Type*} [TopologicalSpace X]
-    [MeasurableSpace X] [BorelSpace X] (μ : OuterMeasure X) [IsBorelRegular μ] :
-    RegularOuterMeasure μ where
-  exists_measurable_superset E := by
-    obtain ⟨F, hF, hEF, hμF⟩ :=
-      IsBorelRegular.exists_measurable_superset (μ := μ) E
-    exact ⟨F, BorelOuterMeasure.measurable_le_caratheodory (μ := μ) F hF, hEF, hμF⟩
+
 
 /-- **Radon** outer measure: an outer measure `μ` on a topological space `X` equipped with the
 Borel σ-algebra is a Radon outer measure if:
@@ -76,19 +70,40 @@ def SupportOuterMeasure {X : Type*} [TopologicalSpace X]
 
 
 /-!
-## Basic facts about regular outer measures
+## Basic facts about outer measures
 -/
 
-/- **TODO (Theo)** Lemma: If `μ` is a regular outer measure on a space `X` and
-`A⊆X`, then `A` is `μ`-measurable if and only if `μ(A)+μ(X∖A)=μ(X)`.
-
-Reference: Bogachev - Measure Theory I, Proposition 1.11.7-/
+/- Lemma: sets with outer measure zero are Carathéodory measurable -/
 lemma isCaratheodory_of_measure_eq_zero {X : Type*} {μ : OuterMeasure X} {A : Set X}
     (hA : μ A = 0) : μ.IsCaratheodory A := by
   rw [OuterMeasure.isCaratheodory_iff_le']; intro T
   simpa [measure_mono_null inter_subset_right hA] using
     (measure_mono (diff_subset : T \ A ⊆ T) : μ (T \ A) ≤ μ T)
 
+
+
+/-!
+## Basic facts about regular outer measures
+-/
+
+
+/- A Borel regular outer measure is also a regular outer measure -/
+instance IsBorelRegular.toRegularOuterMeasure {X : Type*} [TopologicalSpace X]
+    [MeasurableSpace X] [BorelSpace X] (μ : OuterMeasure X) [IsBorelRegular μ] :
+    RegularOuterMeasure μ where
+  exists_measurable_superset E := by
+    obtain ⟨F, hF, hEF, hμF⟩ :=
+      IsBorelRegular.exists_measurable_superset (μ := μ) E
+    exact ⟨F, BorelOuterMeasure.measurable_le_caratheodory (μ := μ) F hF, hEF, hμF⟩
+
+
+
+/- Lemma: If `μ` is a regular outer measure on a space `X` and
+`A⊆X`, then `A` is `μ`-measurable if and only if `μ(A)+μ(X∖A)=μ(X)`.
+
+Reference: Bogachev - Measure Theory I, Proposition 1.11.7-/
+
+/- Lemma: non-trivial implication of Bogachev Proposition 1.11.7 -/
 lemma isCaratheodory_of_measure_add_compl_eq_univ
     {X : Type*} (μ : OuterMeasure X) [RegularOuterMeasure μ]
     (hμ : μ univ < ∞) {A : Set X} (hA : μ A + μ Aᶜ = μ univ) :
@@ -103,6 +118,7 @@ lemma isCaratheodory_of_measure_add_compl_eq_univ
       using (hF Aᶜ).symm
   convert μ.isCaratheodory_diff hF (isCaratheodory_of_measure_eq_zero hFA) using 1; aesop
 
+/- Lemma: Bogachev Proposition 1.11.7 -/
 lemma isCaratheodory_iff_measure_add_compl_eq_univ
     {X : Type*} (μ : OuterMeasure X) [RegularOuterMeasure μ]
     (hμ : μ univ < ∞) (A : Set X) :
