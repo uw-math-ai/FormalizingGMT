@@ -88,31 +88,31 @@ lemma toMeasure_restrict_eq (μ : OuterMeasure X) (B : Set X)
 
 /-
 For a Borel regular outer measure and a Carathéodory-measurable set E with μ(E) < ∞,
-for any set S there exists a Borel set F ⊇ S with (μ↾E)(S) = (μ↾E)(F).
+for any set S there exists a Borel set F with (μ↾E)(S) = (μ↾E)(F).
 
 The construction is: let G ⊇ S∩E be Borel with μ(G) = μ(S∩E), let C ⊇ E be Borel with
 μ(C) = μ(E), and let D ⊇ S∩(C\E) be Borel with μ(D) = μ(S∩(C\E)) = 0.
 Then F = G ∪ Cᶜ ∪ D works.
 -/
-lemma IsBorelRegular.exists_borel_superset_restrict
-    (μ : OuterMeasure X) (hμ : IsBorelRegular μ) (E : Set X)
+lemma BorelRegularOuterMeasure.exists_borel_superset_restrict
+    (μ : OuterMeasure X) [BorelRegularOuterMeasure μ] (E : Set X)
     (hE_meas : μ.IsCaratheodory E) (hE_fin : μ E < ⊤)
     (S : Set X) :
     ∃ F : Set X, MeasurableSet F ∧ S ⊆ F ∧
       (OuterMeasure.restrict E μ) S = (OuterMeasure.restrict E μ) F := by
   -- By assumption, there exists a Borel set $C \supseteq E$ with $\mu(C) = \mu(E)$.
   obtain ⟨C, hC_meas, hC⟩ : ∃ C : Set X, MeasurableSet C ∧ E ⊆ C ∧ μ E = μ C := by
-    exact hμ.exists_measurable_superset E;
+    exact BorelRegularOuterMeasure.exists_measurable_superset (μ := μ) E;
   -- By assumption, there exists a Borel set `G ⊇ S ∩ E` with `μ G = μ (S ∩ E)`.
   obtain ⟨G, hG_meas, hG⟩ :
       ∃ G : Set X, MeasurableSet G ∧ S ∩ E ⊆ G ∧ μ G = μ (S ∩ E) := by
-    have := hμ.exists_measurable_superset ( S ∩ E ) ; aesop;
+    have := BorelRegularOuterMeasure.exists_measurable_superset (μ := μ) ( S ∩ E ) ; aesop;
   -- By assumption, there exists a Borel set `D ⊇ S ∩ (C \ E)` with `μ D = 0`.
   obtain ⟨D, hD_meas, hD⟩ :
       ∃ D : Set X, MeasurableSet D ∧ S ∩ (C \ E) ⊆ D ∧ μ D = 0 := by
     have hD_zero : μ (C \ E) = 0 := by
       apply measure_diff_eq_zero μ E C hC.left hC.right hE_meas hE_fin;
-    have := hμ.exists_measurable_superset ( C \ E );
+    have := BorelRegularOuterMeasure.exists_measurable_superset (μ := μ) ( C \ E );
     exact ⟨ this.choose, this.choose_spec.1,
       Set.Subset.trans ( Set.inter_subset_right ) this.choose_spec.2.1,
       this.choose_spec.2.2.symm.trans hD_zero ⟩;
@@ -121,10 +121,9 @@ lemma IsBorelRegular.exists_borel_superset_restrict
   · grind +splitImp;
   · have h_eq : μ (S ∩ E) ≤ μ ((G ∪ Cᶜ ∪ D) ∩ E) ∧
         μ ((G ∪ Cᶜ ∪ D) ∩ E) ≤ μ (G ∩ E) + μ (D ∩ E) := by
-      refine ⟨ μ.mono ?_, ?_ ⟩;
+      refine ⟨ μ.mono ?_, ?_ ⟩
       · exact fun x hx => ⟨ Or.inl <| Or.inl <| hG.1 hx, hx.2 ⟩;
-      · refine le_trans ( μ.mono ?_ ) ( MeasureTheory.measure_union_le _ _ );
-        grind;
+      · exact le_trans (μ.mono (by grind)) (MeasureTheory.measure_union_le _ _)
     have h_eq : μ (G ∩ E) ≤ μ G ∧ μ (D ∩ E) ≤ μ D := by
       exact ⟨ μ.mono ( Set.inter_subset_left ), μ.mono ( Set.inter_subset_left ) ⟩;
     simp_all +decide [ OuterMeasure.restrict_apply ];
@@ -133,15 +132,15 @@ lemma IsBorelRegular.exists_borel_superset_restrict
 /-- **Restriction of a Borel regular measure is Borel regular**: the restriction of a Borel
 regular outer measure to a Carathéodory-measurable set of finite measure is again Borel
 regular. -/
-lemma IsBorelRegular.restrict_isBorelRegular
-    (μ : OuterMeasure X) (hμ : IsBorelRegular μ) (E : Set X)
+lemma BorelRegularOuterMeasure.restrict
+    (μ : OuterMeasure X) [BorelRegularOuterMeasure μ] (E : Set X)
     (hE_meas : μ.IsCaratheodory E) (hE_fin : μ E < ⊤) :
-    IsBorelRegular (OuterMeasure.restrict E μ) := by
+    BorelRegularOuterMeasure (OuterMeasure.restrict E μ) := by
   exact {
     measurable_le_caratheodory := caratheodory_restrict_of_caratheodory μ E
-      hμ.measurable_le_caratheodory
+      (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))
     exists_measurable_superset := fun S =>
-      IsBorelRegular.exists_borel_superset_restrict μ hμ E hE_meas hE_fin S }
+      BorelRegularOuterMeasure.exists_borel_superset_restrict μ E hE_meas hE_fin S }
 
 
 
@@ -150,21 +149,22 @@ Let μ be a Borel regular outer measure on a topological space X. Then for every
 E ⊆ X with μ E < ∞ and ε > 0, there exists a closed set F ⊆ E such that μ (E \ F) < ε. -/
 
 theorem closed_approx_of_isBorelRegular
-    (μ : OuterMeasure X) (hμ : IsBorelRegular μ)
+    (μ : OuterMeasure X) [BorelRegularOuterMeasure μ]
     (E : Set X) (hE : μ.IsCaratheodory E) (hEfin : μ E < ∞)
     (ε : ℝ≥0∞) (hε : 0 < ε) :
     ∃ F : Set X, IsClosed F ∧ F ⊆ E ∧ μ (E \ F) < ε := by
   let ν : OuterMeasure X := OuterMeasure.restrict E μ
-  have hν_br : IsBorelRegular ν :=
-    IsBorelRegular.restrict_isBorelRegular μ hμ E hE hEfin
-  let m : Measure X := ν.toMeasure hν_br.measurable_le_caratheodory
+  letI : BorelRegularOuterMeasure ν :=
+    BorelRegularOuterMeasure.restrict μ E hE hEfin
+  let m : Measure X :=
+    ν.toMeasure (BorelOuterMeasure.measurable_le_caratheodory (μ := ν))
   have hν_compl : ν Eᶜ = 0 := by
     simp [ν, OuterMeasure.restrict_apply, Set.compl_inter_self]
-  obtain ⟨G, hG_meas, hEcG, hνG_eq⟩ := hν_br.exists_measurable_superset Eᶜ
+  obtain ⟨G, hG_meas, hEcG, hνG_eq⟩ := BorelRegularOuterMeasure.exists_measurable_superset (μ := ν) Eᶜ
   have hνG : ν G = 0 := by
     simpa [hν_compl] using hνG_eq.symm
   have hmG : m G = 0 := by
-    change (ν.toMeasure hν_br.measurable_le_caratheodory) G = 0
+    change (ν.toMeasure (BorelOuterMeasure.measurable_le_caratheodory (μ := ν))) G = 0
     simpa [toMeasure_apply _ _ hG_meas] using hνG
   let A : Set X := Gᶜ
   have hA_meas : MeasurableSet A := hG_meas.compl
@@ -175,7 +175,7 @@ theorem closed_approx_of_isBorelRegular
   haveI : IsFiniteMeasure m := by
     refine ⟨?_⟩
     have hmuniv : m univ = μ E := by
-      change (ν.toMeasure hν_br.measurable_le_caratheodory) univ = μ E
+      change (ν.toMeasure (BorelOuterMeasure.measurable_le_caratheodory (μ := ν))) univ = μ E
       rw [toMeasure_apply _ _ MeasurableSet.univ]
       simp [ν, OuterMeasure.restrict_apply]
     rw [hmuniv]
@@ -199,7 +199,7 @@ theorem closed_approx_of_isBorelRegular
       _ = m (A \ F) + 0 := by
         rw [hνG]
         change ν (A \ F) + 0 =
-          (ν.toMeasure hν_br.measurable_le_caratheodory) (A \ F) + 0
+          (ν.toMeasure (BorelOuterMeasure.measurable_le_caratheodory (μ := ν))) (A \ F) + 0
         rw [toMeasure_apply _ _ (hA_meas.diff hF_closed.measurableSet)]
       _ < ε := by simpa using hm_diff_lt
   calc
@@ -237,7 +237,7 @@ with μ E < ∞ and let ε > 0. If there are open sets V_i such that E ⊆ ⋃ i
 /- Reference: Mattila's book, Theorem 1.10 (2), page 11.-/
 
 theorem open_approx_of_isBorelRegular
-    (μ : OuterMeasure X) (hμ : IsBorelRegular μ)
+    (μ : OuterMeasure X) [BorelRegularOuterMeasure μ]
     (E : Set X) (hE : μ.IsCaratheodory E) (_hEfin : μ E < ∞)
     (V : ℕ → Set X) (hV_open : ∀ i, IsOpen (V i))
     (hEV : E ⊆ ⋃ i, V i) (hVfin : ∀ i, μ (V i) < ∞)
@@ -247,9 +247,9 @@ theorem open_approx_of_isBorelRegular
   obtain ⟨δ, hδpos, hδsum⟩ : ∃ δ : ℕ → ℝ≥0∞, (∀ i, 0 < δ i) ∧ (∑' i, δ i < ε) := ENNReal.exists_pos_sum_of_countable' hε.ne' ℕ;
   -- For each $i$, apply the assumption `closed_approx_of_isBorelRegular` to the set $W_i = V_i \setminus E$.
   have h_closed_approx_i (i : ℕ) : ∃ C : Set X, IsClosed C ∧ C ⊆ V i \ E ∧ μ ((V i \ E) \ C) < δ i := by
-    apply closed_approx_of_isBorelRegular μ hμ (V i \ E) (by
+    apply closed_approx_of_isBorelRegular μ (V i \ E) (by
     convert μ.isCaratheodory_diff
-      (hμ.measurable_le_caratheodory _ ((hV_open i).measurableSet)) hE using 1) (by
+      (BorelOuterMeasure.measurable_le_caratheodory (μ := μ) _ ((hV_open i).measurableSet)) hE using 1) (by
     exact lt_of_le_of_lt ( μ.mono ( show V i \ E ⊆ V i from Set.diff_subset ) ) ( hVfin i )) (δ i) (hδpos i);
   choose C hCclosed hCsub hCdiff using h_closed_approx_i;
   refine' not_lt_of_ge ( h_contra ( ⋃ i, V i \ C i ) ( isOpen_iUnion fun i => IsOpen.sdiff ( hV_open i ) ( hCclosed i ) ) _ ) _;
@@ -272,15 +272,17 @@ a topological space `X` with the Borel σ-algebra, and `E ⊆ X` is a μ-measura
 We assume `PseudoMetricSpace X` and `SigmaCompactSpace X` to obtain
 inner regularity with compact sets, following standard measure theory texts
 (cf. Evans–Gariepy, Theorem 1.10). -/
-theorem IsBorelRegular.restrict_isRadon
-    (μ : OuterMeasure X) (hμ : IsBorelRegular μ) (E : Set X)
+theorem BorelRegularOuterMeasure.restrict_isRadon
+    (μ : OuterMeasure X) [BorelRegularOuterMeasure μ] (E : Set X)
     (hE_meas : μ.IsCaratheodory E) (hE_fin : μ E < ⊤) :
-    IsRadon (OuterMeasure.restrict E μ) := by
+    RadonOuterMeasure (OuterMeasure.restrict E μ) := by
   -- Borel ≤ caratheodory for restricted measure
   have h_cara : ‹MeasurableSpace X› ≤ (OuterMeasure.restrict E μ).caratheodory :=
-    caratheodory_restrict_of_caratheodory μ E hμ.measurable_le_caratheodory
+    caratheodory_restrict_of_caratheodory μ E
+      (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))
   -- Get the Borel superset B ⊇ E with μ(B) = μ(E)
-  obtain ⟨B, hB_meas, hEB, hμEB⟩ := hμ.exists_measurable_superset E
+  obtain ⟨B, hB_meas, hEB, hμEB⟩ :=
+    BorelRegularOuterMeasure.exists_measurable_superset (μ := μ) E
   -- μ(B \ E) = 0
   have h_null : μ (B \ E) = 0 :=
     measure_diff_eq_zero μ E B hEB hμEB hE_meas hE_fin
@@ -289,24 +291,27 @@ theorem IsBorelRegular.restrict_isRadon
     restrict_eq_of_null_diff μ E B hEB h_null
   -- caratheodory for restrict B μ
   have h_cara_B : ‹MeasurableSpace X› ≤ (OuterMeasure.restrict B μ).caratheodory :=
-    caratheodory_restrict_of_caratheodory μ B hμ.measurable_le_caratheodory
+    caratheodory_restrict_of_caratheodory μ B
+      (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))
   -- Relate toMeasure of restricted outer measure to Measure.restrict
   have h_eq_meas : (OuterMeasure.restrict E μ).toMeasure h_cara =
-      (μ.toMeasure hμ.measurable_le_caratheodory).restrict B := by
+      (μ.toMeasure (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))).restrict B := by
     have step1 : (OuterMeasure.restrict E μ).toMeasure h_cara =
         (OuterMeasure.restrict B μ).toMeasure h_cara_B := by
       ext s hs
       simp only [toMeasure_apply _ _ hs]
       exact congrFun (congrArg OuterMeasure.measureOf h_eq_om) s
     rw [step1]
-    exact toMeasure_restrict_eq μ B hB_meas hμ.measurable_le_caratheodory h_cara_B
-  -- Build the IsRadon proof
-  have h_br : IsBorelRegular (OuterMeasure.restrict E μ) :=
-    IsBorelRegular.restrict_isBorelRegular μ hμ E hE_meas hE_fin
-  refine { h_br with regular_toMeasure := ?_ }
+    exact toMeasure_restrict_eq μ B hB_meas
+      (BorelOuterMeasure.measurable_le_caratheodory (μ := μ)) h_cara_B
+  -- Build the RadonOuterMeasure proof
+  letI : BorelRegularOuterMeasure (OuterMeasure.restrict E μ) :=
+    BorelRegularOuterMeasure.restrict μ E hE_meas hE_fin
+  refine { regular_toMeasure := ?_ }
   rw [h_eq_meas]
   -- The restricted measure is finite, hence Regular by Mathlib instances
-  have : IsFiniteMeasure ((μ.toMeasure hμ.measurable_le_caratheodory).restrict B) := by
+  have : IsFiniteMeasure
+      ((μ.toMeasure (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))).restrict B) := by
     rw [isFiniteMeasure_restrict]
     rw [toMeasure_apply₀ _ _ (hB_meas.nullMeasurableSet)]
     rw [← hμEB]

@@ -40,8 +40,10 @@ class RegularOuterMeasure {X : Type*}
 /-- **Borel regular** outer measure: an outer measure `μ` on a topological space `X`
 equipped with the Borel σ-algebra is Borel regular if:
 1. All Borel sets are Carathéodory measurable for `μ`.
-2. For every set `E`, there exists a Borel set `F ⊇ E` with `μ E = μ F`. -/
-class IsBorelRegular {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
+2. For every set `E`, there exists a Borel set `F ⊇ E` with `μ E = μ F`.
+
+This class was previously names 'IsBorelRegular' -/
+class BorelRegularOuterMeasure {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
     (μ : OuterMeasure X) : Prop extends BorelOuterMeasure μ where
   exists_measurable_superset :
     ∀ E : Set X, ∃ F : Set X,
@@ -54,9 +56,12 @@ class IsBorelRegular {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [Borel
 /-- **Radon** outer measure: an outer measure `μ` on a topological space `X` equipped with the
 Borel σ-algebra is a Radon outer measure if:
 1. All Borel subsets of `X` are Carathéodory measurable for `μ`.
-2. The associated Borel measure via `toMeasure` satisfies `Measure.Regular`. -/
-class IsRadon {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
-    (μ : OuterMeasure X) : Prop extends IsBorelRegular μ where
+2. The associated Borel measure via `toMeasure` satisfies `Measure.Regular`.
+
+This class was previously named 'IsRadon'
+-/
+class RadonOuterMeasure {X : Type*} [TopologicalSpace X] [MeasurableSpace X] [BorelSpace X]
+    (μ : OuterMeasure X) : Prop extends BorelRegularOuterMeasure μ where
   regular_toMeasure :
     (μ.toMeasure (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))).Regular
 
@@ -89,11 +94,11 @@ lemma isCaratheodory_of_measure_eq_zero {X : Type*} {μ : OuterMeasure X} {A : S
 
 /- A Borel regular outer measure is also a regular outer measure -/
 instance IsBorelRegular.toRegularOuterMeasure {X : Type*} [TopologicalSpace X]
-    [MeasurableSpace X] [BorelSpace X] (μ : OuterMeasure X) [IsBorelRegular μ] :
+    [MeasurableSpace X] [BorelSpace X] (μ : OuterMeasure X) [BorelRegularOuterMeasure μ] :
     RegularOuterMeasure μ where
   exists_measurable_superset E := by
     obtain ⟨F, hF, hEF, hμF⟩ :=
-      IsBorelRegular.exists_measurable_superset (μ := μ) E
+      BorelRegularOuterMeasure.exists_measurable_superset (μ := μ) E
     exact ⟨F, BorelOuterMeasure.measurable_le_caratheodory (μ := μ) F hF, hEF, hμF⟩
 
 
