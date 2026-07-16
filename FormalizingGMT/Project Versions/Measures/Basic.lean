@@ -106,6 +106,16 @@ instance IsBorelRegular.toRegularOuterMeasure {X : Type*} [TopologicalSpace X]
 /- Lemma: If `μ` is a regular outer measure on a space `X` and
 `A⊆X`, then `A` is `μ`-measurable if and only if `μ(A)+μ(X∖A)=μ(X)`.
 
+
+lemma measure_eq_iInf_measurable_superset
+    {X : Type*} (μ : OuterMeasure X) [RegularOuterMeasure μ] (A : Set X) :
+    μ A = ⨅ (M : Set X) (_ : μ.IsCaratheodory M) (_ : A ⊆ M), μ M :=
+  le_antisymm
+    (le_iInf fun _ => le_iInf fun _ => le_iInf fun h => measure_mono h)
+    (let ⟨F, hF, hAF, hμF⟩ := RegularOuterMeasure.exists_measurable_superset (μ := μ) A
+     iInf_le_of_le F (iInf_le_of_le hF (iInf_le_of_le hAF hμF.symm.le)))
+
+
 Reference: Bogachev - Measure Theory I, Proposition 1.11.7-/
 
 /- Lemma: non-trivial implication of Bogachev Proposition 1.11.7 -/
