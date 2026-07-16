@@ -114,4 +114,12 @@ lemma isCaratheodory_iff_measure_add_compl_eq_univ
   simpa [Set.diff_eq] using (hA univ).symm
 
 
-/-**TODO (Nathan)**: Lemma: if `μ` is a regular outer measure on a space `X`, then for every `A ⊆ X`, `μ(A)` equals the infimum of `μ(M)` over all `μ`-measurable sets `M` containing `A`.-/
+/- Lemma: if `μ` is a regular outer measure on a space `X`, then for every `A ⊆ X`, `μ(A)` 
+equals the infimum of `μ(M)` over all `μ`-measurable sets `M` containing `A`.-/
+lemma measure_eq_iInf_measurable_superset
+    {X : Type*} (μ : OuterMeasure X) [RegularOuterMeasure μ] (A : Set X) :
+    μ A = ⨅ (M : Set X) (_ : μ.IsCaratheodory M) (_ : A ⊆ M), μ M :=
+  le_antisymm
+    (le_iInf fun _ => le_iInf fun _ => le_iInf fun h => measure_mono h)
+    (let ⟨F, hF, hAF, hμF⟩ := RegularOuterMeasure.exists_measurable_superset (μ := μ) A
+     iInf_le_of_le F (iInf_le_of_le hF (iInf_le_of_le hAF hμF.symm.le)))
