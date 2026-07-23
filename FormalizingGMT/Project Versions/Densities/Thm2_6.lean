@@ -28,8 +28,6 @@ open MeasureTheory Measure Metric Set Filter ENNReal
 open scoped NNReal Topology
 
 
-
-
 /-! ## Abbreviations -/
 
 variable {X : Type*} [MetricSpace X] [SigmaCompactSpace X]
@@ -43,7 +41,7 @@ noncomputable abbrev Hs_outer (s : ℝ) : OuterMeasure X :=
 noncomputable abbrev Hs_restrict (s : ℝ) (E : Set X) : OuterMeasure X :=
   OuterMeasure.restrict E (Hs_outer s)
 
-/-! ## A_set definition (Step c) -/
+/-! ## A_set definition -/
 
 /-- The set A_t: points outside E where the upper s-density of H^s|_E exceeds t. -/
 def A_set (s : ℝ) (E : Set X) (t : ℝ≥0∞) : Set X :=
@@ -64,17 +62,20 @@ lemma hausdorff_measure_eq_outer (s : ℝ) (S : Set X) :
     μH[s] S = (Hs_outer (X := X) s) S := by
   convert congr_arg ( fun μ : MeasureTheory.OuterMeasure X => μ S ) ( hausdorff_trim_eq s ) using 1
 
-/-! ## Step (e): Inner approximation by closed sets (sorry'd per PDF instructions) -/
+/-! ## Step (e): Inner approximation by closed sets -/
 
 /-- Under the assumptions of Theorem 2.6, given ε > 0, there exists a closed set K ⊆ E
-    such that Hs(E \ K) < ε. This is left sorry'd as instructed. -/
+    such that Hs(E \ K) < ε. -/
 lemma approx_by_closed_inside
     {s : ℝ} (hs : 0 ≤ s) {E : Set X}
-    (hE_meas : MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E)
+    (hE_meas : MeasurableSet[(Hs_outer (X := X) s).caratheodory] E)
     (hE_fin : (Hs_outer (X := X) s) E < ⊤)
     {ε : ℝ≥0∞} (hε : 0 < ε) :
     ∃ K : Set X, IsClosed K ∧ K ⊆ E ∧ (Hs_outer s) (E \ K) < ε := by
-  sorry
+  letI : BorelRegularOuterMeasure (Hs_outer (X := X) s) :=
+    Hausdorff.toBorelRegularOuterMeasure s hs
+  exact closed_approx_of_isBorelRegular
+    (Hs_outer (X := X) s) E hE_meas hE_fin ε hε
 
 /-! ## Step (g): A_t ⊆ U = X \ K -/
 
@@ -199,7 +200,7 @@ lemma density_bound_inv {t : ℝ≥0∞} (ht : 0 < t) (ht_top : t ≠ ⊤)
     the tsum of Hs_restrict values is bounded by Hs(E \ K). -/
 lemma tsum_restrict_le_of_disjoint (s : ℝ)
     {E : Set X}
-    (hE_car : MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E)
+    (hE_car : MeasurableSet[(Hs_outer (X := X) s).caratheodory] E)
     {K : Set X} (hK_sub : K ⊆ E)
     {u : Set X} (hu_count : u.Countable)
     (ρ : X → ℝ)
@@ -229,7 +230,7 @@ lemma tsum_restrict_le_of_disjoint (s : ℝ)
 
 lemma vitali_cover_at_scale (s : ℝ) (hs : 0 ≤ s)
     {E : Set X}
-    (hE_meas : MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E)
+    (hE_meas : MeasurableSet[(Hs_outer (X := X) s).caratheodory] E)
     {t : ℝ≥0∞} (ht : 0 < t) (ht_top : t ≠ ⊤)
     {K : Set X} (hK_closed : IsClosed K) (hK_sub : K ⊆ E)
     (k : ℕ) :
@@ -290,9 +291,9 @@ lemma vitali_cover_at_scale (s : ℝ) (hs : 0 ≤ s)
     -- Combine
     calc ENNReal.ofReal ((5 : ℝ) ^ s) * ∑' x : u, ENNReal.ofReal ((2 * ρ ↑x) ^ s)
         ≤ ENNReal.ofReal ((5 : ℝ) ^ s) * (t⁻¹ * ∑' x : u, (Hs_outer s) (E ∩ closedBall (↑x) (ρ ↑x))) :=
-          mul_le_mul_left' h_dens_bound _
+          mul_le_mul_right h_dens_bound _
       _ ≤ ENNReal.ofReal ((5 : ℝ) ^ s) * (t⁻¹ * (Hs_outer s) (E \ K)) :=
-          mul_le_mul_left' (mul_le_mul_left' h_disj_bound _) _
+          mul_le_mul_right (mul_le_mul_right h_disj_bound _) _
       _ = ENNReal.ofReal ((5 : ℝ) ^ s) * t⁻¹ * (Hs_outer s) (E \ K) := by ring
 
 /-! ## Hausdorff measure bound from scale covers -/
@@ -333,9 +334,9 @@ lemma hausdorffMeasure_le_of_scale_covers {d : ℝ} (hd : 0 ≤ d)
           intro y hy z hz; rw [ edist_dist ] ; exact ENNReal.ofReal_le_ofReal ( by linarith [ dist_triangle_right y z x, Metric.mem_closedBall.mp hy, Metric.mem_closedBall.mp hz ] ) ;
         · rw [ ENNReal.ofReal_rpow_of_pos ( mul_pos zero_lt_two ( hr₂ k x x.2 |>.1 ) ) ];
       · refine' ⟨ 0, Filter.Eventually.of_forall fun n => _ ⟩;
-        exact zero_le
+        exact bot_le
 
-/-! ## Step (m): H^s(A_t) = 0 -/
+/-! ## H^s(A_t) = 0 -/
 
 /-
 Core result: H^s(A_t) = 0. The proof fixes ε > 0, gets K from approx_by_closed_inside,
@@ -344,7 +345,7 @@ Core result: H^s(A_t) = 0. The proof fixes ε > 0, gets K from approx_by_closed_
 -/
 theorem A_t_null (s : ℝ) (hs : 0 ≤ s)
     {E : Set X}
-    (hE_meas : MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E)
+    (hE_meas : MeasurableSet[(Hs_outer (X := X) s).caratheodory] E)
     (hE_fin : (Hs_outer (X := X) s) E < ⊤)
     {t : ℝ≥0∞} (ht : 0 < t) (ht_top : t ≠ ⊤) :
     μH[s] (A_set (X := X) s E t) = 0 := by
@@ -364,9 +365,9 @@ theorem A_t_null (s : ℝ) (hs : 0 ≤ s)
       convert ENNReal.Tendsto.const_mul ( Filter.tendsto_id.mono_left inf_le_left ) _ using 1 ; aesop;
       exact Or.inr ( ENNReal.mul_ne_top ( ENNReal.ofReal_ne_top ) ( ENNReal.inv_ne_top.mpr ht.ne' ) );
     exact le_of_tendsto_of_tendsto tendsto_const_nhds h_zero ( Filter.eventually_of_mem self_mem_nhdsWithin fun ε hε => h_bound ε hε );
-  · exact zero_le
+  · exact bot_le
 
-/-! ## Step (n): Main theorem -/
+/-! ## Main theorem -/
 
 /-
 **Theorem 2.6** (Density at points not in E).
@@ -375,7 +376,7 @@ for H^s-almost every x ∈ X \ E, the s-dimensional upper density of H^s|_E at x
 -/
 theorem theorem2_6_density_at_points_not_in_E
     {s : ℝ} (hs : 0 ≤ s) {E : Set X}
-    (hE_meas : MeasurableSet[(μH[s] : OuterMeasure X).caratheodory] E)
+    (hE_meas : MeasurableSet[(Hs_outer (X := X) s).caratheodory] E)
     (hE_fin : (Hs_outer (X := X) s) E < ⊤) :
     μH[s] {x | x ∉ E ∧
       dimensional_upper_density (Hs_restrict s E) s x ≠ 0} = 0 := by
