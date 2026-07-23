@@ -264,6 +264,26 @@ locally finite and Borel regular. -/
 
 /- Refernce: Mattila's book, Corollary 1.11, page 12.-/
 
+theorem radon_iff_finiteOnCompact_and_isBorelRegular
+    {n : ℕ} (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) :
+    IsRadon μ ↔ IsFiniteOnCompactOuterMeasure μ ∧ IsBorelRegular μ := by
+  constructor
+  · intro h
+    refine ⟨⟨?_⟩, h.toIsBorelRegular⟩
+    intro K hK
+    letI : (μ.toMeasure h.measurable_le_caratheodory).Regular := h.regular_toMeasure
+    rw [← toMeasure_apply μ h.measurable_le_caratheodory hK.measurableSet]
+    exact hK.measure_lt_top
+  · rintro ⟨hfinite, hregular⟩
+    refine { toIsBorelRegular := hregular, regular_toMeasure := ?_ }
+    letI : IsFiniteMeasureOnCompacts
+        (μ.toMeasure hregular.measurable_le_caratheodory) :=
+      ⟨by
+        intro K hK
+        rw [toMeasure_apply μ hregular.measurable_le_caratheodory hK.measurableSet]
+        exact hfinite.measure_lt_top_of_isCompact hK⟩
+    infer_instance
+
 
 /-- **Restriction of a Borel regular measure is Radon**: if `μ` is a Borel regular outer measure on
 a topological space `X` with the Borel σ-algebra, and `E ⊆ X` is a μ-measurable set with
