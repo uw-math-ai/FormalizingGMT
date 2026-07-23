@@ -82,3 +82,90 @@ instance HausdorffRestrict.toRadonOuterMeasure
       (OuterMeasure.mkMetric (X := X) (fun r => r ^ s)) :=
     Hausdorff.toBorelRegularOuterMeasure s hs
   exact BorelRegularOuterMeasure.restrict_isRadon _ E hE_meas hE_fin
+
+
+
+/- **TODO:** everything below here should be reviewed for accuracy -/
+  /-!
+## Restricting the diameter bound to `≥ diam E` does not change the content
+
+If `E` has diameter `≤ δ`, then the `δ`-restricted Hausdorff content of `E` agrees with the
+unrestricted Hausdorff content `H^s_∞(E)`.  This is the standard fact that the Hausdorff content
+`H^s_δ` stabilises once `δ` exceeds the diameter of the set being measured.
+-/
+
+/-- For a strictly positive exponent, the `Nonempty`-guarded summand used in `hausdorffContent`
+coincides with the plain summand used in `hausdorffContentInfty`: the only place they could
+differ is on the empty set, where both are `0` when `s > 0`. -/
+lemma hausdorffContent_summand_eq {X : Type*} [EMetricSpace X] {s : ℝ} (hs : 0 < s)
+    (U : Set X) :
+    (⨆ (_ : U.Nonempty), (Metric.ediam U) ^ s) = (Metric.ediam U) ^ s := by
+  by_cases h : U.Nonempty
+  · rw [iSup_pos h]
+  · rw [Set.not_nonempty_iff_eq_empty] at h
+    rw [iSup_neg (by simp [h]), h, Metric.ediam_empty, ENNReal.zero_rpow_of_pos hs,
+      ENNReal.bot_eq_zero]
+
+/-- The unrestricted Hausdorff content is `≤` the `δ`-restricted content (for `s > 0`), because
+dropping the diameter constraint only enlarges the family of admissible covers while leaving the
+summands unchanged. -/
+lemma hausdorffContentInfty_le_hausdorffContent {X : Type*} [EMetricSpace X] {s : ℝ}
+    (hs : 0 < s) (δ : ENNReal) (E : Set X) :
+    hausdorffContentInfty s E ≤ hausdorffContent s δ E := by
+  unfold hausdorffContent hausdorffContentInfty
+  refine le_iInf fun t => le_iInf fun hcov => le_iInf fun _ => ?_
+  refine le_trans (iInf₂_le t hcov) ?_
+  apply le_of_eq
+  exact (tsum_congr fun n => hausdorffContent_summand_eq hs (t n)).symm
+
+/-- The `δ`-restricted Hausdorff content is `≤` the unrestricted content, provided `E` has diameter
+`≤ δ`.  Given any cover `t` of `E`, intersect each `t n` with `E`: this shrinks each diameter to at
+most `diam E ≤ δ`, so the resulting cover is admissible for `H^s_δ`, and its sum is no larger. -/
+lemma hausdorffContent_le_hausdorffContentInfty {X : Type*} [EMetricSpace X] {s : ℝ}
+    (hs : 0 ≤ s) {δ : ENNReal} {E : Set X} (hE : Metric.ediam E ≤ δ) :
+    hausdorffContent s δ E ≤ hausdorffContentInfty s E := by
+  unfold hausdorffContent hausdorffContentInfty
+  refine le_iInf fun t => le_iInf fun hcov => ?_
+  -- intersect the cover with `E`
+  set t' : ℕ → Set X := fun n => t n ∩ E with ht'
+  have hcov' : E ⊆ ⋃ n, t' n := by
+    intro x hx
+    obtain ⟨n, hxn⟩ := Set.mem_iUnion.mp (hcov hx)
+    exact Set.mem_iUnion.mpr ⟨n, hxn, hx⟩
+  have hdiam' : ∀ n, Metric.ediam (t' n) ≤ δ := by
+    intro n
+    exact le_trans (Metric.ediam_mono (by simp [ht', Set.inter_subset_right])) hE
+  refine le_trans (iInf₂_le t' hcov') ?_
+  refine le_trans (iInf_le _ hdiam') ?_
+  refine ENNReal.tsum_le_tsum fun n => ?_
+  calc (⨆ (_ : (t' n).Nonempty), (Metric.ediam (t' n)) ^ s)
+      ≤ (Metric.ediam (t' n)) ^ s := by
+        apply iSup_le; intro _; exact le_refl _
+    _ ≤ (Metric.ediam (t n)) ^ s :=
+        ENNReal.rpow_le_rpow (Metric.ediam_mono (by simp [ht', Set.inter_subset_left])) hs
+
+/-- **Stabilisation of the Hausdorff content.**  If `E` is a subset of an extended metric space with
+`diam E ≤ δ` (and `0 < s`, `0 < δ`), then the `δ`-restricted Hausdorff content `H^s_δ(E)` equals the
+unrestricted Hausdorff content `H^s_∞(E)`.  (The hypothesis `0 < δ` is included as requested; it is
+not actually needed by the proof.) -/
+theorem hausdorffContent_eq_hausdorffContentInfty_of_ediam_le {X : Type*} [EMetricSpace X]
+    {s : ℝ} (hs : 0 < s) {δ : ENNReal} (hδ : 0 < δ) {E : Set X} (hE : Metric.ediam E ≤ δ) :
+    hausdorffContent s δ E = hausdorffContentInfty s E :=
+  le_antisymm (hausdorffContent_le_hausdorffContentInfty hs.le hE)
+    (hausdorffContentInfty_le_hausdorffContent hs δ E)
+
+/-!
+## Hausdorff content is dominated by the Hausdorff measure
+-/
+
+/-- The `δ`-approximating Hausdorff content is at most the full Hausdorff measure:
+    `H^s_δ(E) ≤ H^s(E)` for any diameter bound `δ > 0`.  This holds because the Hausdorff
+    measure is the supremum over all `r > 0` of the `r`-restricted contents
+    (`MeasureTheory.Measure.hausdorffMeasure_apply`), and `hausdorffContent s δ` is exactly the
+    term of that supremum at `r = δ`. -/
+lemma hausdorffContent_le_hausdorffMeasure {X : Type*} [EMetricSpace X]
+    [MeasurableSpace X] [BorelSpace X]
+    {s : ℝ} {δ : ENNReal} (hδ : 0 < δ) (E : Set X) :
+    hausdorffContent s δ E ≤ MeasureTheory.Measure.hausdorffMeasure s E := by
+  rw [MeasureTheory.Measure.hausdorffMeasure_apply]
+  exact le_iSup₂_of_le δ hδ le_rfl
