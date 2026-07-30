@@ -1,8 +1,16 @@
-import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
-import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
-import Mathlib.Topology.Order.LiminfLimsup
-import Mathlib.Topology.Order.OrderClosed
-import Mathlib.Topology.Algebra.Order.LiminfLimsup
+/-
+Copyright (c) 2026 UW Math AI Lab. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Ignacio Tejeda, Theodore Meek, Annie Cao, Nathan Pao
+-/
+module
+
+public import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+public import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+public import Mathlib.Topology.Algebra.Order.LiminfLimsup
+public import Mathlib.Topology.Order.LiminfLimsup
+public import Mathlib.Topology.Order.OrderClosed
+
 import Mathlib.Tactic
 
 /-!
@@ -11,6 +19,8 @@ import Mathlib.Tactic
 This file defines dimensional density ratios, their upper and lower limits, and dimensional density
 for outer measures. It also defines convergence of density ratios and proves basic filter lemmas.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Real Nat Pointwise
 open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
