@@ -17,17 +17,20 @@ set_option grind.warning false
 /-!
 ## Hausdorff content
 -/
-/-- The `d`-dimensional **Hausdorff content** of a set `s` with covers of diameter ≤ `δ`. -/
+/-- The `s`-dimensional **Hausdorff content** of a set `E` with covers of diameter ≤ `δ`.
+Empty members of a cover contribute zero to the sum. -/
 noncomputable def hausdorffContent
-    {X : Type*} [EMetricSpace X] (d : ℝ) (δ : ENNReal) (s : Set X) : ENNReal :=
-  ⨅ (t : ℕ → Set X) (_ : s ⊆ ⋃ n, t n) (_ : ∀ n, Metric.ediam (t n) ≤ δ),
-    ∑' n, ⨆ (_ : (t n).Nonempty), (Metric.ediam (t n)) ^ d
+    {X : Type*} [EMetricSpace X] (s : ℝ) (δ : ENNReal) (E : Set X) : ENNReal :=
+  ⨅ (t : ℕ → Set X) (_ : E ⊆ ⋃ i, t i) (_ : ∀ i, Metric.ediam (t i) ≤ δ),
+    ∑' i, ⨆ (_ : (t i).Nonempty), (Metric.ediam (t i)) ^ s
+
 /-- Unrestricted Hausdorff content `H^s_∞(E)`: infimum over all countable covers,
-with no diameter bound. -/
+with no diameter bound. Empty members of a cover contribute zero to the sum. -/
 noncomputable def hausdorffContentInfty
     {X : Type*} [EMetricSpace X] (s : ℝ) (E : Set X) : ENNReal :=
   ⨅ (t : ℕ → Set X) (_ : E ⊆ ⋃ i, t i),
-    ∑' i, (Metric.ediam (t i)) ^ s
+    ∑' i, ⨆ (_ : (t i).Nonempty), (Metric.ediam (t i)) ^ s
+
 /-- The notion of `s-set` as described in Falconer's textbook: a set `E` has positive, finite
 `s`-dimensional Hausdorff measure and is Carathéodory-measurable with respect to the
 `s`-dimensional Hausdorff outer measure. -/
@@ -106,60 +109,56 @@ lemma hausdorffContent_summand_eq {X : Type*} [EMetricSpace X] {s : ℝ} (hs : 0
     rw [iSup_neg (by simp [h]), h, Metric.ediam_empty, ENNReal.zero_rpow_of_pos hs,
       ENNReal.bot_eq_zero]
 
-/-- The unrestricted Hausdorff content is `≤` the `δ`-restricted content (for `s > 0`), because
-dropping the diameter constraint only enlarges the family of admissible covers while leaving the
-summands unchanged. -/
-lemma hausdorffContentInfty_le_hausdorffContent {X : Type*} [EMetricSpace X] {s : ℝ}
-    (hs : 0 < s) (δ : ENNReal) (E : Set X) :
+/-- The unrestricted Hausdorff content is at most the `δ`-restricted content, because dropping
+the diameter constraint enlarges the family of admissible covers. -/
+lemma hausdorffContentInfty_le_hausdorffContent {X : Type*} [EMetricSpace X]
+    (s : ℝ) (δ : ENNReal) (E : Set X) :
     hausdorffContentInfty s E ≤ hausdorffContent s δ E := by
   unfold hausdorffContent hausdorffContentInfty
   refine le_iInf fun t => le_iInf fun hcov => le_iInf fun _ => ?_
-  refine le_trans (iInf₂_le t hcov) ?_
-  apply le_of_eq
-  exact (tsum_congr fun n => hausdorffContent_summand_eq hs (t n)).symm
+  exact iInf₂_le t hcov
 
-/-- The `δ`-restricted Hausdorff content is `≤` the unrestricted content, provided `E` has diameter
-`≤ δ`.  Given any cover `t` of `E`, intersect each `t n` with `E`: this shrinks each diameter to at
-most `diam E ≤ δ`, so the resulting cover is admissible for `H^s_δ`, and its sum is no larger. -/
+/-- The `δ`-restricted Hausdorff content is at most the unrestricted content, provided `E` has
+diameter at most `δ`. Given any cover `t` of `E`, intersect each `t i` with `E`: this shrinks each
+diameter to at most `ediam E ≤ δ`, producing an admissible restricted cover with no larger sum. -/
 lemma hausdorffContent_le_hausdorffContentInfty {X : Type*} [EMetricSpace X] {s : ℝ}
     (hs : 0 ≤ s) {δ : ENNReal} {E : Set X} (hE : Metric.ediam E ≤ δ) :
     hausdorffContent s δ E ≤ hausdorffContentInfty s E := by
   unfold hausdorffContent hausdorffContentInfty
   refine le_iInf fun t => le_iInf fun hcov => ?_
-  -- intersect the cover with `E`
-  set t' : ℕ → Set X := fun n => t n ∩ E with ht'
-  have hcov' : E ⊆ ⋃ n, t' n := by
+  set t' : ℕ → Set X := fun i => t i ∩ E with ht'
+  have hcov' : E ⊆ ⋃ i, t' i := by
     intro x hx
-    obtain ⟨n, hxn⟩ := Set.mem_iUnion.mp (hcov hx)
-    exact Set.mem_iUnion.mpr ⟨n, hxn, hx⟩
-  have hdiam' : ∀ n, Metric.ediam (t' n) ≤ δ := by
-    intro n
+    obtain ⟨i, hxi⟩ := Set.mem_iUnion.mp (hcov hx)
+    exact Set.mem_iUnion.mpr ⟨i, hxi, hx⟩
+  have hdiam' : ∀ i, Metric.ediam (t' i) ≤ δ := by
+    intro i
     exact le_trans (Metric.ediam_mono (by simp [ht', Set.inter_subset_right])) hE
   refine le_trans (iInf₂_le t' hcov') ?_
   refine le_trans (iInf_le _ hdiam') ?_
-  refine ENNReal.tsum_le_tsum fun n => ?_
-  calc (⨆ (_ : (t' n).Nonempty), (Metric.ediam (t' n)) ^ s)
-      ≤ (Metric.ediam (t' n)) ^ s := by
-        apply iSup_le; intro _; exact le_refl _
-    _ ≤ (Metric.ediam (t n)) ^ s :=
-        ENNReal.rpow_le_rpow (Metric.ediam_mono (by simp [ht', Set.inter_subset_left])) hs
+  refine ENNReal.tsum_le_tsum fun i => ?_
+  apply iSup_le
+  intro hti
+  have hti' : (t i).Nonempty := hti.mono (by simp [ht', Set.inter_subset_left])
+  refine le_iSup_of_le hti' ?_
+  exact ENNReal.rpow_le_rpow
+    (Metric.ediam_mono (by simp [ht', Set.inter_subset_left])) hs
 
-/-- **Stabilisation of the Hausdorff content.**  If `E` is a subset of an extended metric space with
-`diam E ≤ δ` (and `0 < s`, `0 < δ`), then the `δ`-restricted Hausdorff content `H^s_δ(E)` equals the
-unrestricted Hausdorff content `H^s_∞(E)`.  (The hypothesis `0 < δ` is included as requested; it is
-not actually needed by the proof.) -/
+/-- **Stabilisation of the Hausdorff content.** If `E` has `ediam E ≤ δ` and `s ≥ 0`, then its
+`δ`-restricted Hausdorff content equals its unrestricted Hausdorff content. The hypothesis
+`0 < δ` is retained in the standard positive-scale statement, though the proof does not need it. -/
 theorem hausdorffContent_eq_hausdorffContentInfty_of_ediam_le {X : Type*} [EMetricSpace X]
-    {s : ℝ} (hs : 0 < s) {δ : ENNReal} (hδ : 0 < δ) {E : Set X} (hE : Metric.ediam E ≤ δ) :
+    {s : ℝ} (hs : 0 ≤ s) {δ : ENNReal} (hδ : 0 < δ) {E : Set X} (hE : Metric.ediam E ≤ δ) :
     hausdorffContent s δ E = hausdorffContentInfty s E :=
-  le_antisymm (hausdorffContent_le_hausdorffContentInfty hs.le hE)
-    (hausdorffContentInfty_le_hausdorffContent hs δ E)
+  le_antisymm (hausdorffContent_le_hausdorffContentInfty hs hE)
+    (hausdorffContentInfty_le_hausdorffContent s δ E)
 
 /-!
 ## Hausdorff content is dominated by the Hausdorff measure
 -/
 
 /-- The `δ`-approximating Hausdorff content is at most the full Hausdorff measure:
-    `H^s_δ(E) ≤ H^s(E)` for any diameter bound `δ > 0`.  This holds because the Hausdorff
+    `H^s_δ(E) ≤ H^s(E)` for any diameter bound `δ > 0`. This holds because the Hausdorff
     measure is the supremum over all `r > 0` of the `r`-restricted contents
     (`MeasureTheory.Measure.hausdorffMeasure_apply`), and `hausdorffContent s δ` is exactly the
     term of that supremum at `r = δ`. -/
