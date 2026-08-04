@@ -86,10 +86,8 @@ instance HausdorffRestrict.toRadonOuterMeasure
     Hausdorff.toBorelRegularOuterMeasure s hs
   exact BorelRegularOuterMeasure.restrict_isRadon _ E hE_meas hE_fin
 
-
-
-/- **TODO:** everything below here should be reviewed for accuracy -/
   /-!
+  
 ## Restricting the diameter bound to `≥ diam E` does not change the content
 
 If `E` has diameter `≤ δ`, then the `δ`-restricted Hausdorff content of `E` agrees with the
@@ -156,7 +154,6 @@ theorem hausdorffContent_eq_hausdorffContentInfty_of_ediam_le {X : Type*} [EMetr
 /-!
 ## Hausdorff content is dominated by the Hausdorff measure
 -/
-
 /-- The `δ`-approximating Hausdorff content is at most the full Hausdorff measure:
     `H^s_δ(E) ≤ H^s(E)` for any diameter bound `δ > 0`. This holds because the Hausdorff
     measure is the supremum over all `r > 0` of the `r`-restricted contents
