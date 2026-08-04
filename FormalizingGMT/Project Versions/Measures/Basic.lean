@@ -13,12 +13,18 @@ measure theory. -/
 ## Notions of regularity for outer measures
 -/
 
-/- **Locally finite** outer measure: an outer measure on a topological space is
+/- **Finite on compact sets** outer measure: an outer measure on a topological space is
 locally finite if it assigns finite measure to every compact set. -/
 class IsFiniteOnCompactOuterMeasure {X : Type*} [TopologicalSpace X]
     (μ : OuterMeasure X) : Prop where
   measure_lt_top_of_isCompact :
     ∀ ⦃K : Set X⦄, IsCompact K → μ K < ∞
+
+/- **Locally finite** outer measure: an outer measure on a topological space is
+locally finite if every point has a neighborhood with finite measure.-/
+class LocallyFiniteOuterMeasure {X : Type*} [TopologicalSpace X]
+    (μ : OuterMeasure X) : Prop where
+    finite_at_nhds : ∀ x : X, ∃ s ∈ 𝓝 x, μ s < ∞
 
 /- **Borel** outer measure: an outer measure `μ` on a topological space `X` equipped with the
 Borel σ-algebra is a Borel outer measure if all Borel sets are measurable for `μ`. -/

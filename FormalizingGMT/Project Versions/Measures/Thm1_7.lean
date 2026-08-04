@@ -20,6 +20,16 @@ set_option grind.warning false
 variable {X : Type*} [PseudoMetricSpace X] [SigmaCompactSpace X]
   [MeasurableSpace X] [BorelSpace X]
 
+/-- An outer measure that is locally finite induces a locally finite measure. -/
+lemma isLocallyFiniteMeasure_toMeasure (μ : OuterMeasure X) [LocallyFiniteOuterMeasure μ]
+    (h : ‹MeasurableSpace X› ≤ μ.caratheodory) :
+    IsLocallyFiniteMeasure (μ.toMeasure h) := by
+  refine ⟨fun x => ?_⟩
+  obtain ⟨s, hs, hfin⟩ := LocallyFiniteOuterMeasure.finite_at_nhds (μ := μ) x
+  refine ⟨interior s, isOpen_interior.mem_nhds (mem_interior_iff_mem_nhds.mpr hs), ?_⟩
+  rw [toMeasure_apply μ h isOpen_interior.measurableSet]
+  exact lt_of_le_of_lt (μ.mono interior_subset) hfin
+
 /-
 Carathéodory-measurable sets for μ are also Carathéodory-measurable for the restriction
 of μ to any set.
@@ -145,9 +155,9 @@ lemma BorelRegularOuterMeasure.restrict
 
 
 /- **Approximation of measurable finite measure sets by closed sets from inside**:
-Let μ be a Borel regular outer measure on a topological space X. Then for every μ-measurable set
-E ⊆ X with μ E < ∞ and ε > 0, there exists a closed set F ⊆ E such that μ (E \ F) < ε. -/
-
+Let μ be a Borel regular outer measure on X. Then for every μ-measurable set
+E ⊆ X with μ E < ∞ and ε > 0, there exists a closed set F ⊆ E such that μ (E \ F) < ε.
+Reference: Mattila's book, Theorem 1.10 (1), page 11.-/
 theorem closed_approx_of_isBorelRegular
     (μ : OuterMeasure X) [BorelRegularOuterMeasure μ]
     (E : Set X) (hE : μ.IsCaratheodory E) (hEfin : μ E < ∞)
@@ -225,17 +235,12 @@ theorem closed_approx_of_isBorelRegular
         exact hx.1
     _ < ε := hν_EF_lt
 
-/- Reference: Mattila's book, Theorem 1.10 (1), page 11.-/
-/- **Note:** This lemma should be used to prove lemma approx_by_closed_inside in Thm2_6.lean.-/
-
 
 /- **Approximation of measurable sets by open sets from outside**:
-Let μ be a Borel regular outer measure on a topological space X. Let E ⊆ X be a μ-measurable set
+Let μ be a Borel regular outer measure on X. Let E ⊆ X be a μ-measurable set
 with μ E < ∞ and let ε > 0. If there are open sets V_i such that E ⊆ ⋃ i : ℕ, V_i and
-μ (V_i) < ∞ for all i, then there exists an open set F ⊇ E such that μ (F \ E) < ε. -/
-
-/- Reference: Mattila's book, Theorem 1.10 (2), page 11.-/
-
+μ (V_i) < ∞ for all i, then there exists an open set F ⊇ E such that μ (F \ E) < ε.
+Reference: Mattila's book, Theorem 1.10 (2), page 11.-/
 theorem open_approx_of_isBorelRegular
     (μ : OuterMeasure X) [BorelRegularOuterMeasure μ]
     (E : Set X) (hE : μ.IsCaratheodory E) (_hEfin : μ E < ∞)
@@ -258,82 +263,39 @@ theorem open_approx_of_isBorelRegular
     simp +contextual [ Set.subset_def ]
 
 
-/- **TODO: Radon measure iff Borel regular and locally finite**:
-Let μ be an outer measure on a topological space X. Then μ is a Radon measure if and only if μ is
-locally finite and Borel regular. -/
-
-/- Refernce: Mattila's book, Corollary 1.11, page 12.-/
-
+/- **Radon measure iff Borel regular and locally finite**:
+Let μ be an outer measure on X. Then μ is a Radon measure if and only if μ is
+locally finite and Borel regular.
+Refernce: Mattila's book, Corollary 1.11, page 12.-/
 theorem radon_iff_finiteOnCompact_and_isBorelRegular
-    {n : ℕ} (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) :
-    IsRadon μ ↔ IsFiniteOnCompactOuterMeasure μ ∧ IsBorelRegular μ := by
+    (μ : OuterMeasure X) [LocallyFiniteOuterMeasure μ] :
+    RadonOuterMeasure μ ↔ IsFiniteOnCompactOuterMeasure μ ∧ BorelRegularOuterMeasure μ := by
   constructor
   · intro h
-    refine ⟨⟨?_⟩, h.toIsBorelRegular⟩
+    refine ⟨⟨?_⟩, h.toBorelRegularOuterMeasure⟩
     intro K hK
     letI : (μ.toMeasure h.measurable_le_caratheodory).Regular := h.regular_toMeasure
-    rw [← toMeasure_apply μ h.measurable_le_caratheodory hK.measurableSet]
-    exact hK.measure_lt_top
-  · rintro ⟨hfinite, hregular⟩
-    refine { toIsBorelRegular := hregular, regular_toMeasure := ?_ }
-    letI : IsFiniteMeasureOnCompacts
-        (μ.toMeasure hregular.measurable_le_caratheodory) :=
-      ⟨by
-        intro K hK
-        rw [toMeasure_apply μ hregular.measurable_le_caratheodory hK.measurableSet]
-        exact hfinite.measure_lt_top_of_isCompact hK⟩
+    exact lt_of_le_of_lt (le_toMeasure_apply μ h.measurable_le_caratheodory K)
+      hK.measure_lt_top
+  · rintro ⟨-, hregular⟩
+    refine { toBorelRegularOuterMeasure := hregular, regular_toMeasure := ?_ }
+    haveI := isLocallyFiniteMeasure_toMeasure μ hregular.measurable_le_caratheodory
     infer_instance
 
 
-/-- **Restriction of a Borel regular measure is Radon**: if `μ` is a Borel regular outer measure on
-a topological space `X` with the Borel σ-algebra, and `E ⊆ X` is a μ-measurable set with
-`μ E < ∞`, then the restriction `μ.restrict E` is a Radon measure.
-
-We assume `PseudoMetricSpace X` and `SigmaCompactSpace X` to obtain
-inner regularity with compact sets, following standard measure theory texts
-(cf. Evans–Gariepy, Theorem 1.10). -/
+/-- **Finite-measure restriction of a Borel regular measure is Radon**: if `μ` is a Borel regular outer measure on `X` and `E ⊆ X` is a μ-measurable set with
+`μ E < ∞`, then the restriction `μ.restrict E` is a Radon outer measure.-/
 theorem BorelRegularOuterMeasure.restrict_isRadon
     (μ : OuterMeasure X) [BorelRegularOuterMeasure μ] (E : Set X)
     (hE_meas : μ.IsCaratheodory E) (hE_fin : μ E < ⊤) :
     RadonOuterMeasure (OuterMeasure.restrict E μ) := by
-  -- Borel ≤ caratheodory for restricted measure
-  have h_cara : ‹MeasurableSpace X› ≤ (OuterMeasure.restrict E μ).caratheodory :=
-    caratheodory_restrict_of_caratheodory μ E
-      (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))
-  -- Get the Borel superset B ⊇ E with μ(B) = μ(E)
-  obtain ⟨B, hB_meas, hEB, hμEB⟩ :=
-    BorelRegularOuterMeasure.exists_measurable_superset (μ := μ) E
-  -- μ(B \ E) = 0
-  have h_null : μ (B \ E) = 0 :=
-    measure_diff_eq_zero μ E B hEB hμEB hE_meas hE_fin
-  -- restrict E μ = restrict B μ
-  have h_eq_om : OuterMeasure.restrict E μ = OuterMeasure.restrict B μ :=
-    restrict_eq_of_null_diff μ E B hEB h_null
-  -- caratheodory for restrict B μ
-  have h_cara_B : ‹MeasurableSpace X› ≤ (OuterMeasure.restrict B μ).caratheodory :=
-    caratheodory_restrict_of_caratheodory μ B
-      (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))
-  -- Relate toMeasure of restricted outer measure to Measure.restrict
-  have h_eq_meas : (OuterMeasure.restrict E μ).toMeasure h_cara =
-      (μ.toMeasure (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))).restrict B := by
-    have step1 : (OuterMeasure.restrict E μ).toMeasure h_cara =
-        (OuterMeasure.restrict B μ).toMeasure h_cara_B := by
-      ext s hs
-      simp only [toMeasure_apply _ _ hs]
-      exact congrFun (congrArg OuterMeasure.measureOf h_eq_om) s
-    rw [step1]
-    exact toMeasure_restrict_eq μ B hB_meas
-      (BorelOuterMeasure.measurable_le_caratheodory (μ := μ)) h_cara_B
-  -- Build the RadonOuterMeasure proof
-  letI : BorelRegularOuterMeasure (OuterMeasure.restrict E μ) :=
-    BorelRegularOuterMeasure.restrict μ E hE_meas hE_fin
-  refine { regular_toMeasure := ?_ }
-  rw [h_eq_meas]
-  -- The restricted measure is finite, hence Regular by Mathlib instances
-  have : IsFiniteMeasure
-      ((μ.toMeasure (BorelOuterMeasure.measurable_le_caratheodory (μ := μ))).restrict B) := by
-    rw [isFiniteMeasure_restrict]
-    rw [toMeasure_apply₀ _ _ (hB_meas.nullMeasurableSet)]
-    rw [← hμEB]
-    exact hE_fin.ne
-  exact inferInstance
+  -- The restricted outer measure has finite total mass, namely `μ E`.
+  have hfin : (OuterMeasure.restrict E μ) Set.univ < ⊤ := by
+    simpa [OuterMeasure.restrict_apply] using hE_fin
+  -- It is finite on compact sets, being finite in total, and it is Borel regular.
+  haveI : LocallyFiniteOuterMeasure (OuterMeasure.restrict E μ) :=
+    ⟨fun _ => ⟨Set.univ, Filter.univ_mem, hfin⟩⟩
+  refine (radon_iff_finiteOnCompact_and_isBorelRegular
+    (OuterMeasure.restrict E μ)).mpr ⟨⟨fun {K} _ => ?_⟩, ?_⟩
+  · exact lt_of_le_of_lt ((OuterMeasure.restrict E μ).mono (Set.subset_univ K)) hfin
+  · exact BorelRegularOuterMeasure.restrict μ E hE_meas hE_fin
