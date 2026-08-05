@@ -5,6 +5,10 @@ Authors: Ignacio Tejeda, Theodore Meek, Annie Cao, Nathan Pao
 -/
 module
 
+public import Mathlib.MeasureTheory.Measure.Hausdorff
+public import Mathlib.MeasureTheory.Measure.Regular
+public import Mathlib.MeasureTheory.Covering.Besicovitch
+public import Mathlib.MeasureTheory.Covering.BesicovitchVectorSpace
 public import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
 public import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 public import Mathlib.Topology.Algebra.Order.LiminfLimsup

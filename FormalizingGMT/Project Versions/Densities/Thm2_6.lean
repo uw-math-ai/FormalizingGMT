@@ -1,9 +1,10 @@
-import Mathlib.MeasureTheory.Measure.Hausdorff
-import Mathlib.MeasureTheory.Measure.Regular
-import Mathlib.MeasureTheory.Covering.Besicovitch
-import Mathlib.MeasureTheory.Covering.BesicovitchVectorSpace
-import Mathlib.Topology.Order.LiminfLimsup
-import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+module
+public import Mathlib.MeasureTheory.Measure.Hausdorff
+public import Mathlib.MeasureTheory.Measure.Regular
+public import Mathlib.MeasureTheory.Covering.Besicovitch
+public import Mathlib.MeasureTheory.Covering.BesicovitchVectorSpace
+public import Mathlib.Topology.Order.LiminfLimsup
+public import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 import Mathlib.Tactic
 
 /- Necessary basic definitions -/
