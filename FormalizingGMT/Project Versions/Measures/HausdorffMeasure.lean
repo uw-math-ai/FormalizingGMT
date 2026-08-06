@@ -87,7 +87,7 @@ instance HausdorffRestrict.toRadonOuterMeasure
   exact BorelRegularOuterMeasure.restrict_isRadon _ E hE_meas hE_fin
 
   /-!
-  
+
 ## Restricting the diameter bound to `≥ diam E` does not change the content
 
 If `E` has diameter `≤ δ`, then the `δ`-restricted Hausdorff content of `E` agrees with the
@@ -117,8 +117,7 @@ lemma hausdorffContentInfty_le_hausdorffContent {X : Type*} [EMetricSpace X]
   exact iInf₂_le t hcov
 
 /-- The `δ`-restricted Hausdorff content is at most the unrestricted content, provided `E` has
-diameter at most `δ`. Given any cover `t` of `E`, intersect each `t i` with `E`: this shrinks each
-diameter to at most `ediam E ≤ δ`, producing an admissible restricted cover with no larger sum. -/
+diameter at most `δ`. -/
 lemma hausdorffContent_le_hausdorffContentInfty {X : Type*} [EMetricSpace X] {s : ℝ}
     (hs : 0 ≤ s) {δ : ENNReal} {E : Set X} (hE : Metric.ediam E ≤ δ) :
     hausdorffContent s δ E ≤ hausdorffContentInfty s E := by
