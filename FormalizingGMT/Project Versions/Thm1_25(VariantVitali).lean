@@ -41,6 +41,13 @@ lemma not_mem_finset_of_inter_nonempty_and_subset_compl
   obtain ⟨y, hya, hyb⟩ := hab_nonempty
   exact fun hbw => hBa_compl hya (mem_iUnion₂.2 ⟨b, hbw, hyb⟩)
 
+/-- Variant of Vitali's covering theorem (Theorem 1.25 in [EG]).
+Given a set `X` and a cover of `X` by a fine family
+of balls `F` with bounded radii, there exists a
+countable disjoint subfamily `G` of `F` such that
+for each finite subset `w` of `F`, the set `X \ ⋃ w`
+is covered by the union of the balls in `G \ w`
+enlarged by a factor of 5. -/
 theorem vitali_variant_classical
     {X : Set α} [SecondCountableTopology α]
     (t : Set ι) (c : ι → α) (r : ι → ℝ)
