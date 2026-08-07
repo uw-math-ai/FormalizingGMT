@@ -16,7 +16,7 @@ import Mathlib.Tactic.FunProp
 import Mathlib.Tactic.GCongr
 import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.Positivity
-import FormalizingGMT.«Project Versions».Measures.Basic
+import FormalizingGMT.Measures.WeakConvergence
 
 /-!
 # Weak compactness for Radon measures
@@ -510,12 +510,8 @@ theorem exists_vaguelyConvergent_subseq_of_compact_bounded
     ∃ (φ : ℕ → ℕ) (ν : OuterMeasure (EuclideanSpace ℝ (Fin n)))
         (hν : RadonOuterMeasure ν),
       StrictMono φ ∧
-        ∀ f : C_c(EuclideanSpace ℝ (Fin n), ℝ),
-          Tendsto
-            (fun j ↦ ∫ x, f x ∂(μ (φ j)).toMeasure
-              (hμ_radon (φ j)).measurable_le_caratheodory)
-            atTop
-            (𝓝 (∫ x, f x ∂ν.toMeasure hν.measurable_le_caratheodory)) := by
+        OuterMeasure.WeaklyConverges (fun j ↦ μ (φ j)) ν
+          (fun j ↦ hμ_radon (φ j)) hν := by
   let μ' : ℕ → Measure (EuclideanSpace ℝ (Fin n)) :=
     fun k ↦ associatedMeasure (μ k) (hμ_radon k)
   have hμ' : ∀ K : Set (EuclideanSpace ℝ (Fin n)), IsCompact K →
