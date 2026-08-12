@@ -15,7 +15,7 @@ open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 variable {n : ℕ}
 
 
-def cover_set {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
+private def cover_set {X : Type*} [EMetricSpace X] [MeasurableSpace X] [BorelSpace X]
     (E : Set X) (s : ℝ) (δ : ℝ) (τ : ℝ) : Set X :=
   {x ∈ E | ∀ C, x ∈ C → EMetric.diam C ≤ ENNReal.ofReal δ →
     MeasureTheory.Measure.hausdorffMeasure s (C ∩ E) ≤ ENNReal.ofReal τ * (EMetric.diam C) ^ s}

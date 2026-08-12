@@ -1,17 +1,3 @@
-/-
-This is the full version of the lower bound in Theorm 2.7 in [EG]. There needs to be substantial edits.
--Match definitions to Mathlib
--Proof Golf
-
-
-2/18 To-Do List:
-- Get rid of depricated errors
-- Figure out if assumptions can actually be removed, since we use some of them later when things are proved
-- The stuff above too :)
-- Look over Aaron's comments that he sent on Zulip
--/
-
-
 import Mathlib.MeasureTheory.Measure.Hausdorff
 import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
@@ -129,7 +115,7 @@ lemma hausdorffContent_iUnion_le {s : ℝ} {δ : ℝ≥0∞} (A : ℕ → Set X)
 lemma hausdorffContent_empty (s : ℝ) (δ : ℝ≥0∞) :
     hausdorffContent s δ (∅ : Set X) = 0 := by
   rw [hausdorffContent]
-  refine le_antisymm ?_ (zero_le _)
+  refine le_antisymm ?_ (by exact zero_le)
   refine le_trans (iInf₂_le (fun _ => (∅ : Set X)) (by simp)) ?_
   exact le_trans (iInf_le _ (by simp)) (by simp)
 
@@ -143,10 +129,11 @@ lemma hausdorffContent_antitone {s : ℝ} {δ δ' : ℝ≥0∞} (h : δ ≤ δ')
 /-- For a positive exponent, a set of vanishing diameter has vanishing Hausdorff content. -/
 lemma hausdorffContentInfty_eq_zero_of_ediam_eq_zero {s : ℝ} (hs : 0 < s) {A : Set X}
     (hA : Metric.ediam A = 0) : hausdorffContentInfty s A = 0 := by
-  refine le_antisymm ?_ (zero_le _)
-  rw [hausdorffContentInfty]
-  refine le_trans (iInf₂_le (fun _ => A) (Set.subset_iUnion (fun _ : ℕ => A) 0)) ?_
-  simp [hA, ENNReal.zero_rpow_of_pos hs]
+  refine le_antisymm ?_ ?_
+  · rw [hausdorffContentInfty]
+    refine le_trans (iInf₂_le (fun _ => A) (Set.subset_iUnion (fun _ : ℕ => A) 0)) ?_
+    simp [hA, ENNReal.zero_rpow_of_pos hs]
+  · exact zero_le
 
 end Contents
 
@@ -158,7 +145,7 @@ variable {X : Type*} [EMetricSpace X]
 
 /-- `cover_set s E δ τ` is the set `E(δ, τ)` of Evans–Gariepy: the set of points `x ∈ E` such that
 `H^s_δ(C ∩ E) ≤ τ (diam C)^s` whenever `C ⊆ X` contains `x` and has `diam C ≤ δ`. -/
-def cover_set (s : ℝ) (E : Set X) (δ τ : ℝ≥0∞) : Set X :=
+private def cover_set (s : ℝ) (E : Set X) (δ τ : ℝ≥0∞) : Set X :=
   {x | x ∈ E ∧ ∀ C : Set X, x ∈ C → Metric.ediam C ≤ δ →
     hausdorffContent s δ (C ∩ E) ≤ τ * (Metric.ediam C) ^ s}
 
@@ -205,7 +192,7 @@ lemma hausdorffContent_cover_set_le_tsum {s : ℝ} (E : Set X) {δ τ : ℝ≥0�
     intro i
     rcases Set.eq_empty_or_nonempty (C i ∩ A) with h | ⟨x, hxC, hxA⟩
     · rw [h, hausdorffContent_empty]
-      exact zero_le _
+      exact zero_le
     · exact le_trans (hausdorffContent_mono
         (Set.inter_subset_inter_right _ (cover_set_subset s E δ τ))) (hxA.2 (C i) hxC (h_diam i))
   calc hausdorffContent s δ A ≤ hausdorffContent s δ (⋃ i, C i ∩ A) := hausdorffContent_mono h1
@@ -266,7 +253,7 @@ lemma hausdorffContent_eq_zero_of_hausdorffContent_eq_zero {s : ℝ} (hs : 0 < s
     (hδ' : 0 < δ') {A : Set X} (h : hausdorffContent s δ A = 0) :
     hausdorffContent s δ' A = 0 := by
   rcases le_or_gt δ δ' with hle | hlt
-  · exact le_antisymm (le_trans (hausdorffContent_antitone hle A) h.le) (zero_le _)
+  · exact le_antisymm (le_trans (hausdorffContent_antitone hle A) h.le) (zero_le)
   by_contra hne
   have hpos : 0 < hausdorffContent s δ' A := pos_iff_ne_zero.mpr hne
   have hδ'top : δ' ≠ ⊤ := (hlt.trans_le le_top).ne
@@ -297,7 +284,7 @@ lemma hausdorffContent_eq_zero_of_hausdorffContent_eq_zero {s : ℝ} (hs : 0 < s
 /-- If some `δ`-restricted content of `A` vanishes, then so does the Hausdorff measure of `A`. -/
 lemma hausdorffMeasure_eq_zero_of_hausdorffContent_eq_zero {s : ℝ} (hs : 0 < s) {δ : ℝ≥0∞}
     {A : Set X} (h : hausdorffContent s δ A = 0) : μH[s] A = 0 := by
-  refine le_antisymm ?_ (zero_le _)
+  refine le_antisymm ?_ (zero_le)
   rw [MeasureTheory.Measure.hausdorffMeasure_apply]
   refine iSup_le fun r => iSup_le fun hr => ?_
   exact le_of_eq (hausdorffContent_eq_zero_of_hausdorffContent_eq_zero hs hr h)
@@ -321,7 +308,8 @@ lemma hausdorffMeasure_iUnion_cover_set_eq_zero {s : ℝ} (hs : 0 < s) (E : Set 
     have hkeq : ((k : ℕ) : ℝ≥0∞) = 1 := by rw [← hk1]; simp
     rw [hkeq]
     simp only [inv_one, tsub_self]
-    refine measure_mono_null (cover_set_mono_tau s E 1 (zero_le (1 / 2 : ℝ≥0∞))) ?_
+    refine measure_mono_null
+        (cover_set_mono_tau s E 1 (by exact (zero_le : (0 : ℝ≥0∞) ≤ (1 / 2 : ℝ≥0∞)))) ?_
     exact hausdorffMeasure_cover_set_eq_zero hs E one_pos (by norm_num) (by norm_num) hE
   · have h1k : (1 : ℝ≥0∞) < ((k : ℕ) : ℝ≥0∞) := by
       exact_mod_cast (by exact_mod_cast hk1 : (1 : ℕ) < (k : ℕ))
@@ -401,11 +389,12 @@ lemma hausdorffContentInfty_inter_le {s : ℝ} (hs : 0 < s) (E : Set X) (x : X) 
       hausdorffContentInfty s (Metric.closedBall x r ∩ E) / ENNReal.ofReal ((2 * r) ^ s)
         < ENNReal.ofReal ((1 - δ) / 2 ^ s)) :
     hausdorffContentInfty s (C ∩ E) ≤ ENNReal.ofReal (1 - δ) * (Metric.ediam C) ^ s := by
-  rcases eq_or_lt_of_le (zero_le (Metric.ediam C)) with h0 | hpos
+  have hle : 0 ≤ Metric.ediam C := by exact zero_le
+  rcases eq_or_lt_of_le hle with h0 | hpos
   · have hz : Metric.ediam (C ∩ E) = 0 :=
-      le_antisymm (h0 ▸ Metric.ediam_mono Set.inter_subset_left) (zero_le _)
+      le_antisymm (h0 ▸ Metric.ediam_mono Set.inter_subset_left) (zero_le)
     rw [hausdorffContentInfty_eq_zero_of_ediam_eq_zero hs hz]
-    exact zero_le _
+    exact zero_le
   · have hdtop : Metric.ediam C ≠ ⊤ := ne_top_of_le_ne_top ENNReal.ofReal_ne_top hC
     set d := (Metric.ediam C).toReal with hd
     have hd0 : 0 < d := ENNReal.toReal_pos hpos.ne' hdtop

@@ -1,7 +1,3 @@
-/- This file contains the upper bound in Theorem 2.7 in [EG].
-It needs to be modified so it does not assume that the ambient space
-satisfies HasBesicovitchCovering -/
-
 import Mathlib
 
 /- Necessary basic definitions -/
@@ -11,7 +7,7 @@ import FormalizingGMT.«Project Versions».Measures.Basic
 import FormalizingGMT.«Project Versions».Measures.HausdorffMeasure
 import FormalizingGMT.«Project Versions».Densities.Basic
 import FormalizingGMT.«Project Versions».Aux_definitions
-import FormalizingGMT.«Project Versions».Thm1_25(VariantVitali)
+import FormalizingGMT.«Project Versions».Thm1_25_VariantVitali
 
 /- This file contains the upper bound in Theorem 2.7 in [EG]. -/
 
