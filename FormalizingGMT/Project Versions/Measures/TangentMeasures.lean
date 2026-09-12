@@ -33,3 +33,16 @@ def IsTangentMeasure
         ν
         h_seq
         ‹RadonOuterMeasure ν›
+/-- Theorem 14.3 -/
+theorem exists_subseq_blowUp_weaklyConverges_tangentMeasure
+    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hμ : RadonOuterMeasure μ)
+    (a : EuclideanSpace ℝ (Fin n)) (ha : a ∈ SupportOuterMeasure μ)
+    (hc : limsup (fun ρ : ℝ ↦ μ (ball a (2 * ρ)) / μ (ball a ρ)) (𝓝[>] (0 : ℝ)) < ∞)
+    (r : ℕ → ℝ) (hr_pos : ∀ i, 0 < r i) (hr : Tendsto r atTop (𝓝 0)) :
+    ∃ (φ : ℕ → ℕ) (ν : OuterMeasure (EuclideanSpace ℝ (Fin n)))
+        (hseq : ∀ j, RadonOuterMeasure
+          ((μ (ball a (r (φ j))))⁻¹ • μ.map (blowUpMap a (r (φ j)))))
+        (hν : RadonOuterMeasure ν),
+      StrictMono φ ∧ IsTangentMeasure μ ν hμ a ∧
+        OuterMeasure.WeaklyConverges
+          (fun j ↦ (μ (ball a (r (φ j))))⁻¹ • μ.map (blowUpMap a (r (φ j)))) ν hseq hν
