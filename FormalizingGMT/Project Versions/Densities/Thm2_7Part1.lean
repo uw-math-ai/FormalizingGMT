@@ -9,12 +9,8 @@ import Mathlib.Tactic
 
 /- Necessary basic definitions -/
 import FormalizingGMT.«Project Versions».Measures.Basic
-import FormalizingGMT.«Project Versions».Measures.HausdorffMeasure
 import FormalizingGMT.«Project Versions».Densities.Basic
-import FormalizingGMT.«Project Versions».Aux_definitions
-
-
-
+import FormalizingGMT.«Project Versions».Measures.HausdorffMeasure
 
 /-!
 # Theorem 2.7, part I: the lower density bound
@@ -30,7 +26,7 @@ and consequently the same holds with `H^s` in place of `H^s_∞`.
 All balls occurring here are *closed* metric balls.
 -/
 
-open scoped BigOperators Real Nat Classical Pointwise ENNReal
+open scoped BigOperators Real Nat Pointwise ENNReal
 open MeasureTheory MeasureTheory.OuterMeasure Set Filter Topology
 
 noncomputable section
@@ -71,7 +67,7 @@ lemma hausdorffContentOuter_apply (s : ℝ) (δ : ℝ≥0∞) (E : Set X) :
       refine tsum_congr fun n => ?_
       rw [MeasureTheory.extend_eq (fun (u : Set X) (_ : Metric.ediam u ≤ δ) => (Metric.ediam u) ^ s)
         (hd n)]
-    · push_neg at hd
+    · push Not at hd
       obtain ⟨i, hi⟩ := hd
       have hi' : ¬ (Metric.ediam (t i) ≤ δ) := not_le.mpr hi
       have hne : (t i).Nonempty := by
@@ -115,7 +111,7 @@ lemma hausdorffContent_iUnion_le {s : ℝ} {δ : ℝ≥0∞} (A : ℕ → Set X)
 lemma hausdorffContent_empty (s : ℝ) (δ : ℝ≥0∞) :
     hausdorffContent s δ (∅ : Set X) = 0 := by
   rw [hausdorffContent]
-  refine le_antisymm ?_ (by exact zero_le)
+  refine le_antisymm ?_ (zero_le)
   refine le_trans (iInf₂_le (fun _ => (∅ : Set X)) (by simp)) ?_
   exact le_trans (iInf_le _ (by simp)) (by simp)
 
@@ -129,11 +125,10 @@ lemma hausdorffContent_antitone {s : ℝ} {δ δ' : ℝ≥0∞} (h : δ ≤ δ')
 /-- For a positive exponent, a set of vanishing diameter has vanishing Hausdorff content. -/
 lemma hausdorffContentInfty_eq_zero_of_ediam_eq_zero {s : ℝ} (hs : 0 < s) {A : Set X}
     (hA : Metric.ediam A = 0) : hausdorffContentInfty s A = 0 := by
-  refine le_antisymm ?_ ?_
-  · rw [hausdorffContentInfty]
-    refine le_trans (iInf₂_le (fun _ => A) (Set.subset_iUnion (fun _ : ℕ => A) 0)) ?_
-    simp [hA, ENNReal.zero_rpow_of_pos hs]
-  · exact zero_le
+  refine le_antisymm ?_ (zero_le)
+  rw [hausdorffContentInfty]
+  refine le_trans (iInf₂_le (fun _ => A) (Set.subset_iUnion (fun _ : ℕ => A) 0)) ?_
+  simp [hA, ENNReal.zero_rpow_of_pos hs]
 
 end Contents
 
@@ -145,7 +140,7 @@ variable {X : Type*} [EMetricSpace X]
 
 /-- `cover_set s E δ τ` is the set `E(δ, τ)` of Evans–Gariepy: the set of points `x ∈ E` such that
 `H^s_δ(C ∩ E) ≤ τ (diam C)^s` whenever `C ⊆ X` contains `x` and has `diam C ≤ δ`. -/
-private def cover_set (s : ℝ) (E : Set X) (δ τ : ℝ≥0∞) : Set X :=
+def cover_set (s : ℝ) (E : Set X) (δ τ : ℝ≥0∞) : Set X :=
   {x | x ∈ E ∧ ∀ C : Set X, x ∈ C → Metric.ediam C ≤ δ →
     hausdorffContent s δ (C ∩ E) ≤ τ * (Metric.ediam C) ^ s}
 
@@ -199,16 +194,6 @@ lemma hausdorffContent_cover_set_le_tsum {s : ℝ} (E : Set X) {δ τ : ℝ≥0�
     _ ≤ ∑' i, hausdorffContent s δ (C i ∩ A) := hausdorffContent_iUnion_le _
     _ ≤ ∑' i, τ * (Metric.ediam (C i)) ^ s := ENNReal.tsum_le_tsum hterm
     _ = τ * ∑' i, (Metric.ediam (C i)) ^ s := ENNReal.tsum_mul_left
-
-/-- **Lemma 0.1 (covering estimate for `E(δ, τ)`)**, in the exact form stated in the source: the
-extra hypothesis that every piece of the cover meets `E(δ, τ)` is retained, although the proof
-does not need it. -/
-lemma hausdorffContent_cover_set_le_tsum' {s : ℝ} (E : Set X) {δ τ : ℝ≥0∞}
-    (C : ℕ → Set X) (h_cover : cover_set s E δ τ ⊆ ⋃ i, C i)
-    (h_diam : ∀ i, Metric.ediam (C i) ≤ δ)
-    (h_meets : ∀ i, (C i ∩ cover_set s E δ τ).Nonempty) :
-    hausdorffContent s δ (cover_set s E δ τ) ≤ τ * ∑' i, (Metric.ediam (C i)) ^ s :=
-  hausdorffContent_cover_set_le_tsum E C h_cover h_diam
 
 /-- **Lemma 0.2 (contraction).** `H^s_δ(E(δ,τ)) ≤ τ · H^s_δ(E(δ,τ))`. -/
 lemma hausdorffContent_cover_set_contraction {s : ℝ} (hs : 0 < s) (E : Set X) {δ τ : ℝ≥0∞}
@@ -309,7 +294,7 @@ lemma hausdorffMeasure_iUnion_cover_set_eq_zero {s : ℝ} (hs : 0 < s) (E : Set 
     rw [hkeq]
     simp only [inv_one, tsub_self]
     refine measure_mono_null
-        (cover_set_mono_tau s E 1 (by exact (zero_le : (0 : ℝ≥0∞) ≤ (1 / 2 : ℝ≥0∞)))) ?_
+      (cover_set_mono_tau s E 1 (show (0 : ℝ≥0∞) ≤ 1 / 2 from zero_le)) ?_
     exact hausdorffMeasure_cover_set_eq_zero hs E one_pos (by norm_num) (by norm_num) hE
   · have h1k : (1 : ℝ≥0∞) < ((k : ℕ) : ℝ≥0∞) := by
       exact_mod_cast (by exact_mod_cast hk1 : (1 : ℕ) < (k : ℕ))
@@ -339,10 +324,11 @@ section Density
 variable {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
 
 /-- The `s`-dimensional density ratio of `H^s_∞` restricted to `E`, written out explicitly. -/
-lemma dimensional_density_ratio_contentInfty (s : ℝ) (E : Set X) (x : X) (r : ℝ) :
+lemma dimensional_density_ratio_contentInfty (s : ℝ) (E : Set X) (x : X) {r : ℝ} (hr : 0 ≤ r) :
     dimensional_density_ratio (OuterMeasure.restrict E (hausdorffContentInftyOuter s)) s x r
       = hausdorffContentInfty s (Metric.closedBall x r ∩ E) / ENNReal.ofReal ((2 * r) ^ s) := by
-  rw [dimensional_density_ratio, OuterMeasure.restrict_apply, hausdorffContentInftyOuter_apply]
+  rw [dimensional_density_ratio_closedBall _ _ _ hr, OuterMeasure.restrict_apply,
+    hausdorffContentInftyOuter_apply]
 
 /-- **Lemma 0.5 (from small density to small density ratio).** -/
 lemma exists_delta_of_upper_density_lt {s : ℝ} (E : Set X) (x : X)
@@ -363,8 +349,8 @@ lemma exists_delta_of_upper_density_lt {s : ℝ} (E : Set X) (x : X)
     nlinarith
   have hbeq : b = (1 - δ₀) / 2 ^ s := by
     rw [hδ₀]; field_simp; ring
-  have hev := eventually_lt_of_upper_density_lt
-    (OuterMeasure.restrict E (hausdorffContentInftyOuter s)) s x _ hb1
+  have hev := eventually_lt_of_upper_density_lt (μ := OuterMeasure.restrict E
+    (hausdorffContentInftyOuter s)) s x _ hb1
   rw [Filter.eventually_iff, mem_nhdsGT_iff_exists_Ioc_subset] at hev
   obtain ⟨u, hu, hsub⟩ := hev
   have hu0 : (0 : ℝ) < u := hu
@@ -372,7 +358,7 @@ lemma exists_delta_of_upper_density_lt {s : ℝ} (E : Set X) (x : X)
   intro r hr0 hrle
   have hrmem : r ∈ Set.Ioc (0 : ℝ) u := ⟨hr0, hrle.trans (min_le_right _ _)⟩
   have hlt := hsub hrmem
-  simp only [Set.mem_setOf_eq, dimensional_density_ratio_contentInfty] at hlt
+  simp only [Set.mem_setOf_eq, dimensional_density_ratio_contentInfty _ _ _ hr0.le] at hlt
   refine hlt.trans_le (ENNReal.ofReal_le_ofReal ?_)
   rw [hbeq]
   gcongr
@@ -383,18 +369,17 @@ omit [MeasurableSpace X] [BorelSpace X] in
 the proof only uses `x ∈ C`.  The bound `δ ≤ 1` is implicit in the source: for `δ > 1` the
 hypothesis on the density ratios cannot be satisfied. -/
 lemma hausdorffContentInfty_inter_le {s : ℝ} (hs : 0 < s) (E : Set X) (x : X) {δ : ℝ}
-    (hδ : 0 < δ) (hδ1 : δ ≤ 1) {C : Set X} (hxE : x ∈ E) (hxC : x ∈ C)
+    (hδ : 0 < δ) (hδ1 : δ ≤ 1) {C : Set X} (hxC : x ∈ C)
     (hC : Metric.ediam C ≤ ENNReal.ofReal δ)
     (hdens : ∀ r : ℝ, 0 < r → r ≤ δ →
       hausdorffContentInfty s (Metric.closedBall x r ∩ E) / ENNReal.ofReal ((2 * r) ^ s)
         < ENNReal.ofReal ((1 - δ) / 2 ^ s)) :
     hausdorffContentInfty s (C ∩ E) ≤ ENNReal.ofReal (1 - δ) * (Metric.ediam C) ^ s := by
-  have hle : 0 ≤ Metric.ediam C := by exact zero_le
-  rcases eq_or_lt_of_le hle with h0 | hpos
+  rcases eq_or_lt_of_le (zero_le : (0 : ENNReal) ≤ Metric.ediam C) with h0 | hpos
   · have hz : Metric.ediam (C ∩ E) = 0 :=
-      le_antisymm (h0 ▸ Metric.ediam_mono Set.inter_subset_left) (zero_le)
+      le_antisymm (h0 ▸ Metric.ediam_mono Set.inter_subset_left) bot_le
     rw [hausdorffContentInfty_eq_zero_of_ediam_eq_zero hs hz]
-    exact zero_le
+    exact bot_le
   · have hdtop : Metric.ediam C ≠ ⊤ := ne_top_of_le_ne_top ENNReal.ofReal_ne_top hC
     set d := (Metric.ediam C).toReal with hd
     have hd0 : 0 < d := ENNReal.toReal_pos hpos.ne' hdtop
@@ -426,7 +411,7 @@ omit [MeasurableSpace X] [BorelSpace X] in
 /-- Step (j): the same bound for the `δ`-restricted content, by
 `hausdorffContent_le_hausdorffContentInfty`. -/
 lemma hausdorffContent_inter_le {s : ℝ} (hs : 0 < s) (E : Set X) (x : X) {δ : ℝ}
-    (hδ : 0 < δ) (hδ1 : δ ≤ 1) {C : Set X} (hxE : x ∈ E) (hxC : x ∈ C)
+    (hδ : 0 < δ) (hδ1 : δ ≤ 1) {C : Set X} (hxC : x ∈ C)
     (hC : Metric.ediam C ≤ ENNReal.ofReal δ)
     (hdens : ∀ r : ℝ, 0 < r → r ≤ δ →
       hausdorffContentInfty s (Metric.closedBall x r ∩ E) / ENNReal.ofReal ((2 * r) ^ s)
@@ -435,7 +420,7 @@ lemma hausdorffContent_inter_le {s : ℝ} (hs : 0 < s) (E : Set X) (x : X) {δ :
       ≤ ENNReal.ofReal (1 - δ) * (Metric.ediam C) ^ s :=
   le_trans (hausdorffContent_le_hausdorffContentInfty hs.le
       (le_trans (Metric.ediam_mono Set.inter_subset_left) hC))
-    (hausdorffContentInfty_inter_le hs E x hδ hδ1 hxE hxC hC hdens)
+    (hausdorffContentInfty_inter_le hs E x hδ hδ1 hxC hC hdens)
 
 omit [MeasurableSpace X] [BorelSpace X] in
 /-- Step (k): `x ∈ E(δ, 1 - δ)`. -/
@@ -446,7 +431,7 @@ lemma mem_cover_set_of_density_lt {s : ℝ} (hs : 0 < s) (E : Set X) (x : X) {δ
         < ENNReal.ofReal ((1 - δ) / 2 ^ s)) :
     x ∈ cover_set s E (ENNReal.ofReal δ) (1 - ENNReal.ofReal δ) := by
   refine ⟨hxE, fun C hxC hCd => ?_⟩
-  have h := hausdorffContent_inter_le hs E x hδ hδ1 hxE hxC hCd hdens
+  have h := hausdorffContent_inter_le hs E x hδ hδ1 hxC hCd hdens
   rwa [show (1 : ℝ≥0∞) - ENNReal.ofReal δ = ENNReal.ofReal (1 - δ) by
     rw [ENNReal.ofReal_sub _ hδ.le, ENNReal.ofReal_one]]
 
@@ -462,7 +447,7 @@ lemma mem_iUnion_cover_set_of_upper_density_lt {s : ℝ} (hs : 0 < s) (E : Set X
   obtain ⟨n, hn⟩ := exists_nat_one_div_lt hδ
   obtain ⟨k, hkval⟩ : ∃ k : ℕ+, ((k : ℕ) : ℝ) = (n : ℝ) + 1 :=
     ⟨⟨n + 1, Nat.succ_pos n⟩, by
-      show ((n + 1 : ℕ) : ℝ) = (n : ℝ) + 1
+      change ((n + 1 : ℕ) : ℝ) = (n : ℝ) + 1
       push_cast; ring⟩
   have hkpos : (0 : ℝ) < ((k : ℕ) : ℝ) := by rw [hkval]; positivity
   have hkle : (((k : ℕ) : ℝ≥0∞))⁻¹ ≤ ENNReal.ofReal δ := by
@@ -493,7 +478,7 @@ the theorem as given, but the proof below does not use them; only the finiteness
 is needed. -/
 theorem hausdorffContentInfty_upper_density_ge [SigmaCompactSpace X] {s : ℝ} (hs : 0 ≤ s)
     (E : Set X)
-    (hEmeas : MeasurableSet[(OuterMeasure.mkMetric (X := X) (fun r => r ^ s)).caratheodory] E)
+    (_hEmeas : MeasurableSet[(OuterMeasure.mkMetric (X := X) (fun r => r ^ s)).caratheodory] E)
     (hE : μH[s] E ≠ ⊤) :
     μH[s] {x ∈ E | dimensional_upper_density
         (OuterMeasure.restrict E (hausdorffContentInftyOuter s)) s x
@@ -511,7 +496,7 @@ theorem hausdorffContentInfty_upper_density_ge [SigmaCompactSpace X] {s : ℝ} (
       rw [hone, dimensional_upper_density]
       refine Filter.le_limsup_of_frequently_le (Filter.Eventually.frequently ?_)
       filter_upwards [self_mem_nhdsWithin] with r hr
-      rw [dimensional_density_ratio_contentInfty, ← h0]
+      rw [dimensional_density_ratio_contentInfty _ _ _ (le_of_lt hr), ← h0]
       simp only [Real.rpow_zero, ENNReal.ofReal_one, div_one]
       exact one_le_hausdorffContentInfty_zero
         ⟨x, Metric.mem_closedBall_self (le_of_lt hr), hxE⟩
@@ -536,10 +521,13 @@ theorem hausdorffMeasure_upper_density_ge [SigmaCompactSpace X] {s : ℝ} (hs : 
   refine measure_mono_null ?_ (hausdorffContentInfty_upper_density_ge hs E hEmeas hE)
   rintro x ⟨hxE, hlt⟩
   refine ⟨hxE, lt_of_le_of_lt ?_ hlt⟩
-  refine Filter.limsup_le_limsup (Filter.Eventually.of_forall fun r => ?_)
-  rw [dimensional_density_ratio_contentInfty, dimensional_density_ratio]
+  refine Filter.limsup_le_limsup ?_
+  filter_upwards [self_mem_nhdsWithin] with r hr
+  have hr0 : (0 : ℝ) ≤ r := le_of_lt hr
+  rw [dimensional_density_ratio_contentInfty _ _ _ hr0,
+    dimensional_density_ratio_closedBall _ _ _ hr0]
   gcongr
-  show hausdorffContentInfty s (Metric.closedBall x r ∩ E)
+  change hausdorffContentInfty s (Metric.closedBall x r ∩ E)
       ≤ ((μH[s]).restrict E) (Metric.closedBall x r)
   rw [Measure.restrict_apply Metric.isClosed_closedBall.measurableSet]
   exact le_trans (hausdorffContentInfty_le_hausdorffContent s 1 _)
