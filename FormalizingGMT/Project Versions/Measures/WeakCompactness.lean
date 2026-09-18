@@ -16,7 +16,7 @@ import Mathlib.Tactic.FunProp
 import Mathlib.Tactic.GCongr
 import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.Positivity
-import FormalizingGMT.Measures.WeakConvergence
+import FormalizingGMT.«Project Versions».Measures.WeakConvergence
 
 /-!
 # Weak compactness for Radon measures
@@ -105,7 +105,7 @@ private lemma weightCoefficient_mul_bound_le (B : ℕ → ℝ≥0) (m : ℕ) :
 
 private lemma tsum_geometricWeight_eq_one : ∑' m, geometricWeight m = 1 := by
   simp only [geometricWeight, pow_succ']
-  rw [NNReal.tsum_mul_left, NNReal.tsum_geometric (by norm_num)]
+  rw [NNReal.tsum_mul_left, tsum_geometric_nnreal (by norm_num)]
   apply NNReal.eq
   norm_num
 
@@ -480,52 +480,19 @@ private theorem exists_vaguelyConvergent_subseq_of_compact_bounded_aux
   refine ⟨φ, ν, hφ, ?_⟩
   exact inverse_density_transfer μ w hw hw_pos νm hνm φ νlim hνlim
 
-private def associatedMeasure {X : Type*} [TopologicalSpace X] [MeasurableSpace X]
-    [BorelSpace X] (μ : OuterMeasure X) (hμ : RadonOuterMeasure μ) : Measure X :=
-  μ.toMeasure hμ.measurable_le_caratheodory
-
-private lemma toOuterMeasure_radon {X : Type*} [TopologicalSpace X] [MeasurableSpace X]
-    [BorelSpace X] (μ : Measure X) (hμ : μ.Regular) :
-    RadonOuterMeasure μ.toOuterMeasure := by
-  refine
-    { measurable_le_caratheodory := le_toOuterMeasure_caratheodory μ
-      exists_measurable_superset := ?_
-      regular_toMeasure := ?_ }
-  · intro E
-    obtain ⟨F, hEF, hF, hμF⟩ :=
-      μ.toOuterMeasure.exists_measurable_superset_eq_trim E
-    exact ⟨F, hF, hEF, by simpa only [μ.trimmed] using hμF.symm⟩
-  · simpa only [associatedMeasure, toOuterMeasure_toMeasure] using hμ
-
 /-- **Evans--Gariepy, Revised Edition, Theorem 1.41 (p. 66).**
 
-A sequence of Radon outer measures on Euclidean space that is uniformly bounded on each compact
-set has a subsequence converging weakly to a Radon outer measure. Integration against an outer
-measure means integration against its associated Borel measure. -/
+A sequence of Radon measures on Euclidean space that is uniformly bounded on each compact set has
+a subsequence converging weakly (i.e. vaguely) to a Radon measure. -/
 theorem exists_vaguelyConvergent_subseq_of_compact_bounded
-    {n : ℕ} (μ : ℕ → OuterMeasure (EuclideanSpace ℝ (Fin n)))
-    (hμ_radon : ∀ k, RadonOuterMeasure (μ k))
+    {n : ℕ} (μ : ℕ → Measure (EuclideanSpace ℝ (Fin n)))
     (hμ : ∀ K : Set (EuclideanSpace ℝ (Fin n)), IsCompact K →
       ∃ C : ℝ≥0, ∀ k, μ k K ≤ C) :
-    ∃ (φ : ℕ → ℕ) (ν : OuterMeasure (EuclideanSpace ℝ (Fin n)))
-        (hν : RadonOuterMeasure ν),
-      StrictMono φ ∧
-        OuterMeasure.WeaklyConverges (fun j ↦ μ (φ j)) ν
-          (fun j ↦ hμ_radon (φ j)) hν := by
-  let μ' : ℕ → Measure (EuclideanSpace ℝ (Fin n)) :=
-    fun k ↦ associatedMeasure (μ k) (hμ_radon k)
-  have hμ' : ∀ K : Set (EuclideanSpace ℝ (Fin n)), IsCompact K →
-      ∃ C : ℝ≥0, ∀ k, μ' k K ≤ C := by
-    intro K hK
-    obtain ⟨C, hC⟩ := hμ K hK
-    refine ⟨C, fun k ↦ ?_⟩
-    simpa only [μ', associatedMeasure, toMeasure_apply _ _ hK.measurableSet] using hC k
-  obtain ⟨φ, ν, hφ, _, hν_regular, hν⟩ :=
-    exists_vaguelyConvergent_subseq_of_compact_bounded_aux μ' hμ'
-  let hν_radon : RadonOuterMeasure ν.toOuterMeasure :=
-    toOuterMeasure_radon ν hν_regular
-  refine ⟨φ, ν.toOuterMeasure, hν_radon, hφ, ?_⟩
-  intro f
-  simpa only [μ', associatedMeasure, toOuterMeasure_toMeasure] using hν f
+    ∃ (φ : ℕ → ℕ) (ν : Measure (EuclideanSpace ℝ (Fin n))),
+      StrictMono φ ∧ ν.Regular ∧
+        Measure.WeaklyConverges (fun j ↦ μ (φ j)) ν := by
+  obtain ⟨φ, ν, hφ, -, hν_regular, hν⟩ :=
+    exists_vaguelyConvergent_subseq_of_compact_bounded_aux μ hμ
+  exact ⟨φ, ν, hφ, hν_regular, hν⟩
 
 end MeasureTheory

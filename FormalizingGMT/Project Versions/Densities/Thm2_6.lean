@@ -1,17 +1,15 @@
-module
-public import Mathlib.MeasureTheory.Measure.Hausdorff
-public import Mathlib.MeasureTheory.Measure.Regular
-public import Mathlib.MeasureTheory.Covering.Besicovitch
-public import Mathlib.MeasureTheory.Covering.BesicovitchVectorSpace
-public import Mathlib.Topology.Order.LiminfLimsup
-public import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+import Mathlib.MeasureTheory.Measure.Hausdorff
+import Mathlib.MeasureTheory.Measure.Regular
+import Mathlib.MeasureTheory.Covering.Vitali
+import Mathlib.MeasureTheory.Covering.Besicovitch
+import Mathlib.MeasureTheory.Covering.BesicovitchVectorSpace
+import Mathlib.Topology.Order.LiminfLimsup
+import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 import Mathlib.Tactic
 
 /- Necessary basic definitions -/
-import FormalizingGMT.«Project Versions».Measures.Basic
 import FormalizingGMT.«Project Versions».Measures.HausdorffMeasure
 import FormalizingGMT.«Project Versions».Densities.Basic
-import FormalizingGMT.«Project Versions».Aux_definitions
 
 
 /-!
@@ -29,9 +27,12 @@ open MeasureTheory Measure Metric Set Filter ENNReal
 open scoped NNReal Topology
 
 
+
+
 /-! ## Abbreviations -/
 
 variable {X : Type*} [MetricSpace X] [SigmaCompactSpace X]
+  [LocallyCompactSpace X] [SecondCountableTopology X]
   [MeasurableSpace X] [BorelSpace X]
 
 /-- The s-dimensional Hausdorff outer measure. -/
@@ -42,7 +43,7 @@ noncomputable abbrev Hs_outer (s : ℝ) : OuterMeasure X :=
 noncomputable abbrev Hs_restrict (s : ℝ) (E : Set X) : OuterMeasure X :=
   OuterMeasure.restrict E (Hs_outer s)
 
-/-! ## A_set definition -/
+/-! ## A_set definition (Step c) -/
 
 /-- The set A_t: points outside E where the upper s-density of H^s|_E exceeds t. -/
 def A_set (s : ℝ) (E : Set X) (t : ℝ≥0∞) : Set X :=
@@ -66,17 +67,40 @@ lemma hausdorff_measure_eq_outer (s : ℝ) (S : Set X) :
 /-! ## Step (e): Inner approximation by closed sets -/
 
 /-- Under the assumptions of Theorem 2.6, given ε > 0, there exists a closed set K ⊆ E
-    such that Hs(E \ K) < ε. -/
+    such that Hs(E \ K) < ε.
+
+The argument is carried out at the level of the *measure* `μH[s]` rather than of the outer
+measure: `X` carries the Borel σ-algebra (`BorelSpace X`), which is the σ-algebra with respect to
+which the `s`-dimensional Hausdorff measure is defined, and `μH[s]`, viewed as an outer measure,
+agrees with `Hs_outer s` on every set (`hausdorff_measure_eq_outer`).  The inner approximation is
+then `closed_approx_of_isBorelRegular`, whose proof is an application of
+`BorelRegularOuterMeasure.restrict_isRadon` (regularity of the restriction of a measure to a set
+of finite measure).  This is why the ambient space is assumed here to be locally compact and
+second countable, the hypotheses of that theorem.
+
+The hypothesis `0 ≤ s` is part of the standard statement and is kept, but the proof does not
+need it. -/
 lemma approx_by_closed_inside
     {s : ℝ} (hs : 0 ≤ s) {E : Set X}
     (hE_meas : MeasurableSet[(Hs_outer (X := X) s).caratheodory] E)
     (hE_fin : (Hs_outer (X := X) s) E < ⊤)
     {ε : ℝ≥0∞} (hε : 0 < ε) :
     ∃ K : Set X, IsClosed K ∧ K ⊆ E ∧ (Hs_outer s) (E \ K) < ε := by
-  letI : BorelRegularOuterMeasure (Hs_outer (X := X) s) :=
-    Hausdorff.toBorelRegularOuterMeasure s hs
-  exact closed_approx_of_isBorelRegular
-    (Hs_outer (X := X) s) E hE_meas hE_fin ε hε
+  -- The Hausdorff measure, viewed as an outer measure, is exactly `Hs_outer s`.
+  have hOM : ∀ S : Set X, (μH[s] : Measure X).toOuterMeasure S = (Hs_outer (X := X) s) S :=
+    fun S => hausdorff_measure_eq_outer s S
+  -- Hence `E` is Carathéodory measurable for `μH[s]` and has finite `μH[s]`-measure.
+  have hE_cara : (μH[s] : Measure X).toOuterMeasure.IsCaratheodory E := by
+    intro t
+    simpa only [hOM] using hE_meas t
+  have hE_fin' : μH[s] E < ∞ := by
+    rw [show μH[s] E = (μH[s] : Measure X).toOuterMeasure E from rfl, hOM]
+    exact hE_fin
+  obtain ⟨K, hK_closed, hK_sub, hK_lt⟩ :=
+    closed_approx_of_isBorelRegular (μH[s] : Measure X) E hE_cara hE_fin' ε hε
+  refine ⟨K, hK_closed, hK_sub, ?_⟩
+  rw [← hOM (E \ K)]
+  exact hK_lt
 
 /-! ## Step (g): A_t ⊆ U = X \ K -/
 
@@ -103,7 +127,9 @@ lemma fine_cover_of_mem_A_set
   convert hx.2.not_ge ?_ using 1
   generalize_proofs at *; (
   refine' csInf_le _ _ <;> norm_num;
-  filter_upwards [ Ioo_mem_nhdsGT δ_pos ] with ρ hρ using by rw [ dimensional_density_ratio ] ; exact ENNReal.div_le_of_le_mul <| by aesop;)
+  filter_upwards [ Ioo_mem_nhdsGT δ_pos ] with ρ hρ using by
+    rw [ dimensional_density_ratio_closedBall _ _ _ hρ.1.le ]
+    exact ENNReal.div_le_of_le_mul <| by aesop;)
 
 /-
 For x ∈ A_t ⊆ U (open), we can also ensure B(x, ρ) ⊆ U. (Steps i-j)
@@ -146,34 +172,7 @@ lemma countable_of_pairwise_disjoint_balls
     intro i hi j hj hij; have := hpd hi hj; simp_all +decide [ Set.disjoint_left ] ;
     contrapose! this;
     exact ⟨ this, x j, by simp +decide [ hr_pos j hj |> le_of_lt ] ⟩;
-  exact?
-
-/-! ## Borel ≤ Caratheodory for Hausdorff outer measure -/
-
-omit [SigmaCompactSpace X] in
-lemma Hs_borel_le_car (s : ℝ) :
-    ‹MeasurableSpace X› ≤ (Hs_outer (X := X) s).caratheodory := by
-  convert ( OuterMeasure.IsMetric.borel_le_caratheodory _ ) using 1;
-  exact?;
-  convert OuterMeasure.mkMetric'_isMetric _
-
-/-! ## Outer measure additivity for pairwise disjoint Caratheodory sets -/
-
-omit [SigmaCompactSpace X] in
-/-- For pairwise disjoint Caratheodory-measurable sets indexed by ℕ,
-    ∑ μ(t ∩ s_i) ≤ μ(t ∩ ⋃ s_i). Uses `OuterMeasure.isCaratheodory_sum`. -/
-lemma outer_tsum_le_of_pairwise_disjoint_car
-    {μ : OuterMeasure X}
-    {B : ℕ → Set X}
-    (hB_car : ∀ i, μ.IsCaratheodory (B i))
-    (hB_disj : Pairwise fun i j => Disjoint (B i) (B j))
-    (t : Set X) :
-    ∑' i, μ (t ∩ B i) ≤ μ (t ∩ ⋃ i, B i) := by
-  convert ENNReal.tsum_le_of_sum_range_le _;
-  intro n;
-  have h_sum : ∑ i ∈ Finset.range n, μ (t ∩ B i) = μ (t ∩ ⋃ i < n, B i) := by
-    convert MeasureTheory.OuterMeasure.isCaratheodory_sum μ ( fun i => hB_car i ) ( fun i j hij => hB_disj hij ) using 1;
-  exact h_sum.le.trans ( μ.mono <| Set.inter_subset_inter_right _ <| Set.iUnion_subset fun i => Set.iUnion_subset fun hi => Set.subset_iUnion _ _ )
+  exact countable_of_injective_of_countable_image h_inj h_countable
 
 /-! ## Steps (k)-(l): Vitali covering and gauge bound -/
 
@@ -292,9 +291,9 @@ lemma vitali_cover_at_scale (s : ℝ) (hs : 0 ≤ s)
     -- Combine
     calc ENNReal.ofReal ((5 : ℝ) ^ s) * ∑' x : u, ENNReal.ofReal ((2 * ρ ↑x) ^ s)
         ≤ ENNReal.ofReal ((5 : ℝ) ^ s) * (t⁻¹ * ∑' x : u, (Hs_outer s) (E ∩ closedBall (↑x) (ρ ↑x))) :=
-          mul_le_mul_right h_dens_bound _
+          mul_le_mul_left' h_dens_bound _
       _ ≤ ENNReal.ofReal ((5 : ℝ) ^ s) * (t⁻¹ * (Hs_outer s) (E \ K)) :=
-          mul_le_mul_right (mul_le_mul_right h_disj_bound _) _
+          mul_le_mul_left' (mul_le_mul_left' h_disj_bound _) _
       _ = ENNReal.ofReal ((5 : ℝ) ^ s) * t⁻¹ * (Hs_outer s) (E \ K) := by ring
 
 /-! ## Hausdorff measure bound from scale covers -/
@@ -302,6 +301,7 @@ lemma vitali_cover_at_scale (s : ℝ) (hs : 0 ≤ s)
 /-
 The Hausdorff measure of a set is bounded by gauge sums of scale-k covers.
 -/
+omit [SigmaCompactSpace X] [LocallyCompactSpace X] [SecondCountableTopology X] in
 lemma hausdorffMeasure_le_of_scale_covers {d : ℝ} (hd : 0 ≤ d)
     {S : Set X} (bound : ℝ≥0∞)
     (h : ∀ k : ℕ,
@@ -337,7 +337,7 @@ lemma hausdorffMeasure_le_of_scale_covers {d : ℝ} (hd : 0 ≤ d)
       · refine' ⟨ 0, Filter.Eventually.of_forall fun n => _ ⟩;
         exact bot_le
 
-/-! ## H^s(A_t) = 0 -/
+/-! ## Step (m): H^s(A_t) = 0 -/
 
 /-
 Core result: H^s(A_t) = 0. The proof fixes ε > 0, gets K from approx_by_closed_inside,
@@ -354,7 +354,7 @@ theorem A_t_null (s : ℝ) (hs : 0 ≤ s)
   · have h_bound : ∀ ε > 0, μH[s] (A_set s E t) ≤ ENNReal.ofReal ((5 : ℝ) ^ s) * t⁻¹ * ε := by
       intro ε ε_pos
       obtain ⟨K, hK_closed, hK_sub, hK_fin⟩ : ∃ K : Set X, IsClosed K ∧ K ⊆ E ∧ (Hs_outer s) (E \ K) < ε := by
-        exact?;
+        exact approx_by_closed_inside hs hE_meas hE_fin ε_pos
       refine' hausdorffMeasure_le_of_scale_covers hs _ _;
       intro k
       obtain ⟨T, hT_countable, r, hT_cover, hT_radius, hT_gauge⟩ := vitali_cover_at_scale s hs hE_meas ht ht_top hK_closed hK_sub k
@@ -368,7 +368,7 @@ theorem A_t_null (s : ℝ) (hs : 0 ≤ s)
     exact le_of_tendsto_of_tendsto tendsto_const_nhds h_zero ( Filter.eventually_of_mem self_mem_nhdsWithin fun ε hε => h_bound ε hε );
   · exact bot_le
 
-/-! ## Main theorem -/
+/-! ## Step (n): Main theorem -/
 
 /-
 **Theorem 2.6** (Density at points not in E).

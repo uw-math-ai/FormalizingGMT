@@ -1,20 +1,21 @@
-import Mathlib
+/- This file contains the upper bound in Theorem 2.7 in [EG]. -/
+
+/- Mathlib prerequisites: the Hausdorff measure `μH[s]` together with the metric outer measure
+`OuterMeasure.mkMetric` and the measure-theoretic API used below, and the tactic framework. -/
+import Mathlib.MeasureTheory.Measure.Hausdorff
+import Mathlib.Tactic
 
 /- Necessary basic definitions -/
-
-import Mathlib
 import FormalizingGMT.«Project Versions».Measures.Basic
-import FormalizingGMT.«Project Versions».Measures.HausdorffMeasure
 import FormalizingGMT.«Project Versions».Densities.Basic
-import FormalizingGMT.«Project Versions».Aux_definitions
+import FormalizingGMT.«Project Versions».Measures.HausdorffMeasure
 import FormalizingGMT.«Project Versions».Thm1_25_VariantVitali
-
-/- This file contains the upper bound in Theorem 2.7 in [EG]. -/
 
 /-!
 # Theorem 2.7, part II: the upper density bound
 
-Let `X` be a σ-compact metric space, `s ≥ 0` and let `E ⊆ X` be measurable with respect to the
+Let `X` be a locally compact, second countable metric space, `s ≥ 0` and let `E ⊆ X` be
+measurable with respect to the
 `s`-dimensional Hausdorff outer measure `H^s` (in the sense of Carathéodory), with `H^s(E) < ∞`.
 Then for `H^s`-almost every `x ∈ E`,
 
@@ -25,9 +26,8 @@ All balls occurring here are *closed* metric balls.
 The proof follows the classical argument:
 
 * `superlevelSet s E t` is the set `B_t` of points of `E` at which the upper density exceeds `t`;
-* the restriction `H^s ⌞ E` is a Radon outer measure
-  (`HausdorffRestrict.toRadonOuterMeasure`), so `B_t` can be approximated from outside by an
-  open set `U`;
+* the restricted measure `H^s ⌞ E` is regular (`HausdorffRestrict.toRadonOuterMeasure`), so
+  `B_t` can be approximated from outside by an open set `U`;
 * the family `ballFamily` of closed balls contained in `U`, of radius `< δ`, on which the density
   exceeds `t`, is a fine cover of `B_t`, and the variant of Vitali's covering theorem
   (`vitali_variant_classical`) produces a countable disjoint subfamily whose `5`-fold enlargement
@@ -38,7 +38,6 @@ The proof follows the classical argument:
 * the exceptional set of the theorem is the countable union of the sets `B_{1 + 1/n}`.
 -/
 
-
 open scoped BigOperators Real Nat Pointwise ENNReal NNReal
 open MeasureTheory MeasureTheory.OuterMeasure Metric Set Filter Topology
 
@@ -46,24 +45,12 @@ namespace HausdorffDensity
 
 noncomputable section
 
-variable {X : Type*} [MetricSpace X] [SigmaCompactSpace X] [MeasurableSpace X] [BorelSpace X]
+variable {X : Type*} [MetricSpace X] [LocallyCompactSpace X] [SecondCountableTopology X]
+  [MeasurableSpace X] [BorelSpace X]
 
 /-! ## Preliminaries on the Hausdorff measure and on closed balls -/
 
-omit [SigmaCompactSpace X] in
-/-- The Hausdorff measure, applied to an arbitrary (not necessarily measurable) set, agrees with
-the Hausdorff outer measure `mkMetric (fun r => r ^ s)`; this is the Borel regularity of the
-latter. -/
-lemma hausdorffMeasure_eq_mkMetric (s : ℝ) (A : Set X) :
-    μH[s] A = OuterMeasure.mkMetric (fun r => r ^ s) A := by
-  rw [MeasureTheory.Measure.hausdorffMeasure, MeasureTheory.Measure.mkMetric]
-  rw [show ((OuterMeasure.mkMetric (fun r => r ^ s) : OuterMeasure X).toMeasure (by
-      rw [BorelSpace.measurable_eq (α := X)]
-      exact (OuterMeasure.mkMetric'_isMetric _).borel_le_caratheodory) : Measure X) A
-    = (OuterMeasure.mkMetric (fun r => r ^ s) : OuterMeasure X).trim A from rfl]
-  rw [OuterMeasure.trim_mkMetric]
-
-omit [SigmaCompactSpace X] [MeasurableSpace X] [BorelSpace X] in
+omit [LocallyCompactSpace X] [SecondCountableTopology X] [MeasurableSpace X] [BorelSpace X] in
 /-- A closed ball of radius `r` has diameter at most `2r`. -/
 lemma ediam_closedBall_le (x : X) (r : ℝ) :
     Metric.ediam (Metric.closedBall x r) ≤ ENNReal.ofReal (2 * r) := by
@@ -77,71 +64,56 @@ lemma ediam_closedBall_le (x : X) (r : ℝ) :
 
 /-! ## The sets `B_t` and the ball family `F` -/
 
-/-- The super-level set of the upper `s`-density of `H^s ⌞ E`:
+/-- **(a)** The super-level set of the upper `s`-density of `H^s ⌞ E`:
 `B_t = {x ∈ E | limsup_{r → 0} H^s(B(x,r) ∩ E) / (2r)^s > t}`. -/
 def superlevelSet (s : ℝ) (E : Set X) (t : ℝ≥0∞) : Set X :=
   {x ∈ E | t < dimensional_upper_density ((μH[s]).restrict E).toOuterMeasure s x}
 
-/-- The family of closed balls `B(x,r) ⊆ U` with `0 < r < δ` on which the `s`-density
+/-- **(f)** The family of closed balls `B(x,r) ⊆ U` with `0 < r < δ` on which the `s`-density
 of `E` exceeds `t`; a ball is encoded by the pair `(x, r)` of its centre and radius. -/
 def ballFamily (s : ℝ) (E U : Set X) (δ : ℝ) (t : ℝ≥0∞) : Set (X × ℝ) :=
   {a : X × ℝ | Metric.closedBall a.1 a.2 ⊆ U ∧ 0 < a.2 ∧ a.2 < δ ∧
     t * ENNReal.ofReal ((2 * a.2) ^ s) < μH[s] (E ∩ Metric.closedBall a.1 a.2)}
 
-omit [SigmaCompactSpace X] in
+omit [LocallyCompactSpace X] [SecondCountableTopology X] in
 lemma superlevelSet_subset (s : ℝ) (E : Set X) (t : ℝ≥0∞) : superlevelSet s E t ⊆ E :=
   fun _ hx => hx.1
 
-omit [SigmaCompactSpace X] in
+omit [LocallyCompactSpace X] [SecondCountableTopology X] in
 /-- The density ratio of the restricted Hausdorff measure is `H^s(B(x,r) ∩ E) / (2r)^s`. -/
-lemma density_ratio_apply (s : ℝ) (E : Set X) (x : X) (r : ℝ) :
+lemma density_ratio_apply (s : ℝ) (E : Set X) (x : X) {r : ℝ} (hr : 0 ≤ r) :
     dimensional_density_ratio ((μH[s]).restrict E).toOuterMeasure s x r
       = μH[s] (Metric.closedBall x r ∩ E) / ENNReal.ofReal ((2 * r) ^ s) := by
-  rw [dimensional_density_ratio, Measure.toOuterMeasure_apply,
+  rw [dimensional_density_ratio_closedBall _ _ _ hr, Measure.toOuterMeasure_apply,
     Measure.restrict_apply Metric.isClosed_closedBall.measurableSet]
 
-/-! ## Outer approximation coming from the Radon property -/
+/-! ## (b)–(e): outer approximation coming from the Radon property -/
 
-/-- Since `H^s ⌞ E` is a Radon outer measure, any subset `A` of `E`
+/-- **(b), (c), (d), (e).** Since the restricted measure `H^s ⌞ E` is regular, any subset `A` of `E`
 is approximated from outside by open sets: for every `ε > 0` there is an open `U ⊇ A` with
 `H^s(U ∩ E) < H^s(A) + ε`. -/
 lemma exists_open_superset_measure_lt {s : ℝ} (hs : 0 ≤ s) {E : Set X}
     (hEmeas : MeasurableSet[(OuterMeasure.mkMetric (X := X) (fun r => r ^ s)).caratheodory] E)
     (hEfin : μH[s] E ≠ ⊤) (A : Set X) (hAE : A ⊆ E) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
     ∃ U : Set X, IsOpen U ∧ A ⊆ U ∧ μH[s] (U ∩ E) < μH[s] A + ε := by
-  set Hs : OuterMeasure X := OuterMeasure.mkMetric (fun r => r ^ s) with hHs
-  have hEfin' : Hs E < ∞ := by
-    rw [hHs, ← hausdorffMeasure_eq_mkMetric]; exact lt_top_iff_ne_top.2 hEfin
-  letI : RadonOuterMeasure (OuterMeasure.restrict E Hs) :=
-    HausdorffRestrict.toRadonOuterMeasure s hs E hEmeas hEfin'
-  set mu : OuterMeasure X := OuterMeasure.restrict E Hs with hmu
-  have hcara : ‹MeasurableSpace X› ≤ mu.caratheodory :=
-    BorelOuterMeasure.measurable_le_caratheodory (μ := mu)
-  set m : Measure X := mu.toMeasure hcara with hm
-  haveI : m.Regular := RadonOuterMeasure.regular_toMeasure (μ := mu)
-  have hmuapp : ∀ S : Set X, mu S = Hs (S ∩ E) := by
-    intro S; rw [hmu, OuterMeasure.restrict_apply]
-  have hmA : m A ≤ μH[s] A := by
-    obtain ⟨F, hAF, hFmeas, hFeq⟩ :=
-      MeasureTheory.OuterMeasure.exists_measurable_superset_eq_trim Hs A
-    calc m A ≤ m F := measure_mono hAF
-      _ = mu F := by rw [hm, toMeasure_apply _ _ hFmeas]
-      _ = Hs (F ∩ E) := hmuapp F
-      _ ≤ Hs F := Hs.mono Set.inter_subset_left
-      _ = Hs A := by rw [hFeq, hHs, OuterMeasure.trim_mkMetric]
-      _ = μH[s] A := (hausdorffMeasure_eq_mkMetric s A).symm
+  -- The restriction of the Hausdorff measure to `E` is regular.
+  haveI : ((μH[s] : Measure X).restrict E).Regular := by
+    have hborel : ‹MeasurableSpace X› = borel X := BorelSpace.measurable_eq
+    subst hborel
+    exact HausdorffRestrict.toRadonOuterMeasure s hs E hEmeas (lt_top_iff_ne_top.2 hEfin)
+  set m : Measure X := (μH[s] : Measure X).restrict E with hm
+  have hmA : m A ≤ μH[s] A := Measure.restrict_apply_le _ _
   have hAfin : μH[s] A ≠ ⊤ := ne_top_of_le_ne_top hEfin (measure_mono hAE)
   obtain ⟨U, hAU, hUopen, hUlt⟩ := exists_isOpen_lt_of_lt (μ := m) A (μH[s] A + ε)
     (lt_of_le_of_lt hmA (ENNReal.lt_add_right hAfin hε))
   refine ⟨U, hUopen, hAU, ?_⟩
-  calc μH[s] (U ∩ E) = Hs (U ∩ E) := hausdorffMeasure_eq_mkMetric s _
-    _ = mu U := (hmuapp U).symm
-    _ = m U := by rw [hm, toMeasure_apply _ _ hUopen.measurableSet]
+  calc μH[s] (U ∩ E) = m U := by
+        rw [hm, Measure.restrict_apply hUopen.measurableSet]
     _ < μH[s] A + ε := hUlt
 
 /-! ## Fineness of the ball family -/
 
-omit [SigmaCompactSpace X] in
+omit [LocallyCompactSpace X] [SecondCountableTopology X] in
 /-- The family `F` of balls is a *fine* cover of `B_t`: through every point of `B_t` there are
 balls of `F` of arbitrarily small radius centred at that point. -/
 lemma fine_ballFamily {s : ℝ} {E U : Set X} (hU : IsOpen U) {t : ℝ≥0∞} {δ : ℝ} (hδ : 0 < δ)
@@ -150,7 +122,7 @@ lemma fine_ballFamily {s : ℝ} {E U : Set X} (hU : IsOpen U) {t : ℝ≥0∞} {
   obtain ⟨r₀, hr₀, hball⟩ := Metric.isOpen_iff.mp hU x (hBU hx)
   have hfreq : ∃ᶠ r in 𝓝[>] (0 : ℝ),
       t < dimensional_density_ratio ((μH[s]).restrict E).toOuterMeasure s x r :=
-    frequently_gt_of_upper_density_gt _ s x t hx.2
+    frequently_gt_of_upper_density_gt s x t hx.2
   have hev : ∀ᶠ r in 𝓝[>] (0 : ℝ), r ∈ Set.Ioo 0 (min (min η δ) (r₀ / 2)) :=
     Ioo_mem_nhdsGT (by positivity)
   obtain ⟨r, hr1, hr2⟩ := (hfreq.and_eventually hev).exists
@@ -160,7 +132,7 @@ lemma fine_ballFamily {s : ℝ} {E U : Set X} (hU : IsOpen U) {t : ℝ≥0∞} {
   have hrr₀ : r < r₀ := lt_of_lt_of_le hr2.2 (le_trans (min_le_right _ _) (by linarith))
   refine ⟨(x, r), ⟨?_, hrpos, hrδ, ?_⟩, hrη, rfl⟩
   · exact (Metric.closedBall_subset_ball hrr₀).trans hball
-  · rw [density_ratio_apply] at hr1
+  · rw [density_ratio_apply _ _ _ hrpos.le] at hr1
     have hpos : (0 : ℝ) < (2 * r) ^ s := Real.rpow_pos_of_pos (by linarith) s
     rw [ENNReal.lt_div_iff_mul_lt (Or.inl (by simpa using hpos))
       (Or.inl ENNReal.ofReal_ne_top)] at hr1
@@ -193,9 +165,9 @@ lemma exists_finset_tsum_compl_le {ι : Type*} (f : ι → ℝ≥0∞) (hf : ∑
     rw [← hsplit] at h1
     exact le_of_lt ((ENNReal.add_lt_add_iff_left hWfin).mp h1)
 
-/-! ## The covering estimate at scale `δ` -/
+/-! ## (g)–(j): the covering estimate at scale `δ` -/
 
-/-- For every `δ > 0` and `ε > 0` there is a countable cover of `B_t` by
+/-- **(g), (h), (i), (j).** For every `δ > 0` and `ε > 0` there is a countable cover of `B_t` by
 sets of diameter at most `10 δ` whose gauge sum is at most
 `t⁻¹ (H^s(B_t) + ε) + 5^s t⁻¹ ε`.
 
@@ -214,7 +186,7 @@ lemma exists_cover_le {s : ℝ} (hs : 0 ≤ s) {E : Set X}
         ≤ t⁻¹ * (μH[s] (superlevelSet s E t) + ε) + ENNReal.ofReal (5 ^ s) * t⁻¹ * ε := by
   classical
   set A := superlevelSet s E t with hA
-  -- An open set `U ⊇ B_t` with `H^s(U ∩ E) < H^s(B_t) + ε`
+  -- **(b)–(e)** an open set `U ⊇ B_t` with `H^s(U ∩ E) < H^s(B_t) + ε`
   obtain ⟨U, hUopen, hAU, hUlt⟩ :=
     exists_open_superset_measure_lt hs hEmeas hEfin A (superlevelSet_subset s E t) hε0
   set T := ballFamily s E U δ t with hT
@@ -372,9 +344,9 @@ lemma exists_cover_le {s : ℝ} (hs : 0 ≤ s) {E : Set X}
       _ ≤ t⁻¹ * μH[s] (U ∩ E) + ENNReal.ofReal (5 ^ s) * t⁻¹ * ε := add_le_add hfinite htail
       _ ≤ t⁻¹ * (μH[s] A + ε) + ENNReal.ofReal (5 ^ s) * t⁻¹ * ε := by gcongr
 
-/-! ## The super-level sets are null -/
+/-! ## (k), (l): the super-level sets are null -/
 
-omit [SigmaCompactSpace X] in
+omit [LocallyCompactSpace X] [SecondCountableTopology X] in
 /-- If `a ≤ c * a` with `c < 1` and `a ≠ ∞`, then `a = 0`. -/
 lemma eq_zero_of_le_mul_self {a c : ℝ≥0∞} (hc : c < 1) (ha : a ≠ ⊤) (h : a ≤ c * a) : a = 0 := by
   by_contra h0
@@ -382,7 +354,7 @@ lemma eq_zero_of_le_mul_self {a c : ℝ≥0∞} (hc : c < 1) (ha : a ≠ ⊤) (h
   rw [mul_one, mul_comm] at h1
   exact absurd (h.trans_lt h1) (lt_irrefl a)
 
-/-- For every `t > 1` the set `B_t` is `H^s`-null. -/
+/-- **(k), (l).** For every `t > 1` the set `B_t` is `H^s`-null. -/
 theorem superlevelSet_null {s : ℝ} (hs : 0 ≤ s) {E : Set X}
     (hEmeas : MeasurableSet[(OuterMeasure.mkMetric (X := X) (fun r => r ^ s)).caratheodory] E)
     (hEfin : μH[s] E ≠ ⊤) {t : ℝ≥0∞} (ht : 1 < t) (httop : t ≠ ⊤) :
@@ -393,7 +365,7 @@ theorem superlevelSet_null {s : ℝ} (hs : 0 ≤ s) {E : Set X}
   have ht0 : t ≠ 0 := (zero_lt_one.trans ht).ne'
   have htinv : t⁻¹ < 1 := ENNReal.inv_lt_one.mpr ht
   have htinv_top : t⁻¹ ≠ ⊤ := (lt_of_lt_of_le htinv le_top).ne
-  -- For every `ε > 0`, `H^s(B_t) ≤ t⁻¹ (H^s(B_t) + ε) + 5^s t⁻¹ ε`; this comes from the
+  -- **(j)** For every `ε > 0`, `H^s(B_t) ≤ t⁻¹ (H^s(B_t) + ε) + 5^s t⁻¹ ε`; this comes from the
   -- covers of mesh `10/(n+1)` produced by `exists_cover_le`.
   have key : ∀ ε : ℝ≥0∞, ε ≠ 0 →
       μH[s] A ≤ t⁻¹ * (μH[s] A + ε) + ENNReal.ofReal (5 ^ s) * t⁻¹ * ε := by
@@ -416,7 +388,7 @@ theorem superlevelSet_null {s : ℝ} (hs : 0 ≤ s) {E : Set X}
     refine le_trans hle ?_
     refine le_trans (Filter.liminf_le_liminf (Eventually.of_forall (fun n => hsum n))) ?_
     simp [← hA]
-  -- Letting `ε → 0` gives `H^s(B_t) ≤ t⁻¹ H^s(B_t)`.
+  -- **(k)** Letting `ε → 0` gives `H^s(B_t) ≤ t⁻¹ H^s(B_t)`.
   have h2 : μH[s] A ≤ t⁻¹ * μH[s] A := by
     set K : ℝ≥0∞ := t⁻¹ + ENNReal.ofReal (5 ^ s) * t⁻¹ with hK
     have hKtop : K ≠ ⊤ := by
@@ -441,12 +413,12 @@ theorem superlevelSet_null {s : ℝ} (hs : 0 ≤ s) {E : Set X}
             rw [hee]
             exact ENNReal.mul_div_cancel' (fun h => absurd h hK1) (fun h => absurd h hK1top)
     gcongr
-  -- Since `H^s(B_t) < ∞` and `t⁻¹ < 1`, this forces `H^s(B_t) = 0`.
+  -- **(l)** Since `H^s(B_t) < ∞` and `t⁻¹ < 1`, this forces `H^s(B_t) = 0`.
   exact eq_zero_of_le_mul_self htinv hAfin h2
 
-/-! ## The main theorem -/
+/-! ## (m), (n): the main theorem -/
 
-omit [SigmaCompactSpace X] [MeasurableSpace X] [BorelSpace X] in
+omit [LocallyCompactSpace X] [SecondCountableTopology X] [MeasurableSpace X] [BorelSpace X] in
 /-- Every extended real number `> 1` exceeds `1 + 1/(n+1)` for some `n`. -/
 lemma exists_nat_one_add_inv_lt {d : ℝ≥0∞} (hd : 1 < d) :
     ∃ n : ℕ, 1 + ((n : ℝ≥0∞) + 1)⁻¹ < d := by
@@ -462,7 +434,8 @@ lemma exists_nat_one_add_inv_lt {d : ℝ≥0∞} (hd : 1 < d) :
       _ < 1 + (d - 1) := ENNReal.add_lt_add_left ENNReal.one_ne_top hn
       _ = d := add_tsub_cancel_of_le hd.le
 
-/-- Let `X` be a σ-compact metric space, `s ≥ 0`,
+/-- **Theorem 0.4 (Theorem 2.7, upper bound).** Let `X` be a locally compact, second countable
+metric space, `s ≥ 0`,
 and let `E ⊆ X` be measurable with respect to the `s`-dimensional Hausdorff outer measure
 (in the sense of Carathéodory), with `H^s(E) < ∞`. Then for `H^s`-almost every `x ∈ E`,
 
@@ -474,7 +447,7 @@ theorem upperDensity_le_one {s : ℝ} (hs : 0 ≤ s) (E : Set X)
     (hEmeas : MeasurableSet[(OuterMeasure.mkMetric (X := X) (fun r => r ^ s)).caratheodory] E)
     (hEfin : μH[s] E ≠ ⊤) :
     μH[s] {x ∈ E | 1 < dimensional_upper_density ((μH[s]).restrict E).toOuterMeasure s x} = 0 := by
-  -- Each `B_{1 + 1/(n+1)}` is null, hence so is their union.
+  -- **(m)** Each `B_{1 + 1/(n+1)}` is null, hence so is their union.
   have hnull : ∀ n : ℕ, μH[s] (superlevelSet s E (1 + ((n : ℝ≥0∞) + 1)⁻¹)) = 0 := by
     intro n
     refine superlevelSet_null hs hEmeas hEfin ?_ ?_
