@@ -3,7 +3,7 @@ import Mathlib.MeasureTheory.Covering.Besicovitch
 import Mathlib.MeasureTheory.Covering.BesicovitchVectorSpace
 import Mathlib.MeasureTheory.Covering.Differentiation
 import FormalizingGMT.«Project Versions».Measures.WeakCompactness
-
+import FormalizingGMT.«Project Versions».Densities.Basic
 open MeasureTheory Metric Set Filter
 open Topology
 open scoped ENNReal NNReal
@@ -11,6 +11,7 @@ open scoped ENNReal NNReal
 noncomputable section
 
 variable {n : ℕ}
+
 
 /--
 The blow-up map `T_{a,r}(x) = (x - a) / r` on Euclidean space `ℝⁿ`.
@@ -308,7 +309,7 @@ lemma exists_le_normalizing {μ ν : Measure (EuclideanSpace ℝ (Fin n))}
       have hk : (1 : ℝ) ≤ (k : ℝ) + 1 := by
         have := Nat.cast_nonneg (α := ℝ) k
         linarith
-      exact le_antisymm (hcon _ hk) (zero_le)
+      exact le_antisymm (hcon _ hk) zero_le
     have hsub : (univ : Set (EuclideanSpace ℝ (Fin n))) ⊆ ⋃ k : ℕ, ball 0 ((k : ℝ) + 1) := by
       intro x _
       obtain ⟨k, hk⟩ := exists_nat_gt (dist x 0)
@@ -664,7 +665,7 @@ lemma tendsto_mul_measure_diff_zero
       atTop (𝓝 0) := by
     simpa using ENNReal.Tendsto.mul_const heps (Or.inr hM)
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hlim
-    (Eventually.of_forall fun i ↦ zero_le) ?_
+    (Eventually.of_forall fun _ ↦ zero_le) ?_
   filter_upwards [hbd] with i hi
   have hpos : μ (ball a (s i)) ≠ 0 := (measure_ball_pos_of_mem_support ha (hspos i)).ne'
   have hfin : μ (ball a (s i)) ≠ ∞ := (regular_measure_ball_lt_top hμ a (s i)).ne
@@ -1251,7 +1252,8 @@ theorem isTangentMeasure_iff_ae_of_density
     rw [hgdef]
     simp only
     rw [← hx, max_eq_left (hφ_nonneg x)]
-  have hg_loc : LocallyIntegrable g μ := hφ_loc.congr hgφ
+  have hg_loc : LocallyIntegrable g μ := fun x ↦
+    let ⟨s, hs, hi⟩ := hφ_loc x; ⟨s, hs, hi.congr (ae_restrict_of_ae hgφ)⟩
   have hg_eq : ∀ B : Set (EuclideanSpace ℝ (Fin n)), MeasurableSet B →
       «λ» B = ENNReal.ofReal (∫ x in B, g x ∂μ) := by
     intro B hB
@@ -1279,35 +1281,46 @@ theorem isTangentMeasure_iff_ae_of_density
     hg_loc hg_eq hLm a ha1 ha2 ha3 ν
 
 
-/-- 14.7 stuff starts here -/
+
+-- 14.7 stuff starts here
 
 /-! ## Densities -/
-/-- The **upper `s`-density** of an outer measure `μ` at a point `a`,
-`Θ^{*s}(μ, a) = limsup_{r ↓ 0} μ (B (a, r)) / (2 r) ^ s`,
-normalized by the diameter `2r` of the ball `B (a, r)`, as in Mattila, Chapter 6. -/
-def upperSDensity {n : ℕ} (s : ℝ) (μ : OuterMeasure (EuclideanSpace ℝ (Fin n)))
-    (a : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
-  limsup (fun r : ℝ ↦ μ (closedBall a r) / ENNReal.ofReal ((2 * r) ^ s)) (𝓝[>] (0 : ℝ))
-/-- The **lower `s`-density** of an outer measure `μ` at a point `a`,
-`Θ^s_*(μ, a) = liminf_{r ↓ 0} μ (B (a, r)) / (2 r) ^ s`,
-normalized by the diameter `2r` of the ball `B (a, r)`, as in Mattila, Chapter 6. -/
-def lowerSDensity {n : ℕ} (s : ℝ) (μ : OuterMeasure (EuclideanSpace ℝ (Fin n)))
-    (a : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
-  liminf (fun r : ℝ ↦ μ (closedBall a r) / ENNReal.ofReal ((2 * r) ^ s)) (𝓝[>] (0 : ℝ))
+/-- For a measure on Euclidean space, the upper `s`-density `dimensional_upper_density`
+(from `DensitiesBasic`) is the `limsup` as `r ↓ 0` of `μ (closedBall a r) / (2 r) ^ s`. -/
+lemma dimensional_upper_density_toOuterMeasure_eq {n : ℕ} (s : ℝ)
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (a : EuclideanSpace ℝ (Fin n)) :
+    dimensional_upper_density μ.toOuterMeasure s a =
+      limsup (fun r : ℝ ↦ μ (closedBall a r) / ENNReal.ofReal ((2 * r) ^ s)) (𝓝[>] (0 : ℝ)) := by
+  refine limsup_congr ?_
+  filter_upwards [self_mem_nhdsWithin] with r hr
+  rw [dimensional_density_ratio_closedBall _ _ _ (le_of_lt (Set.mem_Ioi.mp hr))]
+  rfl
+/-- For a measure on Euclidean space, the lower `s`-density `dimensional_lower_density`
+(from `DensitiesBasic`) is the `liminf` as `r ↓ 0` of `μ (closedBall a r) / (2 r) ^ s`. -/
+lemma dimensional_lower_density_toOuterMeasure_eq {n : ℕ} (s : ℝ)
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (a : EuclideanSpace ℝ (Fin n)) :
+    dimensional_lower_density μ.toOuterMeasure s a =
+      liminf (fun r : ℝ ↦ μ (closedBall a r) / ENNReal.ofReal ((2 * r) ^ s)) (𝓝[>] (0 : ℝ)) := by
+  refine liminf_congr ?_
+  filter_upwards [self_mem_nhdsWithin] with r hr
+  rw [dimensional_density_ratio_closedBall _ _ _ (le_of_lt (Set.mem_Ioi.mp hr))]
+  rfl
 /-- The set `A` of Mattila, Lemma 14.7: the points `a` at which
 `0 < Θ^s_*(μ, a) ≤ Θ^{*s}(μ, a) < ∞`. -/
-def positiveFiniteDensitySet {n : ℕ} (s : ℝ) (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) :
+def positiveFiniteDensitySet {n : ℕ} (s : ℝ) (μ : Measure (EuclideanSpace ℝ (Fin n))) :
     Set (EuclideanSpace ℝ (Fin n)) :=
-  {a | 0 < lowerSDensity s μ a ∧ lowerSDensity s μ a ≤ upperSDensity s μ a ∧
-    upperSDensity s μ a < ∞}
-/-- The ratio `t (a) = Θ^s_*(μ, a) / Θ^{*s}(μ, a)` appearing in Mattila, Lemma 14.7 (1). -/
-def sDensityRatio {n : ℕ} (s : ℝ) (μ : OuterMeasure (EuclideanSpace ℝ (Fin n)))
+  {a | 0 < dimensional_lower_density μ.toOuterMeasure s a ∧
+    dimensional_lower_density μ.toOuterMeasure s a ≤ dimensional_upper_density μ.toOuterMeasure s a ∧
+    dimensional_upper_density μ.toOuterMeasure s a < ∞}
+/-- The density ratio `t (a) = Θ^s_*(μ, a) / Θ^{*s}(μ, a)` of Mattila, Lemma 14.7: the lower
+`s`-dimensional density of `μ` at `a` divided by the upper one. -/
+noncomputable def RatioOfDensities {n : ℕ} (s : ℝ) (μ : Measure (EuclideanSpace ℝ (Fin n)))
     (a : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
-  lowerSDensity s μ a / upperSDensity s μ a
+  dimensional_lower_density μ.toOuterMeasure s a / dimensional_upper_density μ.toOuterMeasure s a
 /-- The quantity `limsup_{δ ↓ 0} sup {d (B) ^ (-s) μ (B) : B a closed ball with z ∈ B and
 d (B) < δ}` appearing in the hypothesis of Mattila, Lemma 14.7 (2). Here `d (B) = 2 ρ` is the
 diameter of the ball `B = B (y, ρ)`. -/
-def upperBallSDensity {n : ℕ} (s : ℝ) (μ : OuterMeasure (EuclideanSpace ℝ (Fin n)))
+def upperBallSDensity {n : ℕ} (s : ℝ) (μ : Measure (EuclideanSpace ℝ (Fin n)))
     (z : EuclideanSpace ℝ (Fin n)) : ℝ≥0∞ :=
   limsup (fun δ : ℝ ↦ ⨆ (y : EuclideanSpace ℝ (Fin n)) (ρ : ℝ) (_ : 0 < ρ) (_ : 2 * ρ < δ)
       (_ : z ∈ closedBall y ρ), μ (closedBall y ρ) / ENNReal.ofReal ((2 * ρ) ^ s))
@@ -1316,31 +1329,13 @@ def upperBallSDensity {n : ℕ} (s : ℝ) (μ : OuterMeasure (EuclideanSpace ℝ
 /-- A set all of whose points lie outside the support of `μ` is `μ`-null.
 (Second countability of the space is what makes the usual Lindelöf argument work.) -/
 lemma measure_eq_zero_of_disjoint_support {X : Type*} [TopologicalSpace X]
-    [SecondCountableTopology X] {μ : OuterMeasure X} {V : Set X}
-    (h : ∀ y ∈ V, y ∉ SupportOuterMeasure μ) : μ V = 0 := by
-  have hcover : ∀ y : V, ∃ U : Set X, IsOpen U ∧ (y : X) ∈ U ∧ μ U = 0 := by
-    rintro ⟨y, hy⟩
-    have hy' := h y hy
-    simp only [SupportOuterMeasure, mem_setOf_eq, not_forall] at hy'
-    obtain ⟨W, hW, hW0⟩ := hy'
-    obtain ⟨U, hUW, hU, hyU⟩ := mem_nhds_iff.mp hW
-    exact ⟨U, hU, hyU, le_antisymm (le_trans (measure_mono hUW) (not_lt.mp hW0)) (zero_le _)⟩
-  choose U hU_open hU_mem hU_null using hcover
-  obtain ⟨T, hT, hTU⟩ := TopologicalSpace.isOpen_iUnion_countable U hU_open
-  have hVsub : V ⊆ ⋃ y ∈ T, U y := by
-    intro z hz
-    rw [hTU]
-    exact mem_iUnion.2 ⟨⟨z, hz⟩, hU_mem ⟨z, hz⟩⟩
-  refine le_antisymm (le_trans (measure_mono hVsub) ?_) (zero_le _)
-  have : μ (⋃ y ∈ T, U y) = 0 := by
-    haveI := hT.to_subtype
-    rw [biUnion_eq_iUnion]
-    exact measure_iUnion_null fun y ↦ hU_null y
-  exact this.le
+    [SecondCountableTopology X] [MeasurableSpace X] {μ : Measure X} {V : Set X}
+    (h : ∀ y ∈ V, y ∉ Measure.support μ) : μ V = 0 :=
+  measure_mono_null (fun y hy ↦ h y hy) μ.measure_compl_support
 /-- An open set of positive measure contains a point of the support. -/
 lemma exists_mem_support_of_measure_pos {X : Type*} [TopologicalSpace X]
-    [SecondCountableTopology X] {μ : OuterMeasure X} {V : Set X}
-    (h : 0 < μ V) : ∃ y ∈ V, y ∈ SupportOuterMeasure μ := by
+    [SecondCountableTopology X] [MeasurableSpace X] {μ : Measure X} {V : Set X}
+    (h : 0 < μ V) : ∃ y ∈ V, y ∈ Measure.support μ := by
   by_contra hcon
   push_neg at hcon
   exact h.ne' (measure_eq_zero_of_disjoint_support hcon)
@@ -1367,16 +1362,18 @@ lemma blowUpMap_preimage_closedBall' (a x : EuclideanSpace ℝ (Fin n)) {r : ℝ
   simp only [blowUpMap, mem_preimage, mem_closedBall, dist_eq_norm, hkey, norm_smul, norm_inv,
     Real.norm_eq_abs, abs_of_pos hr]
   rw [inv_mul_le_iff₀ hr]
-lemma blowUp_smul_apply_ball (μ : OuterMeasure (EuclideanSpace ℝ (Fin n)))
+lemma blowUp_smul_apply_ball (μ : Measure (EuclideanSpace ℝ (Fin n)))
     (a x : EuclideanSpace ℝ (Fin n)) {r : ℝ} (hr : 0 < r) (c : ℝ≥0∞) (ρ : ℝ) :
-    (c • OuterMeasure.map (blowUpMap a r) μ) (ball x ρ) = c * μ (ball (a + r • x) (r * ρ)) := by
-  rw [OuterMeasure.smul_apply, smul_eq_mul, OuterMeasure.map_apply,
+    (c • Measure.map (blowUpMap a r) μ) (ball x ρ) = c * μ (ball (a + r • x) (r * ρ)) := by
+  rw [Measure.smul_apply, smul_eq_mul,
+    Measure.map_apply (measurable_blowUpMap a r) measurableSet_ball,
     blowUpMap_preimage_ball' a x hr ρ]
-lemma blowUp_smul_apply_closedBall (μ : OuterMeasure (EuclideanSpace ℝ (Fin n)))
+lemma blowUp_smul_apply_closedBall (μ : Measure (EuclideanSpace ℝ (Fin n)))
     (a x : EuclideanSpace ℝ (Fin n)) {r : ℝ} (hr : 0 < r) (c : ℝ≥0∞) (ρ : ℝ) :
-    (c • OuterMeasure.map (blowUpMap a r) μ) (closedBall x ρ)
+    (c • Measure.map (blowUpMap a r) μ) (closedBall x ρ)
       = c * μ (closedBall (a + r • x) (r * ρ)) := by
-  rw [OuterMeasure.smul_apply, smul_eq_mul, OuterMeasure.map_apply,
+  rw [Measure.smul_apply, smul_eq_mul,
+    Measure.map_apply (measurable_blowUpMap a r) measurableSet_closedBall,
     blowUpMap_preimage_closedBall' a x hr ρ]
 
 
@@ -1551,28 +1548,23 @@ theorem no_uniform_lower_bound_of_lt_dim {s : ℝ} (hsn : s < n)
     simpa using ENNReal.Tendsto.mul_const h2 (Or.inr hKtop)
   have hle : c ≤ 0 :=
     ge_of_tendsto' hpowtend fun k ↦ hkey (ρ k) (hρ0 k) (hρ1 k)
-  exact absurd (le_antisymm hle (zero_le c)) hc.ne'
+  exact absurd (le_antisymm hle (by exact bot_le)) hc.ne'
 end MattilaSupportGrowth
 /-- **The support of a measure with `s`-dimensional lower growth, `s < n`, is not everything.**
-If `ν` is a Radon outer measure on `ℝⁿ` and there is `c > 0` with
+If `ν` is a Radon measure (a regular Borel measure) on `ℝⁿ` and there is `c > 0` with
 `c ρ ^ s ≤ ν (B (x, ρ))` for every `x ∈ spt ν` and every `ρ > 0`, and if `s < n`, then
 `spt ν ≠ ℝⁿ`.  This is the step of Mattila's proof of Lemma 14.7 (3) which produces a point
 outside the support of the tangent measure supplied by part (1). -/
 theorem support_ne_univ_of_lower_growth {s : ℝ} (hsn : s < n)
-    (ν : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hν : RadonOuterMeasure ν)
+    (ν : Measure (EuclideanSpace ℝ (Fin n))) (hν : Measure.Regular ν)
     {c : ℝ≥0∞} (hc : 0 < c)
-    (hlow : ∀ x ∈ SupportOuterMeasure ν, ∀ ρ : ℝ, 0 < ρ →
+    (hlow : ∀ x ∈ Measure.support ν, ∀ ρ : ℝ, 0 < ρ →
       c * ENNReal.ofReal (ρ ^ s) ≤ ν (closedBall x ρ)) :
-    SupportOuterMeasure ν ≠ (univ : Set (EuclideanSpace ℝ (Fin n))) := by
+    Measure.support ν ≠ (univ : Set (EuclideanSpace ℝ (Fin n))) := by
   intro hfull
-  set νm : Measure (EuclideanSpace ℝ (Fin n)) := ν.toMeasure hν.measurable_le_caratheodory with hνm
-  letI : νm.Regular := hν.regular_toMeasure
-  have hmeas : ∀ (x : EuclideanSpace ℝ (Fin n)) (ρ : ℝ),
-      νm (closedBall x ρ) = ν (closedBall x ρ) := fun x ρ ↦
-    toMeasure_apply ν hν.measurable_le_caratheodory measurableSet_closedBall
-  refine MattilaSupportGrowth.no_uniform_lower_bound_of_lt_dim hsn νm hc ?_
+  letI : ν.Regular := hν
+  refine MattilaSupportGrowth.no_uniform_lower_bound_of_lt_dim hsn ν hc ?_
   intro x r hr0 _
-  rw [hmeas]
   exact hlow x (by rw [hfull]; trivial) r hr0
 
 
@@ -1582,7 +1574,7 @@ If `s < n` and the measures of the balls centred on `F` of radius `ρ < r₀` ar
 `p ρ ^ s` and `q ρ ^ s`, then there is `κ > 0` such that every ball `B (x, δ)` with `x ∈ F` and
 `δ < r₀ / 2` contains a point at distance more than `κ δ` from `F`. -/
 theorem exists_hole_of_ball_bounds {s p q r₀ : ℝ} (hsn : s < n) (hp : 0 < p) (hq : 0 < q)
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hμ : RadonOuterMeasure μ)
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (hμ : Measure.Regular μ)
     {F : Set (EuclideanSpace ℝ (Fin n))}
     (hupper : ∀ y ∈ F, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       μ (closedBall y ρ) ≤ ENNReal.ofReal (q * ρ ^ s))
@@ -1616,17 +1608,13 @@ theorem exists_hole_of_ball_bounds {s p q r₀ : ℝ} (hsn : s < n) (hp : 0 < p)
   by_contra hcon
   push_neg at hcon
   -- the associated Borel measure
-  set μm := μ.toMeasure hμ.measurable_le_caratheodory with hμm
-  letI : μm.Regular := hμ.regular_toMeasure
-  have hmeas : ∀ (y : EuclideanSpace ℝ (Fin n)) (ρ : ℝ),
-      μm (closedBall y ρ) = μ (closedBall y ρ) := fun y ρ ↦
-    toMeasure_apply μ hμ.measurable_le_caratheodory measurableSet_closedBall
+  letI : μ.Regular := hμ
   have hr₀ : 0 < r₀ := by linarith
   have hκδ : 0 < κ * δ := by positivity
   have hκδr : κ * δ < r₀ := by nlinarith
   -- a uniform lower bound for the measures of the balls `B (z, 3 κ δ)`, `z ∈ B (x, δ)`
   have hz : ∀ z ∈ closedBall x δ,
-      ENNReal.ofReal (p * (κ * δ) ^ s) ≤ μm (closedBall z (3 * (κ * δ))) := by
+      ENNReal.ofReal (p * (κ * δ) ^ s) ≤ μ (closedBall z (3 * (κ * δ))) := by
     intro z hzmem
     have h1 : infDist z F ≤ κ * δ := hcon z (mem_closedBall.mp hzmem)
     have h2 : infDist z F < 2 * (κ * δ) := lt_of_le_of_lt h1 (by linarith)
@@ -1640,8 +1628,8 @@ theorem exists_hole_of_ball_bounds {s p q r₀ : ℝ} (hsn : s < n) (hp : 0 < p)
       linarith
     calc ENNReal.ofReal (p * (κ * δ) ^ s) ≤ μ (closedBall y (κ * δ)) :=
           hlower y hyF _ hκδ hκδr
-      _ = μm (closedBall y (κ * δ)) := (hmeas _ _).symm
-      _ ≤ μm (closedBall z (3 * (κ * δ))) := measure_mono hsub
+      _ = μ (closedBall y (κ * δ)) := rfl
+      _ ≤ μ (closedBall z (3 * (κ * δ))) := measure_mono hsub
   -- Fubini
   set V : ℝ≥0∞ := volume (ball (0 : EuclideanSpace ℝ (Fin n)) 1) with hV
   have hV0 : V ≠ 0 := (measure_ball_pos _ _ one_pos).ne'
@@ -1653,18 +1641,18 @@ theorem exists_hole_of_ball_bounds {s p q r₀ : ℝ} (hsn : s < n) (hp : 0 < p)
     rw [hfr] at h
     simpa [hV] using h
   have hint1 : ENNReal.ofReal (p * (κ * δ) ^ s) * volume (closedBall x δ)
-      ≤ ∫⁻ z in closedBall x δ, μm (closedBall z (3 * (κ * δ))) ∂volume := by
+      ≤ ∫⁻ z in closedBall x δ, μ (closedBall z (3 * (κ * δ))) ∂volume := by
     calc ENNReal.ofReal (p * (κ * δ) ^ s) * volume (closedBall x δ)
         = ∫⁻ _ in closedBall x δ, ENNReal.ofReal (p * (κ * δ) ^ s) ∂volume := by
           rw [setLIntegral_const]
       _ ≤ _ := setLIntegral_mono' measurableSet_closedBall hz
-  have hint2 := MattilaSupportGrowth.lintegral_measure_closedBall_le μm x δ
+  have hint2 := MattilaSupportGrowth.lintegral_measure_closedBall_le μ x δ
     (show (0 : ℝ) < 3 * (κ * δ) by positivity)
-  have hball2 : μm (closedBall x (δ + 3 * (κ * δ))) ≤ ENNReal.ofReal (q * (2 * δ) ^ s) := by
-    calc μm (closedBall x (δ + 3 * (κ * δ))) ≤ μm (closedBall x (2 * δ)) := by
+  have hball2 : μ (closedBall x (δ + 3 * (κ * δ))) ≤ ENNReal.ofReal (q * (2 * δ) ^ s) := by
+    calc μ (closedBall x (δ + 3 * (κ * δ))) ≤ μ (closedBall x (2 * δ)) := by
           refine measure_mono (closedBall_subset_closedBall ?_)
           nlinarith
-      _ = μ (closedBall x (2 * δ)) := hmeas _ _
+      _ = μ (closedBall x (2 * δ)) := rfl
       _ ≤ ENNReal.ofReal (q * (2 * δ) ^ s) := hupper x hxF _ (by linarith) (by linarith)
   -- put the pieces together
   have hchain : ENNReal.ofReal (p * (κ * δ) ^ s) * (ENNReal.ofReal (δ ^ (n : ℕ)) * V)
@@ -1713,8 +1701,8 @@ theorem exists_hole_of_ball_bounds {s p q r₀ : ℝ} (hsn : s < n) (hp : 0 < p)
 
 
 /-! ## A few elementary facts -/
-/-- A nonzero outer measure charges some ball centred at the origin. -/
-lemma exists_ball_pos_of_ne_zero {ν : OuterMeasure (EuclideanSpace ℝ (Fin n))} (hν0 : ν ≠ 0) :
+/-- A nonzero measure charges some ball centred at the origin. -/
+lemma exists_ball_pos_of_ne_zero {ν : Measure (EuclideanSpace ℝ (Fin n))} (hν0 : ν ≠ 0) :
     ∃ R : ℝ, 1 ≤ R ∧ 0 < ν (ball 0 R) := by
   by_contra hcon
   push_neg at hcon
@@ -1724,15 +1712,15 @@ lemma exists_ball_pos_of_ne_zero {ν : OuterMeasure (EuclideanSpace ℝ (Fin n))
     have hk : (1 : ℝ) ≤ (k : ℝ) + 1 := by
       have := Nat.cast_nonneg (α := ℝ) k
       linarith
-    exact le_antisymm (hcon _ hk) (zero_le _)
+    exact le_antisymm (hcon _ hk) (show 0 ≤ ν (ball 0 ((k : ℝ) + 1)) from zero_le)
   have hsub : (univ : Set (EuclideanSpace ℝ (Fin n))) ⊆ ⋃ k : ℕ, ball 0 ((k : ℝ) + 1) := by
     intro x _
     obtain ⟨k, hk⟩ := exists_nat_gt (dist x 0)
     exact mem_iUnion.2 ⟨k, by simp only [mem_ball]; linarith⟩
   have huniv : ν univ = 0 :=
-    le_antisymm ((measure_mono hsub).trans_eq (measure_iUnion_null hz)) (zero_le _)
+    le_antisymm ((measure_mono hsub).trans_eq (measure_iUnion_null hz)) zero_le
   ext s
-  exact le_antisymm ((measure_mono (subset_univ s)).trans_eq huniv) (zero_le _)
+  exact le_antisymm ((measure_mono (subset_univ s)).trans_eq huniv) zero_le
 /-- Splitting off the scaling factor `r ^ s` from `d * (r * v) ^ s`. -/
 lemma ofReal_mul_rpow_mul {d v ri s : ℝ} (hd : 0 ≤ d) (hv : 0 ≤ v) (hri : 0 ≤ ri) :
     ENNReal.ofReal (d * (ri * v) ^ s)
@@ -1741,29 +1729,30 @@ lemma ofReal_mul_rpow_mul {d v ri s : ℝ} (hd : 0 ≤ d) (hv : 0 ≤ v) (hri : 
   exact ENNReal.ofReal_mul (mul_nonneg hd (Real.rpow_nonneg hv s))
 /-! ## The engine behind Lemma 14.7 (4) -/
 section Engine
-variable {s d t r₀ : ℝ} {μ ν : OuterMeasure (EuclideanSpace ℝ (Fin n))}
+variable {s d t r₀ : ℝ} {μ ν : Measure (EuclideanSpace ℝ (Fin n))}
   {a : EuclideanSpace ℝ (Fin n)} {rs : ℕ → ℝ} {cs : ℕ → ℝ≥0∞} {lam : ℝ≥0∞}
 /-- If `x` belongs to the support of a blow-up limit `ν`, then, for large `i`, the point
 `a + r i • x` is within distance `ε * r i` of the support of `μ`. -/
 lemma tangent_exists_nearby_support_point
     (hrpos : ∀ i, 0 < rs i)
-    {hseq : ∀ i, RadonOuterMeasure (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ)}
-    {hν : RadonOuterMeasure ν}
-    (hconv : OuterMeasure.WeaklyConverges
-      (fun i ↦ cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) ν hseq hν)
-    {x : EuclideanSpace ℝ (Fin n)} (hx : x ∈ SupportOuterMeasure ν) {ε : ℝ} (hε : 0 < ε) :
-    ∀ᶠ i in atTop, ∃ y ∈ SupportOuterMeasure μ, dist y (a + rs i • x) < rs i * ε := by
-  have hb := (OuterMeasure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
-  have hpos : 0 < ν (ball x ε) := measure_ball_pos hx hε
+    (hseq : ∀ i, Measure.Regular (cs i • Measure.map (blowUpMap a (rs i)) μ))
+    (hν : Measure.Regular ν)
+    (hconv : Measure.WeaklyConverges
+      (fun i ↦ cs i • Measure.map (blowUpMap a (rs i)) μ) ν)
+    {x : EuclideanSpace ℝ (Fin n)} (hx : x ∈ Measure.support ν) {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ i in atTop, ∃ y ∈ Measure.support μ, dist y (a + rs i • x) < rs i * ε := by
+  have hb := (Measure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
+  have hpos : 0 < ν (ball x ε) := measure_ball_pos_of_mem_support hx hε
   have hli := hb.2 (ball x ε) isOpen_ball
   have hev : ∀ᶠ i in atTop,
-      0 < (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (ball x ε) :=
+      0 < (cs i • Measure.map (blowUpMap a (rs i)) μ) (ball x ε) :=
     eventually_lt_of_lt_liminf (lt_of_lt_of_le hpos hli)
   filter_upwards [hev] with i hi
   rw [blowUp_smul_apply_ball μ a x (hrpos i) (cs i) ε] at hi
   have hμpos : 0 < μ (ball (a + rs i • x) (rs i * ε)) := by
-    rcases eq_or_lt_of_le (zero_le (μ (ball (a + rs i • x) (rs i * ε)))) with h | h
-    · rw [← h, mul_zero] at hi; exact absurd hi (lt_irrefl _)
+    rcases eq_or_lt_of_le (bot_le : 0 ≤ μ (ball (a + rs i • x) (rs i * ε))) with h | h
+    · exfalso
+      simpa [h.symm] using hi
     · exact h
   obtain ⟨y, hy, hyspt⟩ := exists_mem_support_of_measure_pos hμpos
   exact ⟨y, hyspt, mem_ball.mp hy⟩
@@ -1775,15 +1764,15 @@ lemma tangent_closedBall_le
     (hrpos : ∀ i, 0 < rs i) (hr0 : Tendsto rs atTop (𝓝 0))
     (hlam : Tendsto (fun i ↦ cs i * ENNReal.ofReal (rs i ^ s)) atTop (𝓝 lam))
     (hlamfin : lam ≠ ∞)
-    {hseq : ∀ i, RadonOuterMeasure (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ)}
-    {hν : RadonOuterMeasure ν}
-    (hconv : OuterMeasure.WeaklyConverges
-      (fun i ↦ cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) ν hseq hν)
+    (hseq : ∀ i, Measure.Regular (cs i • Measure.map (blowUpMap a (rs i)) μ))
+    (hν : Measure.Regular ν)
+    (hconv : Measure.WeaklyConverges
+      (fun i ↦ cs i • Measure.map (blowUpMap a (rs i)) μ) ν)
     {x : EuclideanSpace ℝ (Fin n)}
     (hnear : ∀ ε : ℝ, 0 < ε → ∀ᶠ i in atTop, ∃ y ∈ P, dist y (a + rs i • x) < rs i * ε)
     {ρ : ℝ} (hρ : 0 < ρ) :
     ν (closedBall x ρ) ≤ ENNReal.ofReal (d * ρ ^ s) * lam := by
-  have hb := (OuterMeasure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
+  have hb := (Measure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
   have key : ∀ v : ℝ, ρ < v → ν (closedBall x ρ) ≤ ENNReal.ofReal (d * v ^ s) * lam := by
     intro v hv
     have hvpos : 0 < v := hρ.trans hv
@@ -1799,7 +1788,7 @@ lemma tangent_closedBall_le
       have h0 : Tendsto (fun i ↦ rs i * v) atTop (𝓝 0) := by simpa using hr0.mul_const v
       exact h0.eventually_lt_const hr₀
     have h3 : ∀ᶠ i in atTop,
-        (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (ball x u)
+        (cs i • Measure.map (blowUpMap a (rs i)) μ) (ball x u)
           ≤ ENNReal.ofReal (d * v ^ s) * (cs i * ENNReal.ofReal (rs i ^ s)) := by
       filter_upwards [hnear (v - u) hεpos, hsmall] with i hi hsm
       obtain ⟨y, hyspt, hy⟩ := hi
@@ -1828,9 +1817,9 @@ lemma tangent_closedBall_le
         (fun i ↦ ENNReal.ofReal (d * v ^ s) * (cs i * ENNReal.ofReal (rs i ^ s))) atTop
         (𝓝 (ENNReal.ofReal (d * v ^ s) * lam)) :=
       ENNReal.Tendsto.const_mul hlam (Or.inr ENNReal.ofReal_ne_top)
-    have h4 : liminf (fun i ↦ (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (ball x u)) atTop
+    have h4 : liminf (fun i ↦ (cs i • Measure.map (blowUpMap a (rs i)) μ) (ball x u)) atTop
         ≤ ENNReal.ofReal (d * v ^ s) * lam := by
-      calc liminf (fun i ↦ (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (ball x u)) atTop
+      calc liminf (fun i ↦ (cs i • Measure.map (blowUpMap a (rs i)) μ) (ball x u)) atTop
           ≤ liminf (fun i ↦ ENNReal.ofReal (d * v ^ s) *
               (cs i * ENNReal.ofReal (rs i ^ s))) atTop :=
             liminf_le_liminf h3
@@ -1853,15 +1842,15 @@ lemma le_tangent_closedBall
     (hrpos : ∀ i, 0 < rs i) (hr0 : Tendsto rs atTop (𝓝 0))
     (hlam : Tendsto (fun i ↦ cs i * ENNReal.ofReal (rs i ^ s)) atTop (𝓝 lam))
     (hlamfin : lam ≠ ∞)
-    {hseq : ∀ i, RadonOuterMeasure (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ)}
-    {hν : RadonOuterMeasure ν}
-    (hconv : OuterMeasure.WeaklyConverges
-      (fun i ↦ cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) ν hseq hν)
+    (hseq : ∀ i, Measure.Regular (cs i • Measure.map (blowUpMap a (rs i)) μ))
+    (hν : Measure.Regular ν)
+    (hconv : Measure.WeaklyConverges
+      (fun i ↦ cs i • Measure.map (blowUpMap a (rs i)) μ) ν)
     {x : EuclideanSpace ℝ (Fin n)}
     (hnear : ∀ ε : ℝ, 0 < ε → ∀ᶠ i in atTop, ∃ y ∈ P, dist y (a + rs i • x) < rs i * ε)
     {ρ : ℝ} (hρ : 0 < ρ) :
     ENNReal.ofReal (t * d * ρ ^ s) * lam ≤ ν (closedBall x ρ) := by
-  have hb := (OuterMeasure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
+  have hb := (Measure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
   have hcompact := hb.1 (closedBall x ρ) (isCompact_closedBall _ _)
   have key : ∀ w : ℝ, 0 < w → w < ρ →
       ENNReal.ofReal (t * d * w ^ s) * lam ≤ ν (closedBall x ρ) := by
@@ -1872,7 +1861,7 @@ lemma le_tangent_closedBall
       exact h0.eventually_lt_const hr₀
     have h3 : ∀ᶠ i in atTop,
         ENNReal.ofReal (t * d * w ^ s) * (cs i * ENNReal.ofReal (rs i ^ s))
-          ≤ (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (closedBall x ρ) := by
+          ≤ (cs i • Measure.map (blowUpMap a (rs i)) μ) (closedBall x ρ) := by
       filter_upwards [hnear (ρ - w) hεpos, hsmall] with i hi hsm
       obtain ⟨y, hyspt, hy⟩ := hi
       have hsub : closedBall y (rs i * w) ⊆ closedBall (a + rs i • x) (rs i * ρ) := by
@@ -1899,10 +1888,10 @@ lemma le_tangent_closedBall
         = liminf (fun i ↦ ENNReal.ofReal (t * d * w ^ s) *
             (cs i * ENNReal.ofReal (rs i ^ s))) atTop := hlim.liminf_eq.symm
       _ ≤ liminf (fun i ↦
-            (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (closedBall x ρ)) atTop :=
+            (cs i • Measure.map (blowUpMap a (rs i)) μ) (closedBall x ρ)) atTop :=
           liminf_le_liminf h3
       _ ≤ limsup (fun i ↦
-            (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (closedBall x ρ)) atTop :=
+            (cs i • Measure.map (blowUpMap a (rs i)) μ) (closedBall x ρ)) atTop :=
           liminf_le_limsup
       _ ≤ ν (closedBall x ρ) := hcompact
   have hcont : Tendsto (fun w : ℝ ↦ ENNReal.ofReal (t * d * w ^ s) * lam) (𝓝[<] ρ)
@@ -1924,17 +1913,17 @@ lemma tangent_scaling_lt_top
       ENNReal.ofReal (t * d * ρ ^ s) ≤ μ (closedBall y ρ))
     (hrpos : ∀ i, 0 < rs i) (hr0 : Tendsto rs atTop (𝓝 0))
     (hlam : Tendsto (fun i ↦ cs i * ENNReal.ofReal (rs i ^ s)) atTop (𝓝 lam))
-    {hseq : ∀ i, RadonOuterMeasure (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ)}
-    {hν : RadonOuterMeasure ν}
-    (hconv : OuterMeasure.WeaklyConverges
-      (fun i ↦ cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) ν hseq hν) :
+    (hseq : ∀ i, Measure.Regular (cs i • Measure.map (blowUpMap a (rs i)) μ))
+    (hν : Measure.Regular ν)
+    (hconv : Measure.WeaklyConverges
+      (fun i ↦ cs i • Measure.map (blowUpMap a (rs i)) μ) ν) :
     lam ≠ ∞ := by
-  have hb := (OuterMeasure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
+  have hb := (Measure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
   have hcompact := hb.1 (closedBall 0 1) (isCompact_closedBall _ _)
   have hsmall : ∀ᶠ i in atTop, rs i < r₀ := hr0.eventually_lt_const hr₀
   have h3 : ∀ᶠ i in atTop,
       ENNReal.ofReal (t * d) * (cs i * ENNReal.ofReal (rs i ^ s))
-        ≤ (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (closedBall 0 1) := by
+        ≤ (cs i • Measure.map (blowUpMap a (rs i)) μ) (closedBall 0 1) := by
     filter_upwards [hsmall] with i hsm
     rw [blowUp_smul_apply_closedBall μ a 0 (hrpos i) (cs i) 1, smul_zero, add_zero, mul_one]
     calc ENNReal.ofReal (t * d) * (cs i * ENNReal.ofReal (rs i ^ s))
@@ -1954,16 +1943,16 @@ lemma tangent_scaling_lt_top
         = liminf (fun i ↦ ENNReal.ofReal (t * d) *
             (cs i * ENNReal.ofReal (rs i ^ s))) atTop := hlim.liminf_eq.symm
       _ ≤ liminf (fun i ↦
-            (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (closedBall 0 1)) atTop :=
+            (cs i • Measure.map (blowUpMap a (rs i)) μ) (closedBall 0 1)) atTop :=
           liminf_le_liminf h3
       _ ≤ limsup (fun i ↦
-            (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (closedBall 0 1)) atTop :=
+            (cs i • Measure.map (blowUpMap a (rs i)) μ) (closedBall 0 1)) atTop :=
           liminf_le_limsup
       _ ≤ ν (closedBall 0 1) := hcompact
   intro hlamtop
   rw [hlamtop] at hle
   rw [ENNReal.mul_top (by simp [ENNReal.ofReal_eq_zero]; positivity)] at hle
-  exact (measure_closedBall_lt_top hν 0 1).ne (top_le_iff.mp hle)
+  exact (regular_measure_closedBall_lt_top hν 0 1).ne (top_le_iff.mp hle)
 /-- The scaling constants of a blow-up sequence do not degenerate, under the uniform upper
 bound. -/
 lemma tangent_scaling_pos
@@ -1974,12 +1963,12 @@ lemma tangent_scaling_pos
     (hrpos : ∀ i, 0 < rs i) (hr0 : Tendsto rs atTop (𝓝 0))
     (hlam : Tendsto (fun i ↦ cs i * ENNReal.ofReal (rs i ^ s)) atTop (𝓝 lam))
     (hν0 : ν ≠ 0)
-    {hseq : ∀ i, RadonOuterMeasure (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ)}
-    {hν : RadonOuterMeasure ν}
-    (hconv : OuterMeasure.WeaklyConverges
-      (fun i ↦ cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) ν hseq hν) :
+    (hseq : ∀ i, Measure.Regular (cs i • Measure.map (blowUpMap a (rs i)) μ))
+    (hν : Measure.Regular ν)
+    (hconv : Measure.WeaklyConverges
+      (fun i ↦ cs i • Measure.map (blowUpMap a (rs i)) μ) ν) :
     0 < lam := by
-  have hb := (OuterMeasure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
+  have hb := (Measure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
   obtain ⟨R, hR1, hRpos⟩ := exists_ball_pos_of_ne_zero hν0
   have hRpos' : (0 : ℝ) < R := lt_of_lt_of_le zero_lt_one hR1
   have hopen := hb.2 (ball 0 R) isOpen_ball
@@ -1987,7 +1976,7 @@ lemma tangent_scaling_pos
     have h0 : Tendsto (fun i ↦ rs i * R) atTop (𝓝 0) := by simpa using hr0.mul_const R
     exact h0.eventually_lt_const hr₀
   have h3 : ∀ᶠ i in atTop,
-      (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (ball 0 R)
+      (cs i • Measure.map (blowUpMap a (rs i)) μ) (ball 0 R)
         ≤ ENNReal.ofReal (d * R ^ s) * (cs i * ENNReal.ofReal (rs i ^ s)) := by
     filter_upwards [hsmall] with i hsm
     rw [blowUp_smul_apply_ball μ a 0 (hrpos i) (cs i) R, smul_zero, add_zero]
@@ -2008,26 +1997,30 @@ lemma tangent_scaling_pos
   have hle : ν (ball 0 R) ≤ ENNReal.ofReal (d * R ^ s) * lam := by
     calc ν (ball 0 R)
         ≤ liminf (fun i ↦
-            (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (ball 0 R)) atTop := hopen
+            (cs i • Measure.map (blowUpMap a (rs i)) μ) (ball 0 R)) atTop := hopen
       _ ≤ liminf (fun i ↦ ENNReal.ofReal (d * R ^ s) *
             (cs i * ENNReal.ofReal (rs i ^ s))) atTop := liminf_le_liminf h3
       _ = ENNReal.ofReal (d * R ^ s) * lam := hlim.liminf_eq
-  rcases eq_or_lt_of_le (zero_le lam) with h | h
-  · rw [← h, mul_zero] at hle
-    exact absurd (le_antisymm hle (zero_le _)) hRpos.ne'
+  have hnonneg : (0 : ℝ≥0∞) ≤ lam := by exact zero_le
+  rcases eq_or_lt_of_le hnonneg with h | h
+  · have hle_zero : ν (ball 0 R) ≤ 0 := by
+      have hfactor : ENNReal.ofReal (d * R ^ s) * lam = 0 := by
+        rw [← h, mul_zero]
+      simpa [hfactor] using hle
+    exact absurd (le_antisymm hle_zero (by exact zero_le)) hRpos.ne'
   · exact h
 end Engine
 /-! ## The doubling condition from uniform ball bounds -/
 section Doubling
-variable {s d t r₀ : ℝ} {μ : OuterMeasure (EuclideanSpace ℝ (Fin n))}
+variable {s d t r₀ : ℝ} {μ : Measure (EuclideanSpace ℝ (Fin n))}
   {a : EuclideanSpace ℝ (Fin n)}
 /-- Uniform two-sided ball bounds on `spt μ` imply Mattila's assumption 14.3 (1) at every point
 of `spt μ`. -/
 lemma limsup_ball_ratio_lt_top_of_uniform
-    (hd : 0 < d) (ht : 0 < t) (hr₀ : 0 < r₀) (ha : a ∈ SupportOuterMeasure μ)
-    (hupper : ∀ y ∈ SupportOuterMeasure μ, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
+    (hd : 0 < d) (ht : 0 < t) (hr₀ : 0 < r₀) (ha : a ∈ Measure.support μ)
+    (hupper : ∀ y ∈ Measure.support μ, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       μ (closedBall y ρ) ≤ ENNReal.ofReal (d * ρ ^ s))
-    (hlower : ∀ y ∈ SupportOuterMeasure μ, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
+    (hlower : ∀ y ∈ Measure.support μ, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       ENNReal.ofReal (t * d * ρ ^ s) ≤ μ (closedBall y ρ)) :
     limsup (fun ρ : ℝ ↦ μ (ball a (2 * ρ)) / μ (ball a ρ)) (𝓝[>] (0 : ℝ)) < ∞ := by
   set K : ℝ := (4 : ℝ) ^ s / t with hK
@@ -2064,7 +2057,7 @@ end Doubling
 This is the ingredient which replaces, in the proof of Lemma 14.7 (1), the elementary fact used
 for Lemma 14.7 (4) that an open set of positive measure meets `spt μ`. -/
 section DensityPoint
-variable {s p q r₀ : ℝ} {μ ν : OuterMeasure (EuclideanSpace ℝ (Fin n))}
+variable {s p q r₀ : ℝ} {μ ν : Measure (EuclideanSpace ℝ (Fin n))}
   {a : EuclideanSpace ℝ (Fin n)} {rs : ℕ → ℝ} {cs : ℕ → ℝ≥0∞}
   {B : Set (EuclideanSpace ℝ (Fin n))}
 /-- If `a` is a `μ`-density point of a set `B` on which the measures of small balls are
@@ -2079,17 +2072,17 @@ lemma tangent_exists_nearby_point_of_density
     (hdens : ∀ γ : ℝ≥0∞, 0 < γ →
       ∀ᶠ ρ in 𝓝[>] (0 : ℝ), μ (closedBall a ρ \ B) ≤ γ * μ (closedBall a ρ))
     (hrpos : ∀ i, 0 < rs i) (hr0 : Tendsto rs atTop (𝓝 0))
-    {hseq : ∀ i, RadonOuterMeasure (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ)}
-    {hν : RadonOuterMeasure ν}
-    (hconv : OuterMeasure.WeaklyConverges
-      (fun i ↦ cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) ν hseq hν)
-    {x : EuclideanSpace ℝ (Fin n)} (hx : x ∈ SupportOuterMeasure ν) {ε : ℝ} (hε : 0 < ε) :
+    (hseq : ∀ i, Measure.Regular (cs i • Measure.map (blowUpMap a (rs i)) μ))
+    (hν : Measure.Regular ν)
+    (hconv : Measure.WeaklyConverges
+      (fun i ↦ cs i • Measure.map (blowUpMap a (rs i)) μ) ν)
+    {x : EuclideanSpace ℝ (Fin n)} (hx : x ∈ Measure.support ν) {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ i in atTop, ∃ y ∈ B, dist y (a + rs i • x) < rs i * ε := by
-  have hb := (OuterMeasure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
+  have hb := (Measure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
   set R : ℝ := ‖x‖ + ε with hR
   have hRpos : 0 < R := by positivity
   -- a positive finite amount of mass in the limit ball `ball x ε`
-  have hνpos : 0 < ν (ball x ε) := measure_ball_pos hx hε
+  have hνpos : 0 < ν (ball x ε) := measure_ball_pos_of_mem_support hx hε
   have hmin_pos : 0 < min (ν (ball x ε)) 1 := lt_min hνpos one_pos
   have hmin_ne_top : min (ν (ball x ε)) 1 ≠ ∞ :=
     ne_top_of_le_ne_top ENNReal.one_ne_top (min_le_right _ _)
@@ -2098,11 +2091,11 @@ lemma tangent_exists_nearby_point_of_density
   have hβlt : β < ν (ball x ε) :=
     lt_of_lt_of_le (ENNReal.half_lt_self hmin_pos.ne' hmin_ne_top) (min_le_left _ _)
   have hev1 : ∀ᶠ i in atTop,
-      β < (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (ball x ε) :=
+      β < (cs i • Measure.map (blowUpMap a (rs i)) μ) (ball x ε) :=
     eventually_lt_of_lt_liminf (lt_of_lt_of_le hβlt (hb.2 (ball x ε) isOpen_ball))
   -- the normalizing constants are eventually bounded above
   set M : ℝ≥0∞ := ν (closedBall 0 1) + 1 with hM
-  have hνcb : ν (closedBall 0 1) ≠ ∞ := (measure_closedBall_lt_top hν 0 1).ne
+  have hνcb : ν (closedBall 0 1) ≠ ∞ := (regular_measure_closedBall_lt_top hν 0 1).ne
   have hMtop : M ≠ ∞ := by simp [hM, ENNReal.add_eq_top, hνcb]
   have hev2 : ∀ᶠ i in atTop, cs i * μ (closedBall a (rs i)) < M := by
     have hlimsup := hb.1 (closedBall 0 1) (isCompact_closedBall _ _)
@@ -2164,7 +2157,7 @@ lemma tangent_exists_nearby_point_of_density
           rw [hK, ← mul_assoc, ENNReal.div_mul_cancel hpne ENNReal.ofReal_ne_top]
       _ ≤ K * μ (closedBall a (rs i)) := by gcongr
   have hchain : β < β := by
-    calc β < (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (ball x ε) := h1
+    calc β < (cs i • Measure.map (blowUpMap a (rs i)) μ) (ball x ε) := h1
       _ = cs i * μ (ball (a + rs i • x) (rs i * ε)) :=
           blowUp_smul_apply_ball μ a x (hrpos i) (cs i) ε
       _ ≤ cs i * (γ * (K * μ (closedBall a (rs i)))) := by
@@ -2189,16 +2182,16 @@ lemma tangent_smul_measure_le_of_disjoint
     (hdens : ∀ γ : ℝ≥0∞, 0 < γ →
       ∀ᶠ ρ in 𝓝[>] (0 : ℝ), μ (closedBall a ρ \ B) ≤ γ * μ (closedBall a ρ))
     (hrpos : ∀ i, 0 < rs i) (hr0 : Tendsto rs atTop (𝓝 0))
-    {hseq : ∀ i, RadonOuterMeasure (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ)}
-    {hν : RadonOuterMeasure ν}
-    (hconv : OuterMeasure.WeaklyConverges
-      (fun i ↦ cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) ν hseq hν)
+    (hseq : ∀ i, Measure.Regular (cs i • Measure.map (blowUpMap a (rs i)) μ))
+    (hν : Measure.Regular ν)
+    (hconv : Measure.WeaklyConverges
+      (fun i ↦ cs i • Measure.map (blowUpMap a (rs i)) μ) ν)
     {R : ℝ} (hR : 0 < R) {β : ℝ≥0∞} (hβ : 0 < β) :
     ∀ᶠ i in atTop, ∀ S : Set (EuclideanSpace ℝ (Fin n)),
       S ⊆ closedBall a (rs i * R) → Disjoint S B → cs i * μ S ≤ β := by
-  have hb := (OuterMeasure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
+  have hb := (Measure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
   set M : ℝ≥0∞ := ν (closedBall 0 1) + 1 with hM
-  have hνcb : ν (closedBall 0 1) ≠ ∞ := (measure_closedBall_lt_top hν 0 1).ne
+  have hνcb : ν (closedBall 0 1) ≠ ∞ := (regular_measure_closedBall_lt_top hν 0 1).ne
   have hMtop : M ≠ ∞ := by simp [hM, ENNReal.add_eq_top, hνcb]
   have hev2 : ∀ᶠ i in atTop, cs i * μ (closedBall a (rs i)) < M := by
     have hlimsup := hb.1 (closedBall 0 1) (isCompact_closedBall _ _)
@@ -2259,16 +2252,16 @@ lemma tangent_closedBall_le_of_ball_bounds {d : ℝ} {lam : ℝ≥0∞}
     (hrpos : ∀ i, 0 < rs i) (hr0 : Tendsto rs atTop (𝓝 0))
     (hlam : Tendsto (fun i ↦ cs i * ENNReal.ofReal (rs i ^ s)) atTop (𝓝 lam))
     (hlamfin : lam ≠ ∞)
-    {hseq : ∀ i, RadonOuterMeasure (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ)}
-    {hν : RadonOuterMeasure ν}
-    (hconv : OuterMeasure.WeaklyConverges
-      (fun i ↦ cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) ν hseq hν)
+    (hseq : ∀ i, Measure.Regular (cs i • Measure.map (blowUpMap a (rs i)) μ))
+    (hν : Measure.Regular ν)
+    (hconv : Measure.WeaklyConverges
+      (fun i ↦ cs i • Measure.map (blowUpMap a (rs i)) μ) ν)
     (hsmall : ∀ β : ℝ≥0∞, 0 < β → ∀ R : ℝ, 0 < R → ∀ᶠ i in atTop,
       ∀ S : Set (EuclideanSpace ℝ (Fin n)), S ⊆ closedBall a (rs i * R) → Disjoint S P →
         cs i * μ S ≤ β)
     (x : EuclideanSpace ℝ (Fin n)) {ρ : ℝ} (hρ : 0 < ρ) :
     ν (closedBall x ρ) ≤ ENNReal.ofReal (d * ρ ^ s) * lam := by
-  have hb := (OuterMeasure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
+  have hb := (Measure.weaklyConverges_iff_compactOpenBounds _ ν hseq hν).mp hconv
   have key : ∀ u : ℝ, ρ < u → ν (closedBall x ρ) ≤ ENNReal.ofReal (d * u ^ s) * lam := by
     intro u hu
     have hupos : 0 < u := hρ.trans hu
@@ -2279,7 +2272,7 @@ lemma tangent_closedBall_le_of_ball_bounds {d : ℝ} {lam : ℝ≥0∞}
       have h0 : Tendsto (fun i ↦ rs i * u) atTop (𝓝 0) := by simpa using hr0.mul_const u
       exact h0.eventually_lt_const hr₀
     have h3 : ∀ᶠ i in atTop,
-        (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (ball x u)
+        (cs i • Measure.map (blowUpMap a (rs i)) μ) (ball x u)
           ≤ ENNReal.ofReal (d * u ^ s) * (cs i * ENNReal.ofReal (rs i ^ s))
             + (ε : ℝ≥0∞) := by
       filter_upwards [hsmall (ε : ℝ≥0∞) hβ (‖x‖ + u) hRpos, hsm] with i hi hsmi
@@ -2323,7 +2316,7 @@ lemma tangent_closedBall_le_of_ball_bounds {d : ℝ} {lam : ℝ≥0∞}
         (𝓝 (ENNReal.ofReal (d * u ^ s) * lam + (ε : ℝ≥0∞))) :=
       (ENNReal.Tendsto.const_mul hlam (Or.inr ENNReal.ofReal_ne_top)).add tendsto_const_nhds
     calc ν (closedBall x ρ) ≤ ν (ball x u) := measure_mono (closedBall_subset_ball hu)
-      _ ≤ liminf (fun i ↦ (cs i • OuterMeasure.map (blowUpMap a (rs i)) μ) (ball x u))
+      _ ≤ liminf (fun i ↦ (cs i • Measure.map (blowUpMap a (rs i)) μ) (ball x u))
             atTop := hb.2 (ball x u) isOpen_ball
       _ ≤ liminf (fun i ↦ ENNReal.ofReal (d * u ^ s) * (cs i * ENNReal.ofReal (rs i ^ s))
             + (ε : ℝ≥0∞)) atTop := liminf_le_liminf h3
@@ -2346,7 +2339,7 @@ If `a ∈ B` is a `μ`-density point of `B`, then every tangent measure `ν ∈ 
 constant `c`. -/
 theorem tangent_ball_bounds_of_density_point {s d t r₀ : ℝ}
     (hd : 0 < d) (ht : 0 < t) (hr₀ : 0 < r₀)
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hμ : RadonOuterMeasure μ)
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (hμ : Measure.Regular μ)
     {B : Set (EuclideanSpace ℝ (Fin n))}
     (hbounds : ∀ y ∈ B, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       ENNReal.ofReal (t * d * ρ ^ s) ≤ μ (closedBall y ρ) ∧
@@ -2354,9 +2347,9 @@ theorem tangent_ball_bounds_of_density_point {s d t r₀ : ℝ}
     {a : EuclideanSpace ℝ (Fin n)} (haB : a ∈ B)
     (hdens : ∀ γ : ℝ≥0∞, 0 < γ →
       ∀ᶠ ρ in 𝓝[>] (0 : ℝ), μ (closedBall a ρ \ B) ≤ γ * μ (closedBall a ρ))
-    (ν : OuterMeasure (EuclideanSpace ℝ (Fin n))) (htan : IsTangentMeasure μ ν hμ a) :
+    (ν : Measure (EuclideanSpace ℝ (Fin n))) (htan : IsTangentMeasure μ ν a) :
     ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ∞ ∧
-      ∀ x ∈ SupportOuterMeasure ν, ∀ ρ : ℝ, 0 < ρ →
+      ∀ x ∈ Measure.support ν, ∀ ρ : ℝ, 0 < ρ →
         ENNReal.ofReal t * c * ENNReal.ofReal (ρ ^ s) ≤ ν (closedBall x ρ) ∧
           ν (closedBall x ρ) ≤ c * ENNReal.ofReal (ρ ^ s) := by
   have hupper : ∀ y ∈ B, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
@@ -2365,27 +2358,29 @@ theorem tangent_ball_bounds_of_density_point {s d t r₀ : ℝ}
   have hlower : ∀ y ∈ B, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       ENNReal.ofReal (t * d * ρ ^ s) ≤ μ (closedBall y ρ) :=
     fun y hy ρ h1 h2 ↦ (hbounds y hy ρ h1 h2).1
-  obtain ⟨hν, hν0, rs, cs, hrpos, hcpos, hcfin, hr0, hseq, hconv⟩ := htan
+  obtain ⟨hν, hν0, rs, cs, hrpos, hcpos, hcfin, hr0, hconv⟩ := htan
   obtain ⟨lam, -, φ, hφ, hlam⟩ := (isCompact_univ (X := ℝ≥0∞)).tendsto_subseq
     (x := fun i ↦ cs i * ENNReal.ofReal (rs i ^ s)) (fun i ↦ mem_univ _)
   have hrpos' : ∀ j, 0 < rs (φ j) := fun j ↦ hrpos _
   have hr0' : Tendsto (fun j ↦ rs (φ j)) atTop (𝓝 0) := hr0.comp hφ.tendsto_atTop
-  have hconv' : OuterMeasure.WeaklyConverges
-      (fun j ↦ cs (φ j) • OuterMeasure.map (blowUpMap a (rs (φ j))) μ) ν
-      (fun j ↦ hseq (φ j)) hν := hconv.comp hφ.tendsto_atTop
+  have hconv' : Measure.WeaklyConverges
+      (fun j ↦ cs (φ j) • Measure.map (blowUpMap a (rs (φ j))) μ) ν :=
+      hconv.comp hφ.tendsto_atTop
+  have hseq' : ∀ j, Measure.Regular (cs (φ j) • Measure.map (blowUpMap a (rs (φ j))) μ) :=
+    fun j ↦ regular_smul_map_blowUp hμ a (hrpos _).ne' (hcfin _)
   have hlamfin : lam ≠ ∞ :=
-    tangent_scaling_lt_top hd ht hr₀ haB hlower hrpos' hr0' hlam hconv'
+    tangent_scaling_lt_top hd ht hr₀ haB hlower hrpos' hr0' hlam hseq' hν hconv'
   have hlampos : 0 < lam :=
-    tangent_scaling_pos hd hr₀ haB hupper hrpos' hr0' hlam hν0 hconv'
+    tangent_scaling_pos hd hr₀ haB hupper hrpos' hr0' hlam hν0 hseq' hν hconv'
   refine ⟨ENNReal.ofReal d * lam, ENNReal.mul_pos (ENNReal.ofReal_pos.2 hd).ne' hlampos.ne',
     ENNReal.mul_ne_top ENNReal.ofReal_ne_top hlamfin, ?_⟩
   intro x hx ρ hρ
   have hnear : ∀ ε : ℝ, 0 < ε → ∀ᶠ j in atTop,
       ∃ y ∈ B, dist y (a + rs (φ j) • x) < rs (φ j) * ε :=
     fun ε hε ↦ tangent_exists_nearby_point_of_density (mul_pos ht hd) hd hr₀ haB hupper
-      hlower hdens hrpos' hr0' hconv' hx hε
-  have hup := tangent_closedBall_le hd.le hr₀ hupper hrpos' hr0' hlam hlamfin hconv' hnear hρ
-  have hlo := le_tangent_closedBall hd.le ht.le hr₀ hlower hrpos' hr0' hlam hlamfin hconv'
+      hlower hdens hrpos' hr0' hseq' hν hconv' hx hε
+  have hup := tangent_closedBall_le hd.le hr₀ hupper hrpos' hr0' hlam hlamfin hseq' hν hconv' hnear hρ
+  have hlo := le_tangent_closedBall hd.le ht.le hr₀ hlower hrpos' hr0' hlam hlamfin hseq' hν hconv'
     hnear hρ
   constructor
   · refine le_trans (le_of_eq ?_) hlo
@@ -2401,7 +2396,7 @@ balls meeting `B` are bounded by `d ρ ^ s`, then the upper bound for the tangen
 balls with arbitrary centres, with the same constant `c`. -/
 theorem tangent_ball_bounds_of_density_point_of_ball_bounds {s d t r₀ : ℝ}
     (hd : 0 < d) (ht : 0 < t) (hr₀ : 0 < r₀)
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hμ : RadonOuterMeasure μ)
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (hμ : Measure.Regular μ)
     {B : Set (EuclideanSpace ℝ (Fin n))}
     (hbounds : ∀ y ∈ B, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       ENNReal.ofReal (t * d * ρ ^ s) ≤ μ (closedBall y ρ) ∧
@@ -2411,9 +2406,9 @@ theorem tangent_ball_bounds_of_density_point_of_ball_bounds {s d t r₀ : ℝ}
     {a : EuclideanSpace ℝ (Fin n)} (haB : a ∈ B)
     (hdens : ∀ γ : ℝ≥0∞, 0 < γ →
       ∀ᶠ ρ in 𝓝[>] (0 : ℝ), μ (closedBall a ρ \ B) ≤ γ * μ (closedBall a ρ))
-    (ν : OuterMeasure (EuclideanSpace ℝ (Fin n))) (htan : IsTangentMeasure μ ν hμ a) :
+    (ν : Measure (EuclideanSpace ℝ (Fin n))) (htan : IsTangentMeasure μ ν a) :
     ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ∞ ∧
-      (∀ x ∈ SupportOuterMeasure ν, ∀ ρ : ℝ, 0 < ρ →
+      (∀ x ∈ Measure.support ν, ∀ ρ : ℝ, 0 < ρ →
         ENNReal.ofReal t * c * ENNReal.ofReal (ρ ^ s) ≤ ν (closedBall x ρ)) ∧
       ∀ (x : EuclideanSpace ℝ (Fin n)) (ρ : ℝ), 0 < ρ →
         ν (closedBall x ρ) ≤ c * ENNReal.ofReal (ρ ^ s) := by
@@ -2423,38 +2418,40 @@ theorem tangent_ball_bounds_of_density_point_of_ball_bounds {s d t r₀ : ℝ}
   have hlower : ∀ y ∈ B, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       ENNReal.ofReal (t * d * ρ ^ s) ≤ μ (closedBall y ρ) :=
     fun y hy ρ h1 h2 ↦ (hbounds y hy ρ h1 h2).1
-  obtain ⟨hν, hν0, rs, cs, hrpos, hcpos, hcfin, hr0, hseq, hconv⟩ := htan
+  obtain ⟨hν, hν0, rs, cs, hrpos, hcpos, hcfin, hr0, hconv⟩ := htan
   obtain ⟨lam, -, φ, hφ, hlam⟩ := (isCompact_univ (X := ℝ≥0∞)).tendsto_subseq
     (x := fun i ↦ cs i * ENNReal.ofReal (rs i ^ s)) (fun i ↦ mem_univ _)
   have hrpos' : ∀ j, 0 < rs (φ j) := fun j ↦ hrpos _
   have hr0' : Tendsto (fun j ↦ rs (φ j)) atTop (𝓝 0) := hr0.comp hφ.tendsto_atTop
-  have hconv' : OuterMeasure.WeaklyConverges
-      (fun j ↦ cs (φ j) • OuterMeasure.map (blowUpMap a (rs (φ j))) μ) ν
-      (fun j ↦ hseq (φ j)) hν := hconv.comp hφ.tendsto_atTop
+  have hconv' : Measure.WeaklyConverges
+      (fun j ↦ cs (φ j) • Measure.map (blowUpMap a (rs (φ j))) μ) ν :=
+      hconv.comp hφ.tendsto_atTop
+  have hseq' : ∀ j, Measure.Regular (cs (φ j) • Measure.map (blowUpMap a (rs (φ j))) μ) :=
+    fun j ↦ regular_smul_map_blowUp hμ a (hrpos _).ne' (hcfin _)
   have hlamfin : lam ≠ ∞ :=
-    tangent_scaling_lt_top hd ht hr₀ haB hlower hrpos' hr0' hlam hconv'
+    tangent_scaling_lt_top hd ht hr₀ haB hlower hrpos' hr0' hlam hseq' hν hconv'
   have hlampos : 0 < lam :=
-    tangent_scaling_pos hd hr₀ haB hupper hrpos' hr0' hlam hν0 hconv'
+    tangent_scaling_pos hd hr₀ haB hupper hrpos' hr0' hlam hν0 hseq' hν hconv'
   have hsmall : ∀ β : ℝ≥0∞, 0 < β → ∀ R : ℝ, 0 < R → ∀ᶠ j in atTop,
       ∀ S : Set (EuclideanSpace ℝ (Fin n)), S ⊆ closedBall a (rs (φ j) * R) →
         Disjoint S B → cs (φ j) * μ S ≤ β :=
     fun β hβ R hR ↦ tangent_smul_measure_le_of_disjoint (mul_pos ht hd) hd hr₀ haB hupper
-      hlower hdens hrpos' hr0' hconv' hR hβ
+      hlower hdens hrpos' hr0' hseq' hν hconv' hR hβ
   refine ⟨ENNReal.ofReal d * lam, ENNReal.mul_pos (ENNReal.ofReal_pos.2 hd).ne' hlampos.ne',
     ENNReal.mul_ne_top ENNReal.ofReal_ne_top hlamfin, ?_, ?_⟩
   · intro x hx ρ hρ
     have hnear : ∀ ε : ℝ, 0 < ε → ∀ᶠ j in atTop,
         ∃ y ∈ B, dist y (a + rs (φ j) • x) < rs (φ j) * ε :=
       fun ε hε ↦ tangent_exists_nearby_point_of_density (mul_pos ht hd) hd hr₀ haB hupper
-        hlower hdens hrpos' hr0' hconv' hx hε
-    have hlo := le_tangent_closedBall hd.le ht.le hr₀ hlower hrpos' hr0' hlam hlamfin hconv'
+        hlower hdens hrpos' hr0' hseq' hν hconv' hx hε
+    have hlo := le_tangent_closedBall hd.le ht.le hr₀ hlower hrpos' hr0' hlam hlamfin hseq' hν hconv'
       hnear hρ
     refine le_trans (le_of_eq ?_) hlo
     rw [ENNReal.ofReal_mul (mul_nonneg ht.le hd.le), ENNReal.ofReal_mul ht.le]
     ring
   · intro x ρ hρ
     have hup := tangent_closedBall_le_of_ball_bounds hd.le hr₀ hballbd hrpos' hr0' hlam
-      hlamfin hconv' hsmall x hρ
+      hlamfin hseq' hν hconv' hsmall x hρ
     refine le_trans hup (le_of_eq ?_)
     rw [ENNReal.ofReal_mul hd.le]
     ring
@@ -2463,14 +2460,14 @@ theorem tangent_ball_bounds_of_density_point_of_ball_bounds {s d t r₀ : ℝ}
 /-! ## Points with uniformly comparable ball measures -/
 /-- `goodSet s p q m μ` is the set of points `z` such that
 `p ρ ^ s ≤ μ (B (z, ρ)) ≤ q ρ ^ s` for every radius `0 < ρ < 1 / (m + 1)`. -/
-def goodSet (s p q : ℝ) (m : ℕ) (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) :
+def goodSet (s p q : ℝ) (m : ℕ) (μ : Measure (EuclideanSpace ℝ (Fin n))) :
     Set (EuclideanSpace ℝ (Fin n)) :=
   {z | ∀ ρ : ℝ, 0 < ρ → ρ < 1 / (m + 1) →
     ENNReal.ofReal (p * ρ ^ s) ≤ μ (closedBall z ρ) ∧
       μ (closedBall z ρ) ≤ ENNReal.ofReal (q * ρ ^ s)}
 /-- Enlarging the admissible range `[p, q]` enlarges `goodSet`. -/
 lemma goodSet_subset {s p q p' q' : ℝ} {m : ℕ}
-    {μ : OuterMeasure (EuclideanSpace ℝ (Fin n))} (hp : p' ≤ p) (hq : q ≤ q') :
+    {μ : Measure (EuclideanSpace ℝ (Fin n))} (hp : p' ≤ p) (hq : q ≤ q') :
     goodSet s p q m μ ⊆ goodSet s p' q' m μ := by
   intro z hz ρ hρ hρm
   obtain ⟨h1, h2⟩ := hz ρ hρ hρm
@@ -2480,7 +2477,7 @@ lemma goodSet_subset {s p q p' q' : ℝ} {m : ℕ}
   · exact mul_le_mul_of_nonneg_right hq (Real.rpow_nonneg hρ.le s)
 /-- Passing to a smaller range of radii enlarges `goodSet`. -/
 lemma goodSet_mono_nat {s p q : ℝ} {m m' : ℕ}
-    {μ : OuterMeasure (EuclideanSpace ℝ (Fin n))} (hm : m ≤ m') :
+    {μ : Measure (EuclideanSpace ℝ (Fin n))} (hm : m ≤ m') :
     goodSet s p q m μ ⊆ goodSet s p q m' μ := by
   intro z hz ρ hρ hρm
   refine hz ρ hρ (lt_of_lt_of_le hρm ?_)
@@ -2489,7 +2486,7 @@ lemma goodSet_mono_nat {s p q : ℝ} {m m' : ℕ}
   · exact_mod_cast Nat.add_le_add_right hm 1
 /-- The sets `goodSet s p q m μ` are closed, hence Borel. -/
 lemma isClosed_goodSet (s p q : ℝ) (m : ℕ)
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) : IsClosed (goodSet s p q m μ) := by
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) : IsClosed (goodSet s p q m μ) := by
   refine isClosed_of_closure_subset fun z hz ρ hρ hρm ↦ ⟨?_, ?_⟩
   · -- shrink the radius slightly and let the shrinking tend to `0`
     have hbase : ContinuousAt (fun δ : ℝ ↦ ρ - δ) 0 := by fun_prop
@@ -2541,16 +2538,17 @@ lemma isClosed_goodSet (s p q : ℝ) (m : ℕ)
     exact le_trans (measure_mono hsub) (hyB (ρ + δ) (by linarith) (by linarith)).2
 /-- Every point of `A` at which the density ratio exceeds `θ` lies in one of the sets
 `goodSet s p q m μ` with `θ q ≤ p`. -/
-lemma exists_goodSet_mem {s : ℝ} {μ : OuterMeasure (EuclideanSpace ℝ (Fin n))}
+lemma exists_goodSet_mem {s : ℝ} {μ : Measure (EuclideanSpace ℝ (Fin n))}
     {a : EuclideanSpace ℝ (Fin n)} (ha : a ∈ positiveFiniteDensitySet s μ)
-    {θ : ℝ} (hθ0 : 0 < θ) (hθ : ENNReal.ofReal θ < sDensityRatio s μ a) :
+    {θ : ℝ} (hθ0 : 0 < θ)
+    (hθ : ENNReal.ofReal θ < RatioOfDensities s μ a) :
     ∃ (p q : ℚ) (m : ℕ), 0 < (p : ℝ) ∧ 0 < (q : ℝ) ∧ θ * (q : ℝ) ≤ (p : ℝ) ∧
-      upperSDensity s μ a * ENNReal.ofReal ((2 : ℝ) ^ s) < ENNReal.ofReal (q : ℝ) ∧
+      dimensional_upper_density μ.toOuterMeasure s a * ENNReal.ofReal ((2 : ℝ) ^ s) <
+        ENNReal.ofReal (q : ℝ) ∧
       a ∈ goodSet s (p : ℝ) (q : ℝ) m μ := by
   obtain ⟨hl, hlu, hu⟩ := ha
-  simp only [sDensityRatio] at hθ
-  set l := lowerSDensity s μ a with hldef
-  set u := upperSDensity s μ a with hudef
+  set l := dimensional_lower_density μ.toOuterMeasure s a with hldef
+  set u := dimensional_upper_density μ.toOuterMeasure s a with hudef
   have hupos : 0 < u := lt_of_lt_of_le hl hlu
   have hltop : l ≠ ∞ := ne_top_of_le_ne_top hu.ne hlu
   set L := l.toReal with hLdef
@@ -2596,14 +2594,14 @@ lemma exists_goodSet_mem {s : ℝ} {μ : OuterMeasure (EuclideanSpace ℝ (Fin n
     have h' : ENNReal.ofReal (L - η) < l := by
       rw [← hLl]
       exact (ENNReal.ofReal_lt_ofReal_iff hLpos).mpr (by linarith)
-    rwa [hldef, lowerSDensity] at h'
+    rwa [hldef, dimensional_lower_density_toOuterMeasure_eq] at h'
   have hev2 : ∀ᶠ r in 𝓝[>] (0 : ℝ),
       μ (closedBall a r) / ENNReal.ofReal ((2 * r) ^ s) < ENNReal.ofReal (U + η) := by
     refine eventually_lt_of_limsup_lt ?_
     have h' : u < ENNReal.ofReal (U + η) := by
       rw [← hUu]
       exact (ENNReal.ofReal_lt_ofReal_iff (by linarith)).mpr (by linarith)
-    rwa [hudef, upperSDensity] at h'
+    rwa [hudef, dimensional_upper_density_toOuterMeasure_eq] at h'
   have hev : ∀ᶠ r in 𝓝[>] (0 : ℝ),
       ENNReal.ofReal (p₀ * r ^ s) ≤ μ (closedBall a r) ∧
         μ (closedBall a r) ≤ ENNReal.ofReal (q₀ * r ^ s) := by
@@ -2647,7 +2645,8 @@ lemma exists_goodSet_mem {s : ℝ} {μ : OuterMeasure (EuclideanSpace ℝ (Fin n
   have hθqp : θ * (q : ℝ) ≤ (p : ℝ) := by
     have h := (lt_div_iff₀ hθ0).mp hq2
     nlinarith
-  have hqsup : upperSDensity s μ a * ENNReal.ofReal ((2 : ℝ) ^ s) < ENNReal.ofReal (q : ℝ) := by
+  have hqsup : dimensional_upper_density μ.toOuterMeasure s a * ENNReal.ofReal ((2 : ℝ) ^ s) <
+      ENNReal.ofReal (q : ℝ) := by
     rw [← hudef, ← hUu, ← ENNReal.ofReal_mul hUpos.le]
     refine (ENNReal.ofReal_lt_ofReal_iff hqpos).mpr ?_
     have : q₀ < (q : ℝ) := hq1
@@ -2657,18 +2656,18 @@ lemma exists_goodSet_mem {s : ℝ} {μ : OuterMeasure (EuclideanSpace ℝ (Fin n
 /-! ## Points all of whose small balls are controlled -/
 /-- `goodBallSet s q m μ` is the set of points `z` such that **every** closed ball of radius
 `0 < w < 1 / (m + 1)` containing `z` has measure at most `q w ^ s`. -/
-def goodBallSet (s q : ℝ) (m : ℕ) (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) :
+def goodBallSet (s q : ℝ) (m : ℕ) (μ : Measure (EuclideanSpace ℝ (Fin n))) :
     Set (EuclideanSpace ℝ (Fin n)) :=
   {z | ∀ (y : EuclideanSpace ℝ (Fin n)) (w : ℝ), 0 < w → w < 1 / (m + 1) →
     z ∈ closedBall y w → μ (closedBall y w) ≤ ENNReal.ofReal (q * w ^ s)}
 lemma goodBallSet_subset {s q q' : ℝ} {m : ℕ}
-    {μ : OuterMeasure (EuclideanSpace ℝ (Fin n))} (hq : q ≤ q') :
+    {μ : Measure (EuclideanSpace ℝ (Fin n))} (hq : q ≤ q') :
     goodBallSet s q m μ ⊆ goodBallSet s q' m μ := by
   intro z hz y w hw hwm hmem
   refine le_trans (hz y w hw hwm hmem) (ENNReal.ofReal_le_ofReal ?_)
   exact mul_le_mul_of_nonneg_right hq (Real.rpow_nonneg hw.le s)
 lemma goodBallSet_mono_nat {s q : ℝ} {m m' : ℕ}
-    {μ : OuterMeasure (EuclideanSpace ℝ (Fin n))} (hm : m ≤ m') :
+    {μ : Measure (EuclideanSpace ℝ (Fin n))} (hm : m ≤ m') :
     goodBallSet s q m μ ⊆ goodBallSet s q m' μ := by
   intro z hz y w hw hwm hmem
   refine hz y w hw (lt_of_lt_of_le hwm ?_) hmem
@@ -2676,7 +2675,7 @@ lemma goodBallSet_mono_nat {s q : ℝ} {m m' : ℕ}
   · positivity
   · exact_mod_cast Nat.add_le_add_right hm 1
 lemma isClosed_goodBallSet (s q : ℝ) (m : ℕ)
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) : IsClosed (goodBallSet s q m μ) := by
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) : IsClosed (goodBallSet s q m μ) := by
   refine isClosed_of_closure_subset fun z hz y w hw hwm hmem ↦ ?_
   have hbase : ContinuousAt (fun δ : ℝ ↦ w + δ) 0 := by fun_prop
   have hrpow : ContinuousAt (fun v : ℝ ↦ v ^ s) (w + 0) := by
@@ -2707,10 +2706,11 @@ lemma isClosed_goodBallSet (s q : ℝ) (m : ℕ)
   exact le_trans (measure_mono hsub) (hz'B y (w + δ) (by linarith) (by linarith) hz'mem)
 /-- Under the ball-density hypothesis of Lemma 14.7 (2), a point whose upper density is small
 compared with `q` lies in one of the sets `goodBallSet s q m μ`. -/
-lemma exists_goodBallSet_mem {s q : ℝ} {μ : OuterMeasure (EuclideanSpace ℝ (Fin n))}
+lemma exists_goodBallSet_mem {s q : ℝ} {μ : Measure (EuclideanSpace ℝ (Fin n))}
     {a : EuclideanSpace ℝ (Fin n)} (hq : 0 < q)
-    (hball : upperBallSDensity s μ a ≤ upperSDensity s μ a)
-    (hqsup : upperSDensity s μ a * ENNReal.ofReal ((2 : ℝ) ^ s) < ENNReal.ofReal q) :
+    (hball : upperBallSDensity s μ a ≤ dimensional_upper_density μ.toOuterMeasure s a)
+    (hqsup : dimensional_upper_density μ.toOuterMeasure s a * ENNReal.ofReal ((2 : ℝ) ^ s) <
+      ENNReal.ofReal q) :
     ∃ m : ℕ, a ∈ goodBallSet s q m μ := by
   set c2 : ℝ := (2 : ℝ) ^ s with hc2
   have hc2pos : 0 < c2 := Real.rpow_pos_of_pos (by norm_num) s
@@ -2718,7 +2718,7 @@ lemma exists_goodBallSet_mem {s q : ℝ} {μ : OuterMeasure (EuclideanSpace ℝ 
     simp only [ne_eq, ENNReal.ofReal_eq_zero, not_le]
     exact hc2pos
   set Q : ℝ≥0∞ := ENNReal.ofReal q / ENNReal.ofReal c2 with hQ
-  have hlt : upperSDensity s μ a < Q := by
+  have hlt : dimensional_upper_density μ.toOuterMeasure s a < Q := by
     rw [hQ, ENNReal.lt_div_iff_mul_lt (Or.inl hc2ne) (Or.inl ENNReal.ofReal_ne_top)]
     exact hqsup
   have hlimsup : upperBallSDensity s μ a < Q := lt_of_le_of_lt hball hlt
@@ -2746,27 +2746,25 @@ lemma exists_goodBallSet_mem {s q : ℝ} {μ : OuterMeasure (EuclideanSpace ℝ 
   rw [hsplit, hQ, ← mul_assoc, ENNReal.div_mul_cancel hc2ne ENNReal.ofReal_ne_top,
     ← ENNReal.ofReal_mul hq.le]
 /-! ## The density theorem in the form required by the reduction step -/
-/-- **Besicovitch density theorem** for a Radon outer measure, in the form used in Mattila's
+/-- **Besicovitch density theorem** for a Radon measure, in the form used in Mattila's
 proof of Lemma 14.7 (1): outside a `μ`-null set, every point of a Borel set `B` is a density
 point of `B`, in the sense that the portion of a small ball around it which misses `B` is an
 arbitrarily small fraction of the ball. -/
-lemma exists_null_of_not_density_point (μ : OuterMeasure (EuclideanSpace ℝ (Fin n)))
-    (hμ : RadonOuterMeasure μ) {B : Set (EuclideanSpace ℝ (Fin n))} (hB : MeasurableSet B) :
+lemma exists_null_of_not_density_point (μ : Measure (EuclideanSpace ℝ (Fin n)))
+    (hμ : Measure.Regular μ) {B : Set (EuclideanSpace ℝ (Fin n))} (hB : MeasurableSet B) :
     ∃ N : Set (EuclideanSpace ℝ (Fin n)), μ N = 0 ∧
       ∀ a ∈ B \ N, ∀ γ : ℝ≥0∞, 0 < γ →
         ∀ᶠ ρ in 𝓝[>] (0 : ℝ), μ (closedBall a ρ \ B) ≤ γ * μ (closedBall a ρ) := by
-  set μm := μ.toMeasure hμ.measurable_le_caratheodory with hμm
-  letI : μm.Regular := hμ.regular_toMeasure
+  letI : μ.Regular := hμ
   set P : EuclideanSpace ℝ (Fin n) → Prop := fun x ↦
-    Tendsto (fun r ↦ μm (B ∩ closedBall x r) / μm (closedBall x r)) (𝓝[>] (0 : ℝ)) (𝓝 1)
+    Tendsto (fun r ↦ μ (B ∩ closedBall x r) / μ (closedBall x r)) (𝓝[>] (0 : ℝ)) (𝓝 1)
     with hP
-  have hae : ∀ᵐ x ∂μm.restrict B, P x := Besicovitch.ae_tendsto_measure_inter_div μm B
-  have hbad : μm ({x | ¬ P x} ∩ B) = 0 :=
-    le_antisymm ((Measure.le_restrict_apply _ _).trans (ae_iff.mp hae).le) (zero_le _)
+  have hae : ∀ᵐ x ∂μ.restrict B, P x := Besicovitch.ae_tendsto_measure_inter_div μ B
+  have hbad : μ ({x | ¬ P x} ∩ B) = 0 :=
+    le_antisymm ((Measure.le_restrict_apply _ _).trans (ae_iff.mp hae).le) zero_le
   obtain ⟨G, hGsub, hGmeas, hG0⟩ := exists_measurable_superset_of_null hbad
   refine ⟨G, ?_, ?_⟩
-  · rw [show μ G = μm G from (toMeasure_apply μ hμ.measurable_le_caratheodory hGmeas).symm]
-    exact hG0
+  · exact hG0
   rintro a ⟨haB, haG⟩ γ hγ
   have hPa : P a := by
     by_contra hcon
@@ -2776,19 +2774,12 @@ lemma exists_null_of_not_density_point (μ : OuterMeasure (EuclideanSpace ℝ (F
   have hγ'le : γ' ≤ 1 := min_le_right _ _
   have hlt : (1 : ℝ≥0∞) - γ' < 1 := ENNReal.sub_lt_self ENNReal.one_ne_top one_ne_zero hγ'pos.ne'
   have hev : ∀ᶠ ρ in 𝓝[>] (0 : ℝ),
-      (1 : ℝ≥0∞) - γ' < μm (B ∩ closedBall a ρ) / μm (closedBall a ρ) :=
+      (1 : ℝ≥0∞) - γ' < μ (B ∩ closedBall a ρ) / μ (closedBall a ρ) :=
     (tendsto_order.1 hPa).1 _ hlt
   filter_upwards [hev] with ρ hρ
-  have hmeasdiff : MeasurableSet (closedBall a ρ \ B) :=
-    (measurableSet_closedBall).diff hB
-  have hdiff : μ (closedBall a ρ \ B) = μm (closedBall a ρ \ B) :=
-    (toMeasure_apply μ hμ.measurable_le_caratheodory hmeasdiff).symm
-  have hball : μ (closedBall a ρ) = μm (closedBall a ρ) :=
-    (toMeasure_apply μ hμ.measurable_le_caratheodory measurableSet_closedBall).symm
-  rw [hdiff, hball]
-  set A := μm (closedBall a ρ) with hA
-  set Ai := μm (B ∩ closedBall a ρ) with hAi
-  set Ac := μm (closedBall a ρ \ B) with hAc
+  set A := μ (closedBall a ρ) with hA
+  set Ai := μ (B ∩ closedBall a ρ) with hAi
+  set Ac := μ (closedBall a ρ \ B) with hAc
   have hAtop : A ≠ ∞ := (isCompact_closedBall a ρ).measure_lt_top.ne
   have hsum : Ai + Ac = A := by
     rw [hAi, hAc, hA, Set.inter_comm]
@@ -2816,15 +2807,15 @@ lemma exists_null_of_not_density_point (μ : OuterMeasure (EuclideanSpace ℝ (F
 /-- If the two-sided ball estimate holds with constants `θ k` tending to `t`, then it holds
 with the constant `t` itself. -/
 lemma exists_uniform_constant_of_tendsto {s θ₀ : ℝ} {t : ℝ≥0∞} {θ : ℕ → ℝ}
-    {ν : OuterMeasure (EuclideanSpace ℝ (Fin n))} (hν : RadonOuterMeasure ν) (hν0 : ν ≠ 0)
+    {ν : Measure (EuclideanSpace ℝ (Fin n))} (hν : Measure.Regular ν) (hν0 : ν ≠ 0)
     (hθ₀ : 0 < θ₀) (hθlb : ∀ k, θ₀ ≤ θ k)
     (hθ : Tendsto (fun k ↦ ENNReal.ofReal (θ k)) atTop (𝓝 t))
     (h : ∀ k, ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ∞ ∧
-      ∀ x ∈ SupportOuterMeasure ν, ∀ ρ : ℝ, 0 < ρ →
+      ∀ x ∈ Measure.support ν, ∀ ρ : ℝ, 0 < ρ →
         ENNReal.ofReal (θ k) * c * ENNReal.ofReal (ρ ^ s) ≤ ν (closedBall x ρ) ∧
           ν (closedBall x ρ) ≤ c * ENNReal.ofReal (ρ ^ s)) :
     ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ∞ ∧
-      ∀ x ∈ SupportOuterMeasure ν, ∀ ρ : ℝ, 0 < ρ →
+      ∀ x ∈ Measure.support ν, ∀ ρ : ℝ, 0 < ρ →
         t * c * ENNReal.ofReal (ρ ^ s) ≤ ν (closedBall x ρ) ∧
           ν (closedBall x ρ) ≤ c * ENNReal.ofReal (ρ ^ s) := by
   choose c hcpos hctop hc using h
@@ -2832,8 +2823,8 @@ lemma exists_uniform_constant_of_tendsto {s θ₀ : ℝ} {t : ℝ≥0∞} {θ : 
   obtain ⟨x₀, -, hx₀⟩ := exists_mem_support_of_measure_pos hRpos
   set V := ν (closedBall x₀ 1) with hV
   have hVpos : 0 < V :=
-    lt_of_lt_of_le (measure_ball_pos hx₀ one_pos) (measure_mono ball_subset_closedBall)
-  have hVtop : V ≠ ∞ := (measure_closedBall_lt_top hν x₀ 1).ne
+    lt_of_lt_of_le (measure_ball_pos_of_mem_support hx₀ one_pos) (measure_mono ball_subset_closedBall)
+  have hVtop : V ≠ ∞ := (regular_measure_closedBall_lt_top hν x₀ 1).ne
   have hθ₀ne : ENNReal.ofReal θ₀ ≠ 0 := by
     simp only [ne_eq, ENNReal.ofReal_eq_zero, not_le]
     exact hθ₀
@@ -2868,16 +2859,16 @@ lemma exists_uniform_constant_of_tendsto {s θ₀ : ℝ} {t : ℝ≥0∞} {θ : 
 /-- The analogue of `exists_uniform_constant_of_tendsto` for the situation of Lemma 14.7 (2),
 where the upper bound holds for balls with arbitrary centres. -/
 lemma exists_uniform_constant_of_tendsto_ball {s θ₀ : ℝ} {t : ℝ≥0∞} {θ : ℕ → ℝ}
-    {ν : OuterMeasure (EuclideanSpace ℝ (Fin n))} (hν : RadonOuterMeasure ν) (hν0 : ν ≠ 0)
+    {ν : Measure (EuclideanSpace ℝ (Fin n))} (hν : Measure.Regular ν) (hν0 : ν ≠ 0)
     (hθ₀ : 0 < θ₀) (hθlb : ∀ k, θ₀ ≤ θ k)
     (hθ : Tendsto (fun k ↦ ENNReal.ofReal (θ k)) atTop (𝓝 t))
     (h : ∀ k, ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ∞ ∧
-      (∀ x ∈ SupportOuterMeasure ν, ∀ ρ : ℝ, 0 < ρ →
+      (∀ x ∈ Measure.support ν, ∀ ρ : ℝ, 0 < ρ →
         ENNReal.ofReal (θ k) * c * ENNReal.ofReal (ρ ^ s) ≤ ν (closedBall x ρ)) ∧
       ∀ (x : EuclideanSpace ℝ (Fin n)) (ρ : ℝ), 0 < ρ →
         ν (closedBall x ρ) ≤ c * ENNReal.ofReal (ρ ^ s)) :
     ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ∞ ∧
-      (∀ x ∈ SupportOuterMeasure ν, ∀ ρ : ℝ, 0 < ρ →
+      (∀ x ∈ Measure.support ν, ∀ ρ : ℝ, 0 < ρ →
         t * c * ENNReal.ofReal (ρ ^ s) ≤ ν (closedBall x ρ)) ∧
       ∀ (x : EuclideanSpace ℝ (Fin n)) (ρ : ℝ), 0 < ρ →
         ν (closedBall x ρ) ≤ c * ENNReal.ofReal (ρ ^ s) := by
@@ -2886,8 +2877,8 @@ lemma exists_uniform_constant_of_tendsto_ball {s θ₀ : ℝ} {t : ℝ≥0∞} {
   obtain ⟨x₀, -, hx₀⟩ := exists_mem_support_of_measure_pos hRpos
   set V := ν (closedBall x₀ 1) with hV
   have hVpos : 0 < V :=
-    lt_of_lt_of_le (measure_ball_pos hx₀ one_pos) (measure_mono ball_subset_closedBall)
-  have hVtop : V ≠ ∞ := (measure_closedBall_lt_top hν x₀ 1).ne
+    lt_of_lt_of_le (measure_ball_pos_of_mem_support hx₀ one_pos) (measure_mono ball_subset_closedBall)
+  have hVtop : V ≠ ∞ := (regular_measure_closedBall_lt_top hν x₀ 1).ne
   have hθ₀ne : ENNReal.ofReal θ₀ ≠ 0 := by
     simp only [ne_eq, ENNReal.ofReal_eq_zero, not_le]
     exact hθ₀
@@ -2943,7 +2934,7 @@ lemma isClosed_farFromTouching {F : Set (EuclideanSpace ℝ (Fin n))} (hF : IsCl
 /-- **Almost no point of `F` is uniformly far from all touching points.** -/
 theorem measure_farFromTouching_eq_zero {s p q r₀ ε d₀ : ℝ} (hsn : s < n)
     (hp : 0 < p) (hq : 0 < q) (hr₀ : 0 < r₀) (hε : 0 < ε) (hε1 : ε ≤ 1) (hd₀ : 0 < d₀)
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hμ : RadonOuterMeasure μ)
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (hμ : Measure.Regular μ)
     {F : Set (EuclideanSpace ℝ (Fin n))} (hFclosed : IsClosed F)
     (hupper : ∀ y ∈ F, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       μ (closedBall y ρ) ≤ ENNReal.ofReal (q * ρ ^ s))
@@ -3057,14 +3048,14 @@ theorem measure_farFromTouching_eq_zero {s p q r₀ ε d₀ : ℝ} (hsn : s < n)
         _ ≤ γ / 2 * M := hdens
     have hle : γ ≤ γ / 2 := (ENNReal.mul_le_mul_iff_left hM0 hMtop).mp hchain
     exact absurd hle (not_le.2 (ENNReal.half_lt_self hγpos.ne' hγtop))
-  exact le_antisymm (le_trans (measure_mono hsub) hN0.le) (zero_le _)
+  exact le_antisymm (le_trans (measure_mono hsub) hN0.le) (zero_le)
 /-- **At almost every point of `F` there are touching points of relatively large holes.**
 If the balls centred on the closed set `F` have measure comparable to `ρ ^ s` with `s < n`, then
 outside a `μ`-null set every `a ∈ F` has, for every `ε > 0` and every `d₀ > 0`, a touching point
 `y ∈ F` of a hole `B (z, d)` with `0 < d ≤ d₀` and `dist y a < ε d`. -/
 theorem exists_touching_points_ae {s p q r₀ : ℝ} (hsn : s < n)
     (hp : 0 < p) (hq : 0 < q) (hr₀ : 0 < r₀)
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hμ : RadonOuterMeasure μ)
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (hμ : Measure.Regular μ)
     {F : Set (EuclideanSpace ℝ (Fin n))} (hFclosed : IsClosed F)
     (hupper : ∀ y ∈ F, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       μ (closedBall y ρ) ≤ ENNReal.ofReal (q * ρ ^ s))
@@ -3101,10 +3092,11 @@ theorem exists_touching_points_ae {s p q r₀ : ℝ} (hsn : s < n)
 
 
 /-- A point whose balls have positive measure lies in the support. -/
-lemma mem_supportOuterMeasure_of_ball_lower_bound {s p r₀ : ℝ} (hp : 0 < p) (hr₀ : 0 < r₀)
-    {μ : OuterMeasure (EuclideanSpace ℝ (Fin n))} {a : EuclideanSpace ℝ (Fin n)}
+lemma mem_support_of_ball_lower_bound {s p r₀ : ℝ} (hp : 0 < p) (hr₀ : 0 < r₀)
+    {μ : Measure (EuclideanSpace ℝ (Fin n))} {a : EuclideanSpace ℝ (Fin n)}
     (hlower : ∀ ρ : ℝ, 0 < ρ → ρ < r₀ → ENNReal.ofReal (p * ρ ^ s) ≤ μ (closedBall a ρ)) :
-    a ∈ SupportOuterMeasure μ := by
+    a ∈ Measure.support μ := by
+  rw [Measure.mem_support_iff_forall]
   intro U hU
   obtain ⟨ρ, hρ, hball⟩ := Metric.mem_nhds_iff.mp hU
   set ρ' : ℝ := min (ρ / 2) (r₀ / 2) with hρ'def
@@ -3120,7 +3112,7 @@ lemma mem_supportOuterMeasure_of_ball_lower_bound {s p r₀ : ℝ} (hp : 0 < p) 
 /-- Two-sided ball bounds at a single point `a` already give Mattila's assumption 14.3 (1)
 at `a`. -/
 lemma limsup_ball_ratio_lt_top_of_ball_bounds_at {s p q r₀ : ℝ} (hp : 0 < p) (hq : 0 < q)
-    (hr₀ : 0 < r₀) {μ : OuterMeasure (EuclideanSpace ℝ (Fin n))}
+    (hr₀ : 0 < r₀) {μ : Measure (EuclideanSpace ℝ (Fin n))}
     {a : EuclideanSpace ℝ (Fin n)}
     (hupper : ∀ ρ : ℝ, 0 < ρ → ρ < r₀ → μ (closedBall a ρ) ≤ ENNReal.ofReal (q * ρ ^ s))
     (hlower : ∀ ρ : ℝ, 0 < ρ → ρ < r₀ → ENNReal.ofReal (p * ρ ^ s) ≤ μ (closedBall a ρ)) :
@@ -3158,7 +3150,7 @@ If `a ∈ F` is a density point of `F`, the balls centred on `F` carry measure c
 at `a` whose support lies in a closed half-space. -/
 theorem exists_halfSpace_tangentMeasure_of_touching {s p q r₀ : ℝ}
     (hp : 0 < p) (hq : 0 < q) (hr₀ : 0 < r₀)
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hμ : RadonOuterMeasure μ)
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (hμ : Measure.Regular μ)
     {F : Set (EuclideanSpace ℝ (Fin n))} {a : EuclideanSpace ℝ (Fin n)} (haF : a ∈ F)
     (hupper : ∀ y ∈ F, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       μ (closedBall y ρ) ≤ ENNReal.ofReal (q * ρ ^ s))
@@ -3169,9 +3161,9 @@ theorem exists_halfSpace_tangentMeasure_of_touching {s p q r₀ : ℝ}
     (htouch : ∀ ε d₀ : ℝ, 0 < ε → 0 < d₀ →
       ∃ y z : EuclideanSpace ℝ (Fin n), y ∈ F ∧ dist z y = infDist z F ∧
         0 < infDist z F ∧ infDist z F ≤ d₀ ∧ dist y a < ε * infDist z F) :
-    ∃ (e : EuclideanSpace ℝ (Fin n)) (ν : OuterMeasure (EuclideanSpace ℝ (Fin n))),
-      ‖e‖ = 1 ∧ IsTangentMeasure μ ν hμ a ∧
-        SupportOuterMeasure ν ⊆ {x : EuclideanSpace ℝ (Fin n) | 0 ≤ inner ℝ x e} := by
+    ∃ (e : EuclideanSpace ℝ (Fin n)) (ν : Measure (EuclideanSpace ℝ (Fin n))),
+      ‖e‖ = 1 ∧ IsTangentMeasure μ ν a ∧
+        Measure.support ν ⊆ {x : EuclideanSpace ℝ (Fin n) | 0 ≤ inner ℝ x e} := by
   classical
   -- the touching data at the scales `1 / (k + 1)`
   have hchoice : ∀ k : ℕ, ∃ yz : EuclideanSpace ℝ (Fin n) × EuclideanSpace ℝ (Fin n),
@@ -3242,10 +3234,14 @@ theorem exists_halfSpace_tangentMeasure_of_touching {s p q r₀ : ℝ}
     fun ρ h1 h2 ↦ hlower a haF ρ h1 h2
   have huppa : ∀ ρ : ℝ, 0 < ρ → ρ < r₀ → μ (closedBall a ρ) ≤ ENNReal.ofReal (q * ρ ^ s) :=
     fun ρ h1 h2 ↦ hupper a haF ρ h1 h2
-  have ha : a ∈ SupportOuterMeasure μ := mem_supportOuterMeasure_of_ball_lower_bound hp hr₀ hlowa
+  have ha : a ∈ Measure.support μ := mem_support_of_ball_lower_bound hp hr₀ hlowa
   have hdoub := limsup_ball_ratio_lt_top_of_ball_bounds_at hp hq hr₀ huppa hlowa
-  obtain ⟨φ, ν, hseq, hν, hφ, htan, hconv⟩ :=
+  obtain ⟨φ, ν, hφ, htan, hconv⟩ :=
     exists_subseq_blowUp_weaklyConverges_tangentMeasure μ hμ a ha hdoub rr hrrpos hrr0
+  have hseq : ∀ j, Measure.Regular
+      ((μ (ball a (rr (φ j))))⁻¹ • Measure.map (blowUpMap a (rr (φ j))) μ) := fun j ↦
+    regular_smul_map_blowUp hμ a (hrrpos _).ne'
+      (ENNReal.inv_ne_top.2 (measure_ball_pos_of_mem_support ha (hrrpos _)).ne')
   refine ⟨e, ν, henorm, htan, ?_⟩
   intro x hx
   by_contra hcon
@@ -3326,7 +3322,7 @@ theorem exists_halfSpace_tangentMeasure_of_touching {s p q r₀ : ℝ}
     linarith
   -- but the density of `F` at `a` forces points of `F` to be near `a + rr i • x`
   have hnear := tangent_exists_nearby_point_of_density hp hq hr₀ haF hupper hlower hdens
-    (fun j ↦ hrrpos (φ j)) (hrr0.comp hφ.tendsto_atTop) hconv hx
+    (fun j ↦ hrrpos (φ j)) (hrr0.comp hφ.tendsto_atTop) hseq htan.1 hconv hx
     (show (0 : ℝ) < β / 8 by positivity)
   obtain ⟨j, hj1, hj2⟩ := (hnear.and (hφ.tendsto_atTop.eventually hfar)).exists
   obtain ⟨y', hy'F, hy'lt⟩ := hj1
@@ -3345,12 +3341,13 @@ tangent measure `ν ∈ Tan (μ, a)` there is a positive (finite) number `c` suc
 `t = t (a) = Θ^s_*(μ, a) / Θ^{*s}(μ, a)`.
 The proof needs no sign assumption on the exponent `s`. -/
 theorem mattila_14_7_1 {s : ℝ}
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hμ : RadonOuterMeasure μ) :
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (hμ : Measure.Regular μ) :
     ∃ E : Set (EuclideanSpace ℝ (Fin n)), μ E = 0 ∧
-      ∀ a ∈ positiveFiniteDensitySet s μ \ E, ∀ ν, IsTangentMeasure μ ν hμ a →
+      ∀ a ∈ positiveFiniteDensitySet s μ \ E, ∀ ν, IsTangentMeasure μ ν a →
         ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ∞ ∧
-          ∀ x ∈ SupportOuterMeasure ν, ∀ r : ℝ, 0 < r →
-            sDensityRatio s μ a * c * ENNReal.ofReal (r ^ s) ≤ ν (closedBall x r) ∧
+          ∀ x ∈ Measure.support ν, ∀ r : ℝ, 0 < r →
+            RatioOfDensities s μ a * c * ENNReal.ofReal (r ^ s) ≤
+              ν (closedBall x r) ∧
               ν (closedBall x r) ≤ c * ENNReal.ofReal (r ^ s) := by
   -- the exceptional set: the non-density points of the countably many sets `goodSet`
   have hex : ∀ i : ℚ × ℚ × ℕ, ∃ N : Set (EuclideanSpace ℝ (Fin n)), μ N = 0 ∧
@@ -3365,10 +3362,10 @@ theorem mattila_14_7_1 {s : ℝ}
   obtain ⟨hνr, hν0, -⟩ := id htan
   obtain ⟨hl, hlu, hu⟩ := ha
   -- the sharp constant `t`
-  set t := sDensityRatio s μ a with ht
+  set t := RatioOfDensities s μ a with ht
   have htpos : 0 < t := ENNReal.div_pos hl.ne' hu.ne
   have htle : t ≤ 1 := by
-    rw [ht, sDensityRatio]
+    rw [ht]
     exact ENNReal.div_le_of_le_mul (by simpa using hlu)
   have httop : t ≠ ∞ := ne_top_of_le_ne_top ENNReal.one_ne_top htle
   set T := t.toReal with hT
@@ -3411,7 +3408,7 @@ theorem mattila_14_7_1 {s : ℝ}
     exact (ENNReal.continuous_ofReal.tendsto T).comp h3
   -- the estimate with constant `θ k`, for every `k`
   have hmain : ∀ k : ℕ, ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ∞ ∧
-      ∀ x ∈ SupportOuterMeasure ν, ∀ ρ : ℝ, 0 < ρ →
+      ∀ x ∈ Measure.support ν, ∀ ρ : ℝ, 0 < ρ →
         ENNReal.ofReal (θ k) * c * ENNReal.ofReal (ρ ^ s) ≤ ν (closedBall x ρ) ∧
           ν (closedBall x ρ) ≤ c * ENNReal.ofReal (ρ ^ s) := by
     intro k
@@ -3438,15 +3435,16 @@ holds, then at `μ` almost all `a ∈ A` every tangent measure `ν ∈ Tan (μ, 
 `ν (B (x, r)) ≤ c r ^ s` for **all** `x ∈ ℝⁿ` and `r > 0`, with the same constant `c` as in
 Lemma 14.7 (1). -/
 theorem mattila_14_7_2 {s : ℝ}
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hμ : RadonOuterMeasure μ)
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (hμ : Measure.Regular μ)
     (hball : ∃ E₀ : Set (EuclideanSpace ℝ (Fin n)), μ E₀ = 0 ∧
       ∀ z ∈ positiveFiniteDensitySet s μ \ E₀,
-        upperBallSDensity s μ z ≤ upperSDensity s μ z) :
+        upperBallSDensity s μ z ≤ dimensional_upper_density μ.toOuterMeasure s z) :
     ∃ E : Set (EuclideanSpace ℝ (Fin n)), μ E = 0 ∧
-      ∀ a ∈ positiveFiniteDensitySet s μ \ E, ∀ ν, IsTangentMeasure μ ν hμ a →
+      ∀ a ∈ positiveFiniteDensitySet s μ \ E, ∀ ν, IsTangentMeasure μ ν a →
         ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ∞ ∧
-          (∀ x ∈ SupportOuterMeasure ν, ∀ r : ℝ, 0 < r →
-            sDensityRatio s μ a * c * ENNReal.ofReal (r ^ s) ≤ ν (closedBall x r) ∧
+          (∀ x ∈ Measure.support ν, ∀ r : ℝ, 0 < r →
+            RatioOfDensities s μ a * c * ENNReal.ofReal (r ^ s) ≤
+              ν (closedBall x r) ∧
               ν (closedBall x r) ≤ c * ENNReal.ofReal (r ^ s)) ∧
           ∀ (x : EuclideanSpace ℝ (Fin n)) (r : ℝ), 0 < r →
             ν (closedBall x r) ≤ c * ENNReal.ofReal (r ^ s) := by
@@ -3463,19 +3461,20 @@ theorem mattila_14_7_2 {s : ℝ}
   choose N hN0 hN using hex
   have hUnull : μ (⋃ i, N i) = 0 := measure_iUnion_null hN0
   refine ⟨E₀ ∪ ⋃ i, N i, ?_, ?_⟩
-  · refine le_antisymm (le_trans (measure_union_le _ _) ?_) (zero_le _)
+  · refine le_antisymm (le_trans (measure_union_le _ _) ?_) zero_le
     rw [hE₀, hUnull]
     simp
   rintro a ⟨ha, haE⟩ ν htan
   have haE₀ : a ∉ E₀ := fun h ↦ haE (Set.mem_union_left _ h)
   have haU : a ∉ ⋃ i, N i := fun h ↦ haE (Set.mem_union_right _ h)
-  have hbd : upperBallSDensity s μ a ≤ upperSDensity s μ a := hballdens a ⟨ha, haE₀⟩
+  have hbd : upperBallSDensity s μ a ≤ dimensional_upper_density μ.toOuterMeasure s a :=
+    hballdens a ⟨ha, haE₀⟩
   obtain ⟨hνr, hν0, -⟩ := id htan
   obtain ⟨hl, hlu, hu⟩ := ha
-  set t := sDensityRatio s μ a with ht
+  set t := RatioOfDensities s μ a with ht
   have htpos : 0 < t := ENNReal.div_pos hl.ne' hu.ne
   have htle : t ≤ 1 := by
-    rw [ht, sDensityRatio]
+    rw [ht]
     exact ENNReal.div_le_of_le_mul (by simpa using hlu)
   have httop : t ≠ ∞ := ne_top_of_le_ne_top ENNReal.one_ne_top htle
   set T := t.toReal with hT
@@ -3516,7 +3515,7 @@ theorem mattila_14_7_2 {s : ℝ}
     rw [← hTt]
     exact (ENNReal.continuous_ofReal.tendsto T).comp h3
   have hmain : ∀ k : ℕ, ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ∞ ∧
-      (∀ x ∈ SupportOuterMeasure ν, ∀ ρ : ℝ, 0 < ρ →
+      (∀ x ∈ Measure.support ν, ∀ ρ : ℝ, 0 < ρ →
         ENNReal.ofReal (θ k) * c * ENNReal.ofReal (ρ ^ s) ≤ ν (closedBall x ρ)) ∧
       ∀ (x : EuclideanSpace ℝ (Fin n)) (ρ : ℝ), 0 < ρ →
         ν (closedBall x ρ) ≤ c * ENNReal.ofReal (ρ ^ s) := by
@@ -3568,12 +3567,12 @@ supported in the complementary closed half-space
 The proof turned out not to need any positivity assumption on the exponent `s`, so the
 hypothesis `0 < s` was dropped from the statement, as in parts (1) and (2). -/
 theorem mattila_14_7_3 {s : ℝ} (hsn : s < n)
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hμ : RadonOuterMeasure μ) :
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (hμ : Measure.Regular μ) :
     ∃ E : Set (EuclideanSpace ℝ (Fin n)), μ E = 0 ∧
       ∀ a ∈ positiveFiniteDensitySet s μ \ E,
-        ∃ (e : EuclideanSpace ℝ (Fin n)) (ν : OuterMeasure (EuclideanSpace ℝ (Fin n))),
-          ‖e‖ = 1 ∧ IsTangentMeasure μ ν hμ a ∧
-            SupportOuterMeasure ν ⊆ {x : EuclideanSpace ℝ (Fin n) | 0 ≤ inner ℝ x e} := by
+        ∃ (e : EuclideanSpace ℝ (Fin n)) (ν : Measure (EuclideanSpace ℝ (Fin n))),
+          ‖e‖ = 1 ∧ IsTangentMeasure μ ν a ∧
+            Measure.support ν ⊆ {x : EuclideanSpace ℝ (Fin n) | 0 ≤ inner ℝ x e} := by
   classical
   -- the upper and lower bounds carried by the sets `goodSet s p q m μ`
   have hup : ∀ (p q : ℝ) (m : ℕ), ∀ y ∈ goodSet s p q m μ, ∀ ρ : ℝ, 0 < ρ →
@@ -3610,16 +3609,16 @@ theorem mattila_14_7_3 {s : ℝ} (hsn : s < n)
     · exact ⟨∅, by simp, fun h1 h2 ↦ absurd ⟨h1, h2⟩ hpq⟩
   choose N₂ hN₂0 hN₂ using htouchex
   refine ⟨⋃ i : ℚ × ℚ × ℕ, (N₁ i ∪ N₂ i), ?_, ?_⟩
-  · refine measure_iUnion_null fun i ↦ le_antisymm ?_ (zero_le _)
+  · refine measure_iUnion_null fun i ↦ le_antisymm ?_ zero_le
     calc μ (N₁ i ∪ N₂ i) ≤ μ (N₁ i) + μ (N₂ i) := measure_union_le _ _
       _ = 0 := by rw [hN₁0, hN₂0]; simp
   · rintro a ⟨ha, haE⟩
     obtain ⟨hl, hlu, hu⟩ := ha
     -- the density ratio at `a` is positive, so `a` lies in one of the good sets
-    set t := sDensityRatio s μ a with ht
+    set t := RatioOfDensities s μ a with ht
     have htpos : 0 < t := ENNReal.div_pos hl.ne' hu.ne
     have htle : t ≤ 1 := by
-      rw [ht, sDensityRatio]
+      rw [ht]
       exact ENNReal.div_le_of_le_mul (by simpa using hlu)
     have httop : t ≠ ∞ := ne_top_of_le_ne_top ENNReal.one_ne_top htle
     have hTpos : 0 < t.toReal := ENNReal.toReal_pos htpos.ne' httop
@@ -3644,54 +3643,56 @@ tangent measure `ν ∈ Tan (μ, a)` satisfies the conclusion of Lemma 14.7 (1):
 finite constant `c` with `t c r ^ s ≤ ν (B (x, r)) ≤ c r ^ s` for all `x ∈ spt ν` and
 `0 < r < ∞`. -/
 theorem mattila_14_7_4 {s d t r₀ : ℝ} (hd : 0 < d) (ht : 0 < t) (hr₀ : 0 < r₀)
-    (μ : OuterMeasure (EuclideanSpace ℝ (Fin n))) (hμ : RadonOuterMeasure μ)
-    (hbounds : ∀ y ∈ SupportOuterMeasure μ, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
+    (μ : Measure (EuclideanSpace ℝ (Fin n))) (hμ : Measure.Regular μ)
+    (hbounds : ∀ y ∈ Measure.support μ, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       ENNReal.ofReal (t * d * ρ ^ s) ≤ μ (closedBall y ρ) ∧
         μ (closedBall y ρ) ≤ ENNReal.ofReal (d * ρ ^ s))
-    (a : EuclideanSpace ℝ (Fin n)) (ha : a ∈ SupportOuterMeasure μ) :
-    (∃ ν, IsTangentMeasure μ ν hμ a) ∧
-      ∀ ν, IsTangentMeasure μ ν hμ a →
+    (a : EuclideanSpace ℝ (Fin n)) (ha : a ∈ Measure.support μ) :
+    (∃ ν, IsTangentMeasure μ ν a) ∧
+      ∀ ν, IsTangentMeasure μ ν a →
         ∃ c : ℝ≥0∞, 0 < c ∧ c ≠ ∞ ∧
-          ∀ x ∈ SupportOuterMeasure ν, ∀ ρ : ℝ, 0 < ρ →
+          ∀ x ∈ Measure.support ν, ∀ ρ : ℝ, 0 < ρ →
             ENNReal.ofReal t * c * ENNReal.ofReal (ρ ^ s) ≤ ν (closedBall x ρ) ∧
               ν (closedBall x ρ) ≤ c * ENNReal.ofReal (ρ ^ s) := by
-  have hupper : ∀ y ∈ SupportOuterMeasure μ, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
+  have hupper : ∀ y ∈ Measure.support μ, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       μ (closedBall y ρ) ≤ ENNReal.ofReal (d * ρ ^ s) :=
     fun y hy ρ h1 h2 ↦ (hbounds y hy ρ h1 h2).2
-  have hlower : ∀ y ∈ SupportOuterMeasure μ, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
+  have hlower : ∀ y ∈ Measure.support μ, ∀ ρ : ℝ, 0 < ρ → ρ < r₀ →
       ENNReal.ofReal (t * d * ρ ^ s) ≤ μ (closedBall y ρ) :=
     fun y hy ρ h1 h2 ↦ (hbounds y hy ρ h1 h2).1
   have hdoub : limsup (fun ρ : ℝ ↦ μ (ball a (2 * ρ)) / μ (ball a ρ)) (𝓝[>] (0 : ℝ)) < ∞ :=
     limsup_ball_ratio_lt_top_of_uniform hd ht hr₀ ha hupper hlower
   constructor
-  · obtain ⟨φ, ν, hseq, hν, hφ, htan, hconv⟩ :=
+  · obtain ⟨φ, ν, -, htan, -⟩ :=
       exists_subseq_blowUp_weaklyConverges_tangentMeasure μ hμ a ha hdoub
         (fun i ↦ 1 / ((i : ℝ) + 1)) (fun i ↦ by positivity)
         tendsto_one_div_add_atTop_nhds_zero_nat
     exact ⟨ν, htan⟩
-  · rintro ν ⟨hν, hν0, rs, cs, hrpos, hcpos, hcfin, hr0, hseq, hconv⟩
+  · rintro ν ⟨hν, hν0, rs, cs, hrpos, hcpos, hcfin, hr0, hconv⟩
     obtain ⟨lam, -, φ, hφ, hlam⟩ := (isCompact_univ (X := ℝ≥0∞)).tendsto_subseq
       (x := fun i ↦ cs i * ENNReal.ofReal (rs i ^ s)) (fun i ↦ mem_univ _)
     have hrpos' : ∀ j, 0 < rs (φ j) := fun j ↦ hrpos _
     have hr0' : Tendsto (fun j ↦ rs (φ j)) atTop (𝓝 0) := hr0.comp hφ.tendsto_atTop
-    have hconv' : OuterMeasure.WeaklyConverges
-        (fun j ↦ cs (φ j) • OuterMeasure.map (blowUpMap a (rs (φ j))) μ) ν
-        (fun j ↦ hseq (φ j)) hν := hconv.comp hφ.tendsto_atTop
+    have hconv' : Measure.WeaklyConverges
+        (fun j ↦ cs (φ j) • Measure.map (blowUpMap a (rs (φ j))) μ) ν :=
+        hconv.comp hφ.tendsto_atTop
+    have hseq' : ∀ j, Measure.Regular (cs (φ j) • Measure.map (blowUpMap a (rs (φ j))) μ) :=
+      fun j ↦ regular_smul_map_blowUp hμ a (hrpos _).ne' (hcfin _)
     have hlamfin : lam ≠ ∞ :=
-      tangent_scaling_lt_top hd ht hr₀ ha hlower hrpos' hr0' hlam hconv'
+      tangent_scaling_lt_top hd ht hr₀ ha hlower hrpos' hr0' hlam hseq' hν hconv'
     have hlampos : 0 < lam :=
-      tangent_scaling_pos hd hr₀ ha hupper hrpos' hr0' hlam hν0 hconv'
+      tangent_scaling_pos hd hr₀ ha hupper hrpos' hr0' hlam hν0 hseq' hν hconv'
     refine ⟨ENNReal.ofReal d * lam, ?_, ?_, ?_⟩
     · exact ENNReal.mul_pos (ENNReal.ofReal_pos.2 hd).ne' hlampos.ne'
     · exact ENNReal.mul_ne_top ENNReal.ofReal_ne_top hlamfin
     · intro x hx ρ hρ
       have hnear : ∀ ε : ℝ, 0 < ε → ∀ᶠ j in atTop,
-          ∃ y ∈ SupportOuterMeasure μ, dist y (a + rs (φ j) • x) < rs (φ j) * ε :=
-        fun ε hε ↦ tangent_exists_nearby_support_point hrpos' hconv' hx hε
-      have hup := tangent_closedBall_le hd.le hr₀ hupper hrpos' hr0' hlam hlamfin hconv'
+          ∃ y ∈ Measure.support μ, dist y (a + rs (φ j) • x) < rs (φ j) * ε :=
+        fun ε hε ↦ tangent_exists_nearby_support_point hrpos' hseq' hν hconv' hx hε
+      have hup := tangent_closedBall_le hd.le hr₀ hupper hrpos' hr0' hlam hlamfin hseq' hν hconv'
         hnear hρ
       have hlo := le_tangent_closedBall hd.le ht.le hr₀ hlower hrpos' hr0' hlam hlamfin
-        hconv' hnear hρ
+        hseq' hν hconv' hnear hρ
       constructor
       · refine le_trans (le_of_eq ?_) hlo
         rw [ENNReal.ofReal_mul (mul_nonneg ht.le hd.le), ENNReal.ofReal_mul ht.le]
