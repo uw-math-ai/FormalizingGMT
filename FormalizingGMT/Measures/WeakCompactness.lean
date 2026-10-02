@@ -16,7 +16,7 @@ import Mathlib.Tactic.FunProp
 import Mathlib.Tactic.GCongr
 import Mathlib.Tactic.NormNum
 import Mathlib.Tactic.Positivity
-import FormalizingGMT.«Project Versions».Measures.WeakConvergence
+import FormalizingGMT.Measures.WeakConvergence
 
 /-!
 # Weak compactness for Radon measures

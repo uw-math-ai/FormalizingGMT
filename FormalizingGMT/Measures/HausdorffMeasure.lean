@@ -1,7 +1,7 @@
 import Mathlib.MeasureTheory.Measure.Hausdorff
-import FormalizingGMT.«Project Versions».Measures.Basic
-import FormalizingGMT.«Project Versions».Measures.Thm1_7
-import FormalizingGMT.«Project Versions».Densities.Basic
+import FormalizingGMT.Measures.Basic
+import FormalizingGMT.Measures.RestrictionFiniteMeasure
+import FormalizingGMT.Densities.Basic
 
 open scoped BigOperators Real Nat Classical Pointwise
 open MeasureTheory MeasureTheory.OuterMeasure Set

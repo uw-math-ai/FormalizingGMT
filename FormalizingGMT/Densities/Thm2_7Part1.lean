@@ -8,9 +8,9 @@ import Mathlib.Data.PNat.Basic
 import Mathlib.Tactic
 
 /- Necessary basic definitions -/
-import FormalizingGMT.«Project Versions».Measures.Basic
-import FormalizingGMT.«Project Versions».Densities.Basic
-import FormalizingGMT.«Project Versions».Measures.HausdorffMeasure
+import FormalizingGMT.Measures.Basic
+import FormalizingGMT.Densities.Basic
+import FormalizingGMT.Measures.HausdorffMeasure
 
 /-!
 # Theorem 2.7, part I: the lower density bound

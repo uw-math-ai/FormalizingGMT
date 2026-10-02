@@ -2,8 +2,8 @@ import Mathlib.MeasureTheory.Measure.Support
 import Mathlib.MeasureTheory.Covering.Besicovitch
 import Mathlib.MeasureTheory.Covering.BesicovitchVectorSpace
 import Mathlib.MeasureTheory.Covering.Differentiation
-import FormalizingGMT.«Project Versions».Measures.WeakCompactness
-import FormalizingGMT.«Project Versions».Densities.Basic
+import FormalizingGMT.Measures.WeakCompactness
+import FormalizingGMT.Densities.Basic
 open MeasureTheory Metric Set Filter
 open Topology
 open scoped ENNReal NNReal

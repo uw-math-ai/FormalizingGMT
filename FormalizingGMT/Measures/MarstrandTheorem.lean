@@ -1,4 +1,4 @@
-import FormalizingGMT.«Project Versions».Measures.TangentMeasures
+import FormalizingGMT.Measures.TangentMeasures
 import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
 import Mathlib.MeasureTheory.Function.L2Space
 

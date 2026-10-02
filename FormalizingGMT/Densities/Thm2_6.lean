@@ -8,8 +8,8 @@ import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 import Mathlib.Tactic
 
 /- Necessary basic definitions -/
-import FormalizingGMT.«Project Versions».Measures.HausdorffMeasure
-import FormalizingGMT.«Project Versions».Densities.Basic
+import FormalizingGMT.Measures.HausdorffMeasure
+import FormalizingGMT.Densities.Basic
 
 
 /-!

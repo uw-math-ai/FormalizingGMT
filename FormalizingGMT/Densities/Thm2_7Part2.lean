@@ -6,10 +6,10 @@ import Mathlib.MeasureTheory.Measure.Hausdorff
 import Mathlib.Tactic
 
 /- Necessary basic definitions -/
-import FormalizingGMT.«Project Versions».Measures.Basic
-import FormalizingGMT.«Project Versions».Densities.Basic
-import FormalizingGMT.«Project Versions».Measures.HausdorffMeasure
-import FormalizingGMT.«Project Versions».Thm1_25_VariantVitali
+import FormalizingGMT.Measures.Basic
+import FormalizingGMT.Densities.Basic
+import FormalizingGMT.Measures.HausdorffMeasure
+import FormalizingGMT.Thm1_25_VariantVitali
 
 /-!
 # Theorem 2.7, part II: the upper density bound
