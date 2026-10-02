@@ -27,14 +27,7 @@ Let `X` be a locally compact, Hausdorff, second countable topological space equi
 Borel σ-algebra, let `μ` be a measure on `X`, and let `E ⊆ X` satisfy `μ E < ∞`.  Then the
 restriction `μ.restrict E` belongs to Mathlib's class `MeasureTheory.Measure.Regular`, i.e. it is
 outer regular by open sets and inner regular by compact sets on open (indeed, on finite-measure
-measurable) sets.
-
-**Note on the hypotheses.** Local compactness together with the Hausdorff property is *not*
-sufficient: on the compact Hausdorff ordinal space `[0, ω₁]` the Dieudonné measure is a Borel
-probability measure that fails to be outer regular.  A countability hypothesis is therefore
-needed, and we use second countability: a locally compact, Hausdorff, second countable space is
-regular (T3), hence metrizable, and it is σ-compact, so every finite — indeed every locally
-finite — Borel measure on it is regular. -/
+measurable) sets.-/
 theorem BorelRegularOuterMeasure.restrict_isRadon
     [LocallyCompactSpace X] [T2Space X] [SecondCountableTopology X]
     (E : Set X) (hE_fin : μ E < ⊤) :
@@ -119,9 +112,7 @@ Borel σ-algebra and let `μ` be a measure on `X`.  Let `E ⊆ X` be Carathéodo
 with `μ E < ∞` and let `ε > 0`.  If there are open sets `V i` with `E ⊆ ⋃ i, V i` and
 `μ (V i) < ∞` for all `i`, then there is an open set `F ⊇ E` with `μ (F \ E) < ε`.
 
-Reference: Mattila's book, Theorem 1.10 (2), page 11; it is proved by applying
-`BorelRegularOuterMeasure.restrict_isRadon` to each of the sets `V i`.  As in the original
-statement, the hypothesis `μ E < ∞` is kept although the proof does not use it. -/
+Reference: Mattila's book, Theorem 1.10 (2), page 11. -/
 theorem open_approx_of_isBorelRegular
     (μ : Measure X) (E : Set X) (hE : μ.toOuterMeasure.IsCaratheodory E)
     (_hEfin : μ E < ∞)
