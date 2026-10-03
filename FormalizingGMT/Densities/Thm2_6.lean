@@ -62,7 +62,9 @@ lemma hausdorff_trim_eq (s : ℝ) :
 
 lemma hausdorff_measure_eq_outer (s : ℝ) (S : Set X) :
     μH[s] S = (Hs_outer (X := X) s) S := by
-  convert congr_arg ( fun μ : MeasureTheory.OuterMeasure X => μ S ) ( hausdorff_trim_eq s ) using 1
+  change (MeasureTheory.Measure.hausdorffMeasure s).toOuterMeasure S = _
+  rw [MeasureTheory.Measure.hausdorffMeasure,
+    MeasureTheory.Measure.mkMetric_toOuterMeasure]
 
 /-! ## Step (e): Inner approximation by closed sets -/
 
@@ -214,19 +216,28 @@ lemma tsum_restrict_le_of_disjoint (s : ℝ)
     rw [ MeasureTheory.measure_iUnion ];
     · exact fun x y hxy => hρ_disj x.2 y.2 ( Subtype.coe_injective.ne hxy );
     · exact fun x => measurableSet_closedBall;
-  convert h_measure_iUnion.le.trans _;
-  · convert h_measure_iUnion.symm using 1;
-    congr! 2;
-    rw [ MeasureTheory.Measure.restrict_apply ];
-    · rw [ Set.inter_comm, hausdorff_measure_eq_outer ];
-    · exact measurableSet_closedBall;
-  · rw [ ← h_measure_iUnion, MeasureTheory.Measure.restrict_apply ];
-    · refine' le_trans _ ( MeasureTheory.measure_mono _ );
-      convert le_rfl;
-      · exact funext fun x => hausdorff_measure_eq_outer s x ▸ rfl;
-      · simp_all +decide [ Set.subset_def ];
-        exact fun x y hy hxy hx => hρ_ball y hy x hxy;
-    · exact MeasurableSet.iUnion fun x => measurableSet_closedBall
+  calc
+    ∑' x : u, (Hs_outer s) (E ∩ closedBall (x : X) (ρ x)) =
+        ∑' x : u, (MeasureTheory.Measure.restrict
+          (MeasureTheory.Measure.hausdorffMeasure s) E) (closedBall (x : X) (ρ x)) := by
+      apply tsum_congr
+      intro x
+      rw [MeasureTheory.Measure.restrict_apply measurableSet_closedBall,
+        Set.inter_comm, hausdorff_measure_eq_outer]
+    _ = (MeasureTheory.Measure.restrict
+          (MeasureTheory.Measure.hausdorffMeasure s) E)
+          (⋃ x : u, closedBall (x : X) (ρ x)) := h_measure_iUnion.symm
+    _ = MeasureTheory.Measure.hausdorffMeasure s
+          ((⋃ x : u, closedBall (x : X) (ρ x)) ∩ E) := by
+      rw [MeasureTheory.Measure.restrict_apply]
+      exact MeasurableSet.iUnion fun x => measurableSet_closedBall
+    _ ≤ MeasureTheory.Measure.hausdorffMeasure s (E \ K) := by
+      apply MeasureTheory.measure_mono
+      intro z hz
+      refine ⟨hz.2, ?_⟩
+      obtain ⟨x, hx⟩ := Set.mem_iUnion.mp hz.1
+      exact hρ_ball x x.2 hx
+    _ = (Hs_outer s) (E \ K) := hausdorff_measure_eq_outer s (E \ K)
 
 lemma vitali_cover_at_scale (s : ℝ) (hs : 0 ≤ s)
     {E : Set X}
@@ -291,9 +302,9 @@ lemma vitali_cover_at_scale (s : ℝ) (hs : 0 ≤ s)
     -- Combine
     calc ENNReal.ofReal ((5 : ℝ) ^ s) * ∑' x : u, ENNReal.ofReal ((2 * ρ ↑x) ^ s)
         ≤ ENNReal.ofReal ((5 : ℝ) ^ s) * (t⁻¹ * ∑' x : u, (Hs_outer s) (E ∩ closedBall (↑x) (ρ ↑x))) :=
-          mul_le_mul_left' h_dens_bound _
+          mul_le_mul_right h_dens_bound _
       _ ≤ ENNReal.ofReal ((5 : ℝ) ^ s) * (t⁻¹ * (Hs_outer s) (E \ K)) :=
-          mul_le_mul_left' (mul_le_mul_left' h_disj_bound _) _
+          mul_le_mul_right (mul_le_mul_right h_disj_bound _) _
       _ = ENNReal.ofReal ((5 : ℝ) ^ s) * t⁻¹ * (Hs_outer s) (E \ K) := by ring
 
 /-! ## Hausdorff measure bound from scale covers -/
@@ -315,7 +326,15 @@ lemma hausdorffMeasure_le_of_scale_covers {d : ℝ} (hd : 0 ≤ d)
   contrapose! this;
   choose T hT r hr₁ hr₂ hr₃ using h;
   refine' ⟨ X, inferInstance, inferInstance, inferInstance, ℕ, fun k => T k, _, d, S, Filter.atTop, fun k => ENNReal.ofReal ( 2 / ( k + 1 ) ), _, _ ⟩ <;> simp_all +decide [ div_eq_mul_inv ];
-  · convert ENNReal.Tendsto.const_mul ( ENNReal.tendsto_ofReal ( tendsto_inv_atTop_zero.comp ( Filter.tendsto_atTop_add_const_right _ _ tendsto_natCast_atTop_atTop ) ) ) _ using 1 <;> norm_num;
+  · have h_inv : Tendsto (fun k : ℕ => ((k : ℝ) + 1)⁻¹) atTop (𝓝 0) :=
+      tendsto_inv_atTop_zero.comp
+        (Filter.tendsto_atTop_add_const_right _ _ tendsto_natCast_atTop_atTop)
+    have h_ofReal : Tendsto
+        (fun k : ℕ => ENNReal.ofReal (((k : ℝ) + 1)⁻¹)) atTop (𝓝 0) := by
+      simpa using ENNReal.tendsto_ofReal h_inv
+    have h_scaled := ENNReal.Tendsto.const_mul h_ofReal
+      (Or.inr (by norm_num : (2 : ℝ≥0∞) ≠ ⊤))
+    simpa only [div_eq_mul_inv, mul_zero] using h_scaled
   · refine' ⟨ fun k x => Metric.closedBall x ( r k x ), _, _, _ ⟩;
     · refine' ⟨ 0, fun k hk x hx => _ ⟩;
       refine' le_trans ( Metric.ediam_le_of_forall_dist_le _ ) _;
@@ -360,11 +379,14 @@ theorem A_t_null (s : ℝ) (hs : 0 ≤ s)
       obtain ⟨T, hT_countable, r, hT_cover, hT_radius, hT_gauge⟩ := vitali_cover_at_scale s hs hE_meas ht ht_top hK_closed hK_sub k
       use T, hT_countable, r
       exact ⟨hT_cover, hT_radius, by
-        exact hT_gauge.trans ( mul_le_mul_left' hK_fin.le _ )⟩;
+        exact hT_gauge.trans (mul_le_mul_right hK_fin.le _)⟩;
     -- Let ε → 0.
     have h_zero : Filter.Tendsto (fun ε : ℝ≥0∞ => ENNReal.ofReal ((5 : ℝ) ^ s) * t⁻¹ * ε) (nhdsWithin 0 (Set.Ioi 0)) (nhds 0) := by
-      convert ENNReal.Tendsto.const_mul ( Filter.tendsto_id.mono_left inf_le_left ) _ using 1 ; aesop;
-      exact Or.inr ( ENNReal.mul_ne_top ( ENNReal.ofReal_ne_top ) ( ENNReal.inv_ne_top.mpr ht.ne' ) );
+      have hconst : ENNReal.ofReal ((5 : ℝ) ^ s) * t⁻¹ ≠ ⊤ :=
+        ENNReal.mul_ne_top ENNReal.ofReal_ne_top (ENNReal.inv_ne_top.mpr ht.ne')
+      have hid : Tendsto (fun ε : ℝ≥0∞ => ε) (nhdsWithin 0 (Set.Ioi 0)) (𝓝 0) :=
+        Filter.tendsto_id.mono_left inf_le_left
+      simpa using ENNReal.Tendsto.const_mul hid (Or.inr hconst)
     exact le_of_tendsto_of_tendsto tendsto_const_nhds h_zero ( Filter.eventually_of_mem self_mem_nhdsWithin fun ε hε => h_bound ε hε );
   · exact bot_le
 

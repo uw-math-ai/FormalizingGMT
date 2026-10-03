@@ -36,7 +36,7 @@ def doublingVitaliFamily
 /-- The s-dimensional density limsup of the integral of `‖f‖` over balls. -/
 def integralDensityLimsup (μ : Measure X) (f : X → ℝ) (s : ℝ) (x : X) : ℝ≥0∞ :=
   Filter.limsup
-    (fun r => (∫⁻ y in closedBall x r, ‖f y‖₊ ∂μ) / ENNReal.ofReal (r ^ s))
+    (fun r => (∫⁻ y in closedBall x r, ‖f y‖ₑ ∂μ) / ENNReal.ofReal (r ^ s))
     (𝓝[>] (0 : ℝ))
 
 /-- The set `Λ_s` where the density limsup is positive. -/
@@ -80,28 +80,28 @@ lemma ae_integralDensityLimsup_eq_zero
     ∀ᵐ x ∂μ, integralDensityLimsup μ f s x = 0 := by
   have := @VitaliFamily.ae_tendsto_lintegral_enorm_sub_div X
   specialize this ( doublingVitaliFamily μ ) hf
-  have h_le : ∀ᵐ x ∂μ, ∀ᶠ r in 𝓝[>] (0 : ℝ), (∫⁻ y in closedBall x r, ‖f y‖₊ ∂μ) ≤ (‖f x‖₊ + 1) * μ (closedBall x r) := by
+  have h_le : ∀ᵐ x ∂μ, ∀ᶠ r in 𝓝[>] (0 : ℝ), (∫⁻ y in closedBall x r, ‖f y‖ₑ ∂μ) ≤ (‖f x‖ₑ + 1) * μ (closedBall x r) := by
     filter_upwards [ this ] with x hx
-    have h_le : ∀ᶠ r in 𝓝[>] (0 : ℝ), (∫⁻ y in closedBall x r, ‖f y - f x‖₊ ∂μ) ≤ μ (closedBall x r) := by
-      have h_le : ∀ᶠ r in 𝓝[>] (0 : ℝ), (∫⁻ y in closedBall x r, ‖f y - f x‖₊ ∂μ) / μ (closedBall x r) ≤ 1 := by
+    have h_le : ∀ᶠ r in 𝓝[>] (0 : ℝ), (∫⁻ y in closedBall x r, ‖f y - f x‖ₑ ∂μ) ≤ μ (closedBall x r) := by
+      have h_le : ∀ᶠ r in 𝓝[>] (0 : ℝ), (∫⁻ y in closedBall x r, ‖f y - f x‖ₑ ∂μ) / μ (closedBall x r) ≤ 1 := by
         have := hx.comp ( tendsto_closedBall_doublingVitali_filterAt x )
-        filter_upwards [ this.eventually ( ge_mem_nhds zero_lt_one ) ] with r hr using by simpa [ ← ENNReal.coe_le_coe ] using hr
+        filter_upwards [ this.eventually ( ge_mem_nhds zero_lt_one ) ] with r hr using by simpa using hr
       filter_upwards [ h_le, self_mem_nhdsWithin ] with r hr hr'
       rw [ ENNReal.div_le_iff_le_mul ] at hr <;> aesop
     filter_upwards [ h_le, self_mem_nhdsWithin ] with r hr hr'
-    have h_le : ∫⁻ y in closedBall x r, ‖f y‖₊ ∂μ ≤ ∫⁻ y in closedBall x r, (‖f y - f x‖₊ + ‖f x‖₊) ∂μ := by
+    have h_le : ∫⁻ y in closedBall x r, ‖f y‖ₑ ∂μ ≤ ∫⁻ y in closedBall x r, (‖f y - f x‖ₑ + ‖f x‖ₑ) ∂μ := by
       refine' MeasureTheory.lintegral_mono_ae _
-      filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_closedBall ] with y hy using mod_cast by simpa using norm_add_le ( f y - f x ) ( f x ) ;
+      filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_closedBall ] with y hy using by simpa using enorm_add_le ( f y - f x ) ( f x )
     rw [ MeasureTheory.lintegral_add_right' ] at h_le <;> simp_all +decide [ add_mul ]
     exact h_le.trans ( by rw [ add_comm ] ; gcongr )
   filter_upwards [ hdim, h_le ] with x hx₁ hx₂
   have h_le : ∀ᶠ r in 𝓝[>] (0 : ℝ),
-  (∫⁻ y in closedBall x r, ‖f y‖₊ ∂μ) / ENNReal.ofReal (r ^ s) ≤ (‖f x‖₊ + 1) * (μ (closedBall x r)
+  (∫⁻ y in closedBall x r, ‖f y‖ₑ ∂μ) / ENNReal.ofReal (r ^ s) ≤ (‖f x‖ₑ + 1) * (μ (closedBall x r)
   / ENNReal.ofReal (r ^ s)) := by
     filter_upwards [ hx₂ ] with r hr
     rw [ mul_div ]
     gcongr;
-  have h_le : Filter.Tendsto (fun r => (‖f x‖₊ + 1) * (μ (closedBall x r) / ENNReal.ofReal (r ^ s))) (𝓝[>] (0 : ℝ)) (𝓝 0) := by
+  have h_le : Filter.Tendsto (fun r => (‖f x‖ₑ + 1) * (μ (closedBall x r) / ENNReal.ofReal (r ^ s))) (𝓝[>] (0 : ℝ)) (𝓝 0) := by
     convert ENNReal.Tendsto.const_mul hx₁ _ using 1 <;> norm_num;
   exact Filter.Tendsto.limsup_eq ( tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds h_le ( Filter.eventually_of_mem ‹_› fun r hr => zero_le ) ( Filter.eventually_of_mem ‹_› fun r hr => hr ) )
 
@@ -213,8 +213,9 @@ lemma vitali_countable_covering
       u.PairwiseDisjoint (fun x => closedBall x (rad x)) ∧
       S ⊆ ⋃ x ∈ u, closedBall x (4 * rad x) := by
   obtain ⟨u, hu⟩ : ∃ (u : Set X), u ⊆ S ∧ (u.PairwiseDisjoint (fun x => closedBall x (rad x))) ∧ ∀ x ∈ S, ∃ b ∈ u, (closedBall x (rad x)) ⊆ (closedBall b (4 * rad b)) := by
-    have := @Vitali.exists_disjoint_subfamily_covering_enlargement_closedBall
-    convert this S id rad R hR 4 ( by norm_num ) using 1
+    simpa only [id_eq] using
+      (Vitali.exists_disjoint_subfamily_covering_enlargement_closedBall
+        S id rad R hR 4 (by norm_num))
   refine' ⟨ u, hu.1, _, hu.2.1, _ ⟩
   · have h_interior : ∀ x ∈ u, (interior (closedBall x (rad x))).Nonempty := by
       exact fun x hx => ⟨ x, mem_interior_iff_mem_nhds.mpr ( Metric.closedBall_mem_nhds _ ( hrad x ( hu.1 hx ) ) ) ⟩
@@ -329,7 +330,7 @@ lemma hausdorff_measure_zero_of_ball_integral_bound
         rw [ ← ENNReal.tsum_mul_left ]
         refine' lt_of_le_of_lt ( ENNReal.tsum_le_tsum fun i => le_of_lt ( hrad i ( hu_sub i.2 ) |>.2.2.2 ) ) ( lt_of_le_of_lt h_sum_le_integral hU_int )
       contrapose! h_sum_le_integral
-      simpa only [ one_div, ENNReal.inv_mul_cancel ( by aesop : ( C + 1 ) * ( n + 1 : ENNReal ) ≠ 0 ) ( by aesop : ( C + 1 ) * ( n + 1 : ENNReal ) ≠ ⊤ ) ] using mul_le_mul_left' h_sum_le_integral ε
+      simpa only [ div_eq_mul_inv, one_div, one_mul, ENNReal.inv_mul_cancel ( by aesop : ( C + 1 ) * ( n + 1 : ENNReal ) ≠ 0 ) ( by aesop : ( C + 1 ) * ( n + 1 : ENNReal ) ≠ ⊤ ) ] using mul_le_mul_right h_sum_le_integral ε
     have h_sum_le_integral :
         ∑' i : u, Metric.ediam (closedBall (i : X) (4 * rad i)) ^ s
           ≤ C * ∑' i : u, ENNReal.ofReal (rad i ^ s) := by
@@ -337,7 +338,7 @@ lemma hausdorff_measure_zero_of_ball_integral_bound
       exact ENNReal.tsum_le_tsum fun i =>
         ediam_four_ball_rpow_le (show (0 : ℝ) < rad i from (hrad i (hu_sub i.2)).1) hs
     refine le_trans h_sum_le_integral ?_
-    refine' le_trans ( mul_le_mul_left' ( le_of_lt ‹_› ) _ ) _
+    refine' le_trans ( mul_le_mul_right ( le_of_lt ‹_› ) _ ) _
     rw [ mul_one_div, ENNReal.div_le_iff_le_mul ] <;> norm_num
     · rw [ mul_left_comm, ENNReal.ofReal_inv_of_pos ]
       · rw [ ENNReal.ofReal_add ] <;> norm_num
@@ -362,13 +363,12 @@ lemma hausdorff_integralDensitySetAbove_zero_of_integrable
     (measure_integralDensitySetAbove_eq_zero hμ hf_loc hs hdim ε hε) hμ
     (ne_of_lt hf_int.2) hs hε
   intro x hx δ hδ
-  have hfreq : ∃ᶠ r in 𝓝[>] (0 : ℝ), ε < (∫⁻ y in closedBall x r, ‖f y‖₊ ∂μ) / ENNReal.ofReal (r ^ s) := by
+  have hfreq : ∃ᶠ r in 𝓝[>] (0 : ℝ), ε < (∫⁻ y in closedBall x r, ‖f y‖ₑ ∂μ) / ENNReal.ofReal (r ^ s) := by
     apply Filter.frequently_lt_of_lt_limsup _ hx
     exact isCoboundedUnder_le_of_le _ (fun _ => OrderBot.bot_le _)
   obtain ⟨r, ⟨hrε, hr⟩⟩ := (hfreq.and_eventually (Ioo_mem_nhdsGT hδ)).exists
   refine ⟨r, hr.1, hr.2, ?_⟩
   have h1 := ENNReal.mul_lt_of_lt_div hrε
-  simp only [← enorm_eq_nnnorm] at h1
   exact h1
 
 lemma hausdorff_measure_integralDensitySetAbove_zero
@@ -398,7 +398,7 @@ lemma hausdorff_measure_integralDensitySetAbove_zero
   have h_zero_measure : ∀ n, μH[s] ({x | ε < integralDensityLimsup μ f s x} ∩ U n) = 0 := by
     intro n
     have h_integrable : IntegrableOn f (U n) μ := hU.right.left n
-    have h_indicator : ∀ x ∈ U n, ∀ᶠ r in 𝓝[>] 0, ∫⁻ y in closedBall x r, ‖f y‖₊ ∂μ = ∫⁻ y in closedBall x r, ‖(U n).indicator f y‖₊ ∂μ := by
+    have h_indicator : ∀ x ∈ U n, ∀ᶠ r in 𝓝[>] 0, ∫⁻ y in closedBall x r, ‖f y‖ₑ ∂μ = ∫⁻ y in closedBall x r, ‖(U n).indicator f y‖ₑ ∂μ := by
       intro x hx
       obtain ⟨r, hr_pos, hr_ball⟩ : ∃ r > 0, Metric.closedBall x r ⊆ U n := by
         exact Metric.nhds_basis_closedBall.mem_iff.mp ( hU.1 n |> IsOpen.mem_nhds <| hx )

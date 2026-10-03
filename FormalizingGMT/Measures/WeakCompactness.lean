@@ -56,14 +56,18 @@ private theorem exists_exhaustion_bounds_cutoffs {n : ℕ}
     (⟨f m, hf_compact m⟩ : C_c(EuclideanSpace ℝ (Fin n), ℝ)).nnrealPart
   refine ⟨K, B, cutoff, hB, ?_, ?_, ?_⟩
   · intro m x hx
-    simp [cutoff, hf_one m hx]
+    change (f m x).toNNReal = 1
+    rw [hf_one m hx]
+    norm_num
   · intro m
     apply (closure_mono ?_).trans (hf_support m)
     intro x hx
     simp only [Function.mem_support, ne_eq] at hx ⊢
     intro hfx
     apply hx
-    simp [cutoff, hfx]
+    change (f m x).toNNReal = 0
+    rw [hfx]
+    norm_num
   · intro m x
     simp only [cutoff, CompactlySupportedContinuousMap.nnrealPart_apply]
     exact Real.toNNReal_le_iff_le_coe.mpr (hf_range m x).2
@@ -371,8 +375,8 @@ private theorem exists_tendsto_subseq_of_mass_le_of_compl_le
       change (ν (ψ (θ i + N))).mass •
           (ν (ψ (θ i + N))).normalize.toFiniteMeasure = ν (ψ (θ i + N))
       exact (ν (ψ (θ i + N))).self_eq_mass_smul_normalize.symm
-    simpa only [Function.comp_apply] using
-      hsmul.congr' (Eventually.of_forall hseq)
+    change Tendsto (fun i ↦ ν (φ i)) atTop (𝓝 νlim)
+    exact hsmul.congr' (Eventually.of_forall hseq)
 
 private theorem inverse_density_transfer
     {X : Type*} [PseudoMetricSpace X] [LocallyCompactSpace X] [SigmaCompactSpace X]

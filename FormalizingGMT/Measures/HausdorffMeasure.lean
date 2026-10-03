@@ -68,7 +68,7 @@ a countability assumption is needed (local compactness and the Hausdorff propert
 suffice for regularity), and we use second countability.  The hypotheses `0 ≤ s` and the
 Carathéodory measurability of `E` are part of the standard statement but are not needed for the
 conclusion, which only uses the finiteness of `μH[s] E`. -/
-instance HausdorffRestrict.toRadonOuterMeasure [SecondCountableTopology X]
+theorem HausdorffRestrict.toRadonOuterMeasure [SecondCountableTopology X]
     (s : ℝ) (hs : 0 ≤ s) (E : Set X)
     (hE_meas : MeasurableSet[
       (OuterMeasure.mkMetric (X := X) (fun r => r ^ s)).caratheodory] E)

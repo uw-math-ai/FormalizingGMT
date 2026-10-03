@@ -140,7 +140,8 @@ private theorem weaklyConverges_imp_compactOpenBounds
         Tendsto (fun k ↦ ENNReal.ofReal (∫ x, f x ∂μ k)) atTop
           (𝓝 (ENNReal.ofReal (∫ x, f x ∂ν))) := by
       apply ENNReal.continuous_ofReal.continuousAt.tendsto.comp
-      simpa only [fc] using h fc
+      have hfc : (fun x => fc x) = f := rfl
+      simpa only [hfc] using h fc
     calc
       atTop.limsup (fun k ↦ μ k K) ≤
           atTop.limsup (fun k ↦ ENNReal.ofReal (∫ x, f x ∂μ k)) := by
@@ -165,7 +166,8 @@ private theorem weaklyConverges_imp_compactOpenBounds
         Tendsto (fun k ↦ ENNReal.ofReal (∫ x, f x ∂μ k)) atTop
           (𝓝 (ENNReal.ofReal (∫ x, f x ∂ν))) := by
       apply ENNReal.continuous_ofReal.continuousAt.tendsto.comp
-      simpa only [fc] using h fc
+      have hfc : (fun x => fc x) = f := rfl
+      simpa only [hfc] using h fc
     calc
       ν K ≤ ENNReal.ofReal (∫ x, f x ∂ν) := by
         exact f.continuous.integrable_of_hasCompactSupport hf_compact |>.measure_le_integral
@@ -270,9 +272,12 @@ private theorem compactOpenBounds_imp_weaklyConverges
   have hO_tendsto : Tendsto (fun k ↦ μ k O) atTop (𝓝 (ν O)) :=
     compactOpenBounds_imp_boundedContinuitySets μ ν h O hO_bounded hO_meas hO_frontier
   have hmass : Tendsto (fun k ↦ (μO k).mass) atTop (𝓝 νO.mass) := by
-    apply ENNReal.tendsto_coe.mp
-    simpa only [FiniteMeasure.ennreal_mass, μO, νO, FiniteMeasure.toMeasure_mk,
-      Measure.restrict_apply_univ] using hO_tendsto
+    have hO_mass : Tendsto (fun k ↦ ((μO k).mass : ℝ≥0∞)) atTop
+        (𝓝 (νO.mass : ℝ≥0∞)) := by
+      simp_rw [FiniteMeasure.ennreal_mass]
+      simpa only [μO, νO, FiniteMeasure.toMeasure_mk,
+        Measure.restrict_apply_univ] using hO_tendsto
+    exact ENNReal.tendsto_coe.mp hO_mass
   have hfinite : Tendsto μO atTop (𝓝 νO) :=
     finiteMeasure_tendsto_of_open_liminf_of_mass_tendsto μO νO hopen hmass
   have hintegral :=
@@ -284,7 +289,12 @@ private theorem compactOpenBounds_imp_weaklyConverges
       ∫ x, f.toBoundedContinuousFunction x ∂m.restrict O =
         ∫ x, f.toBoundedContinuousFunction x ∂m :=
     setIntegral_eq_integral_of_forall_compl_eq_zero hf_zero
-  simpa only [μO, νO, FiniteMeasure.toMeasure_mk, hrestrict] using hintegral
+  have hintegral' :
+      Tendsto (fun k ↦ ∫ x, f.toBoundedContinuousFunction x ∂μ k) atTop
+        (𝓝 (∫ x, f.toBoundedContinuousFunction x ∂ν)) := by
+    simpa only [μO, νO, FiniteMeasure.toMeasure_mk, hrestrict] using hintegral
+  have hcoe : (fun x => f.toBoundedContinuousFunction x) = f := rfl
+  simpa only [hcoe] using hintegral'
 
 /-- Evans--Gariepy, Revised Edition, Theorem 1.40, equivalence of conditions (i) and (ii)
 for Radon measures on Euclidean space. -/

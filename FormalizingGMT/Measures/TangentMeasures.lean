@@ -1536,7 +1536,10 @@ theorem no_uniform_lower_bound_of_lt_dim {s : ℝ} (hsn : s < n)
   have hρtend : Tendsto ρ atTop (𝓝 0) := by
     have h2 : Tendsto (fun k : ℕ ↦ ((k : ℝ) + 2)) atTop atTop :=
       tendsto_atTop_add_const_right _ 2 tendsto_natCast_atTop_atTop
-    simpa [hρ, one_div] using h2.inv_tendsto_atTop
+    rw [hρ]
+    convert h2.inv_tendsto_atTop using 1
+    funext k
+    simp only [one_div, Pi.inv_apply]
   have hpowtend : Tendsto (fun k ↦ ENNReal.ofReal (ρ k ^ ((n : ℝ) - s)) * K) atTop (𝓝 0) := by
     have hcont : ContinuousAt (fun x : ℝ ↦ x ^ ((n : ℝ) - s)) 0 :=
       Real.continuousAt_rpow_const 0 _ (Or.inr hexp.le)
@@ -1544,7 +1547,10 @@ theorem no_uniform_lower_bound_of_lt_dim {s : ℝ} (hsn : s < n)
       hcont.tendsto.comp hρtend
     rw [Real.zero_rpow hexp.ne'] at h1
     have h2 : Tendsto (fun k ↦ ENNReal.ofReal (ρ k ^ ((n : ℝ) - s))) atTop (𝓝 0) := by
-      simpa using (ENNReal.continuous_ofReal.tendsto 0).comp h1
+      convert (ENNReal.continuous_ofReal.tendsto 0).comp h1 using 1
+      · funext k
+        rfl
+      · simp
     simpa using ENNReal.Tendsto.mul_const h2 (Or.inr hKtop)
   have hle : c ≤ 0 :=
     ge_of_tendsto' hpowtend fun k ↦ hkey (ρ k) (hρ0 k) (hρ1 k)

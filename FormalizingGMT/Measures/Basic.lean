@@ -6,6 +6,7 @@ this file is actually used anywhere else in the project.
 
 import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 import Mathlib.Topology.Order.LiminfLimsup
 import Mathlib.Topology.Order.OrderClosed
 import Mathlib.Topology.Algebra.Order.LiminfLimsup

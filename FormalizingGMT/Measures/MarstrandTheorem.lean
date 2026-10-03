@@ -297,7 +297,10 @@ lemma measure_singleton_eq_zero {s : ℝ} {ν : Measure (EuclideanSpace ℝ (Fin
       have h2 : Tendsto (fun ρ : ℝ ↦ c * ρ ^ s) (𝓝[>] 0) (𝓝 (c * 0)) :=
         (h.mono_left nhdsWithin_le_nhds).const_mul c
       rw [mul_zero] at h2
-      simpa using (ENNReal.continuous_ofReal.tendsto 0).comp h2
+      convert (ENNReal.continuous_ofReal.tendsto 0).comp h2 using 1
+      · funext ρ
+        rfl
+      · simp
     refine le_antisymm (ge_of_tendsto htend ?_) (by simp)
     filter_upwards [self_mem_nhdsWithin] with ρ hρ
     rw [← hball x hx ρ hρ]
