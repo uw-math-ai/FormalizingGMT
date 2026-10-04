@@ -13,14 +13,17 @@ import FormalizingGMT.Densities.Basic
 
 
 /-!
-# Theorem 2.6: Density at points not in E
+# Technical lemmas for density bound for Hausdorff measure restricted to a set for points not in the set
 
-For a σ-compact metric space X, s ≥ 0, E ⊂ X Caratheodory measurable with H^s(E) < ∞,
-for H^s-almost every x ∈ X \ E:
+This file contains the definitions and technical lemmas used in the proof of
+`hausdorffMeasure_upperDensity_eq_zero_ae_notMem` (see
+`FormalizingGMT/Densities/HausdorffUpperDensityOutside.lean`):
 
-  lim sup_{r → 0⁺} H^s(E ∩ B(x, r)) / (2r)^s = 0
-
-where B(x, r) denotes the closed metric ball with center x and radius r.
+* the abbreviations `Hs_outer` and `Hs_restrict` and the sets `A_set s E t`,
+* the inner approximation of `E` by closed sets (`approx_by_closed_inside`),
+* the fine covers and the Vitali covering at each scale (`vitali_cover_at_scale`),
+* the bound of the Hausdorff measure by scale covers (`hausdorffMeasure_le_of_scale_covers`),
+* the key estimate `A_t_null`: `H^s(A_t) = 0` for every `0 < t < ∞`.
 -/
 
 open MeasureTheory Measure Metric Set Filter ENNReal
@@ -28,10 +31,9 @@ open scoped NNReal Topology
 
 
 
-
 /-! ## Abbreviations -/
 
-variable {X : Type*} [MetricSpace X] [SigmaCompactSpace X]
+variable {X : Type*} [MetricSpace X]
   [LocallyCompactSpace X] [SecondCountableTopology X]
   [MeasurableSpace X] [BorelSpace X]
 
@@ -49,16 +51,11 @@ noncomputable abbrev Hs_restrict (s : ℝ) (E : Set X) : OuterMeasure X :=
 def A_set (s : ℝ) (E : Set X) (t : ℝ≥0∞) : Set X :=
   {x ∈ Eᶜ | dimensional_upper_density (Hs_restrict s E) s x > t}
 
-omit [SigmaCompactSpace X] in
 lemma A_set_subset_compl {s : ℝ} {E : Set X} {t : ℝ≥0∞} :
     A_set s E t ⊆ Eᶜ :=
   fun _ hx => hx.1
 
 /-! ## Hausdorff measure equals outer measure -/
-
-lemma hausdorff_trim_eq (s : ℝ) :
-    (Hs_outer (X := X) s).trim = Hs_outer s :=
-  OuterMeasure.trim_mkMetric _
 
 lemma hausdorff_measure_eq_outer (s : ℝ) (S : Set X) :
     μH[s] S = (Hs_outer (X := X) s) S := by
@@ -154,7 +151,7 @@ lemma fine_cover_in_open
 /-! ## Countability of pairwise disjoint balls -/
 
 /-
-Pairwise disjoint closed balls with positive radii are countable in a σ-compact metric space.
+Pairwise disjoint closed balls with positive radii are countable in a locally compact, second countable metric space.
 -/
 lemma countable_of_pairwise_disjoint_balls
     {ι : Type*} {s : Set ι} {x : ι → X} {r : ι → ℝ}
@@ -183,14 +180,12 @@ At each scale k, construct a cover of A_t using the Vitali covering lemma.
     The covering gives balls of radius < 1/(k+1) with gauge sum ≤ 5^s/t · Hs(E\K).
     Steps (k)-(l) of the PDF proof.
 -/
-omit [SigmaCompactSpace X] in
 /-- Factor out 5^s from the gauge: (2 * (5 * ρ))^s = 5^s * (2 * ρ)^s -/
 lemma gauge_factor_five (s : ℝ) (ρ : ℝ) (hρ : 0 < ρ) :
     ENNReal.ofReal ((2 * (5 * ρ)) ^ s) =
     ENNReal.ofReal ((5 : ℝ) ^ s) * ENNReal.ofReal ((2 * ρ) ^ s) := by
   rw [ ← ENNReal.ofReal_mul ( by positivity ), ← Real.mul_rpow ( by positivity ) ( by positivity ), mul_comm ] ; ring
 
-omit [SigmaCompactSpace X] in
 /-- From the density condition t * a < b, derive a ≤ t⁻¹ * b. -/
 lemma density_bound_inv {t : ℝ≥0∞} (ht : 0 < t) (ht_top : t ≠ ⊤)
     {a b : ℝ≥0∞} (h : t * a < b) :
@@ -312,7 +307,7 @@ lemma vitali_cover_at_scale (s : ℝ) (hs : 0 ≤ s)
 /-
 The Hausdorff measure of a set is bounded by gauge sums of scale-k covers.
 -/
-omit [SigmaCompactSpace X] [LocallyCompactSpace X] [SecondCountableTopology X] in
+omit [LocallyCompactSpace X] [SecondCountableTopology X] in
 lemma hausdorffMeasure_le_of_scale_covers {d : ℝ} (hd : 0 ≤ d)
     {S : Set X} (bound : ℝ≥0∞)
     (h : ∀ k : ℕ,
@@ -389,25 +384,3 @@ theorem A_t_null (s : ℝ) (hs : 0 ≤ s)
       simpa using ENNReal.Tendsto.const_mul hid (Or.inr hconst)
     exact le_of_tendsto_of_tendsto tendsto_const_nhds h_zero ( Filter.eventually_of_mem self_mem_nhdsWithin fun ε hε => h_bound ε hε );
   · exact bot_le
-
-/-! ## Step (n): Main theorem -/
-
-/-
-**Theorem 2.6** (Density at points not in E).
-For a σ-compact metric space X, s ≥ 0, E ⊂ X Caratheodory-measurable with H^s(E) < ∞,
-for H^s-almost every x ∈ X \ E, the s-dimensional upper density of H^s|_E at x is 0.
--/
-theorem theorem2_6_density_at_points_not_in_E
-    {s : ℝ} (hs : 0 ≤ s) {E : Set X}
-    (hE_meas : MeasurableSet[(Hs_outer (X := X) s).caratheodory] E)
-    (hE_fin : (Hs_outer (X := X) s) E < ⊤) :
-    μH[s] {x | x ∉ E ∧
-      dimensional_upper_density (Hs_restrict s E) s x ≠ 0} = 0 := by
-  refine' MeasureTheory.measure_mono_null _ _;
-  exact ⋃ n : ℕ, A_set s E ( 1 / ( n + 1 ) );
-  · intro x hx; simp_all +decide [ A_set ] ;
-    rcases ENNReal.exists_inv_nat_lt hx.2 with ⟨ n, hn ⟩;
-    exact ⟨ n, lt_of_le_of_lt ( by simp ) hn ⟩;
-  · refine' MeasureTheory.measure_iUnion_null fun n => A_t_null s hs hE_meas hE_fin _ _;
-    · exact ENNReal.div_pos_iff.mpr ⟨ by norm_num, by norm_num ⟩;
-    · simp +decide
