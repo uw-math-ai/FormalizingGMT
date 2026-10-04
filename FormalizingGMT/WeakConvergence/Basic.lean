@@ -12,7 +12,7 @@ import Mathlib.MeasureTheory.Measure.Portmanteau
 import Mathlib.Order.LiminfLimsup
 import Mathlib.Topology.Bornology.Basic
 import Mathlib.Topology.MetricSpace.ProperSpace
-import FormalizingGMT.Measures.Basic
+import FormalizingGMT.RadonMeasures.Basic
 
 /-!
 # Weak convergence of Radon measures

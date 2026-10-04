@@ -13,9 +13,9 @@ import Mathlib.Data.PNat.Basic
 import Mathlib.Tactic
 
 /- Necessary basic definitions -/
-import FormalizingGMT.Measures.Basic
+import FormalizingGMT.RadonMeasures.Basic
 import FormalizingGMT.Densities.Basic
-import FormalizingGMT.Measures.HausdorffMeasure
+import FormalizingGMT.RadonMeasures.HausdorffMeasure
 import FormalizingGMT.Covering.VariantVitali
 
 /-!

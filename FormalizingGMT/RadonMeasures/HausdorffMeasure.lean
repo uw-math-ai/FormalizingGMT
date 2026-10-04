@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: FormalizingGMT contributors
 -/
 import Mathlib.MeasureTheory.Measure.Hausdorff
-import FormalizingGMT.Measures.Basic
-import FormalizingGMT.Measures.RestrictionFiniteMeasure
+import FormalizingGMT.RadonMeasures.Basic
+import FormalizingGMT.RadonMeasures.RestrictionFiniteMeasure
 import FormalizingGMT.Densities.Basic
 
 /-!

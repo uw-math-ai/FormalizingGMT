@@ -13,7 +13,7 @@ import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 import Mathlib.Tactic
 
 /- Necessary basic definitions -/
-import FormalizingGMT.Measures.HausdorffMeasure
+import FormalizingGMT.RadonMeasures.HausdorffMeasure
 import FormalizingGMT.Densities.Basic
 
 

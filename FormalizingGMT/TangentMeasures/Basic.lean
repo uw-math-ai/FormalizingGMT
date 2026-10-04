@@ -7,7 +7,7 @@ import Mathlib.MeasureTheory.Measure.Support
 import Mathlib.MeasureTheory.Covering.Besicovitch
 import Mathlib.MeasureTheory.Covering.BesicovitchVectorSpace
 import Mathlib.MeasureTheory.Covering.Differentiation
-import FormalizingGMT.Measures.WeakCompactness
+import FormalizingGMT.WeakConvergence.CompactnessCriterion
 import FormalizingGMT.Densities.Basic
 
 /-!

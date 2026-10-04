@@ -8,13 +8,12 @@ import FormalizingGMT.Densities.HausdorffUpperDensityOutside
 import FormalizingGMT.Densities.HausdorffUpperDensityOutsideLemmas
 import FormalizingGMT.Densities.HausdorffUpperDensityInside
 import FormalizingGMT.Densities.HausdorffUpperDensityInsideLemmas
-import FormalizingGMT.Measures.Basic
-import FormalizingGMT.Measures.HausdorffMeasure
-import FormalizingGMT.Measures.MarstrandTheorem
-import FormalizingGMT.Measures.RestrictionFiniteMeasure
-import FormalizingGMT.Measures.TangentMeasures
-import FormalizingGMT.Measures.WeakCompactness
-import FormalizingGMT.Measures.WeakConvergence
+import FormalizingGMT.RadonMeasures.Basic
+import FormalizingGMT.RadonMeasures.HausdorffMeasure
+import FormalizingGMT.MarstrandTheorem
+import FormalizingGMT.RadonMeasures.RestrictionFiniteMeasure
+import FormalizingGMT.TangentMeasures.TangentMeasures
+import FormalizingGMT.WeakConvergence.CompactnessCriterion
 import FormalizingGMT.Densities.SingularIntegralDensities
 import FormalizingGMT.Covering.VariantVitali
 
