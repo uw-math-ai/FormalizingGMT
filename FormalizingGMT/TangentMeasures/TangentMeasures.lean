@@ -7,7 +7,7 @@ import FormalizingGMT.TangentMeasures.Basic
 import FormalizingGMT.TangentMeasures.Doubling
 import FormalizingGMT.TangentMeasures.MatchingTangents
 import FormalizingGMT.TangentMeasures.DensityIneqToTangentsLemmas1
-import FormalizingGMT.TangentMeasures.DensityToTangentsLemmas2
+import FormalizingGMT.TangentMeasures.DensityIneqToTangentsLemmas2
 import FormalizingGMT.TangentMeasures.DensityIneqToTangents
 
 /-!
