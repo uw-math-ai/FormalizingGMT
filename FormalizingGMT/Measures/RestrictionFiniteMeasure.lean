@@ -1,20 +1,21 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import Mathlib.MeasureTheory.Measure.Regular
 import Mathlib.Topology.Metrizable.Urysohn
 
-open scoped BigOperators Real Nat Pointwise ENNReal
+/-!
+# Regularity and approximation for restrictions of finite measure
 
-open MeasureTheory MeasureTheory.OuterMeasure Set
+This file proves regularity of a measure restricted to a set of finite measure, together with
+closed inner approximations and open outer approximations of Carathéodory-measurable sets.
+-/
 
-set_option linter.style.setOption false
-set_option maxHeartbeats 8000000
-set_option maxRecDepth 4000
-set_option synthInstance.maxHeartbeats 20000
-set_option synthInstance.maxSize 128
+open scoped BigOperators ENNReal
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
-set_option grind.warning false
+open MeasureTheory Set
 
 /-! ## Regularity of the restriction of a measure to a set of finite measure -/
 
@@ -27,19 +28,15 @@ Let `X` be a locally compact, Hausdorff, second countable topological space equi
 Borel σ-algebra, let `μ` be a measure on `X`, and let `E ⊆ X` satisfy `μ E < ∞`.  Then the
 restriction `μ.restrict E` belongs to Mathlib's class `MeasureTheory.Measure.Regular`, i.e. it is
 outer regular by open sets and inner regular by compact sets on open (indeed, on finite-measure
-measurable) sets.-/
+measurable) sets. -/
 theorem BorelRegularOuterMeasure.restrict_isRadon
     [LocallyCompactSpace X] [T2Space X] [SecondCountableTopology X]
     (E : Set X) (hE_fin : μ E < ⊤) :
     (μ.restrict E).Regular := by
-  -- The restricted measure is finite, its total mass being `μ E`.
-  haveI : IsFiniteMeasure (μ.restrict E) :=
+  let _ : IsFiniteMeasure (μ.restrict E) :=
     ⟨by rw [Measure.restrict_apply MeasurableSet.univ]; simpa using hE_fin⟩
-  -- A locally compact, Hausdorff, second countable space is σ-compact and metrizable.
-  haveI : SigmaCompactSpace X := inferInstance
-  haveI : TopologicalSpace.MetrizableSpace X :=
+  let _ : TopologicalSpace.MetrizableSpace X :=
     TopologicalSpace.metrizableSpace_of_t3_secondCountable X
-  -- Every locally finite measure on a σ-compact metrizable Borel space is regular.
   infer_instance
 
 end MeasureRestrict
@@ -69,36 +66,35 @@ theorem closed_approx_of_isBorelRegular
     have hcar := hE B
     simp only [Measure.toOuterMeasure_apply] at hcar
     rw [Set.inter_eq_self_of_subset_right hEB, hB_eq] at hcar
-    have h2 : μ E + 0 = μ E + μ (B \ E) := by simpa using hcar
-    exact ((ENNReal.add_right_inj hEfin.ne).1 h2).symm
+    exact ((ENNReal.add_right_inj hEfin.ne).1 (by simpa using hcar)).symm
   obtain ⟨N, hBEN, hN_meas, hN_null⟩ := exists_measurable_superset_of_null hBE_null
   -- `A = B \ N` is a measurable subset of `E` that exhausts `E` up to a null set.
   set A : Set X := B \ N with hA_def
   have hA_meas : MeasurableSet A := hB_meas.diff hN_meas
   have hAE : A ⊆ E := by
-    intro x hx
+    rintro x ⟨hxB, hxN⟩
     by_contra hxE
-    exact hx.2 (hBEN ⟨hx.1, hxE⟩)
+    exact hxN (hBEN ⟨hxB, hxE⟩)
   -- The restriction of `μ` to `B` is a regular measure, since `μ B = μ E < ∞`.
-  have hB_fin : μ B < ⊤ := by rw [hB_eq]; exact hEfin
-  haveI : (μ.restrict B).Regular := BorelRegularOuterMeasure.restrict_isRadon B hB_fin
+  have hB_fin : μ B < ⊤ := hB_eq ▸ hEfin
+  let _ : (μ.restrict B).Regular := BorelRegularOuterMeasure.restrict_isRadon B hB_fin
   -- Inner regularity by closed sets for `μ.restrict B`, applied to `A`.
   have hA_restrict_ne_top : (μ.restrict B) A ≠ ⊤ := by
     rw [Measure.restrict_apply hA_meas]
     exact ne_top_of_le_ne_top hB_fin.ne (measure_mono Set.inter_subset_right)
   obtain ⟨F, hFA, hF_closed, hF_lt⟩ :=
-    hA_meas.exists_isClosed_diff_lt (μ := μ.restrict B) hA_restrict_ne_top hε.ne'
+    hA_meas.exists_isClosed_sdiff_lt (μ := μ.restrict B) hA_restrict_ne_top hε.ne'
   refine ⟨F, hF_closed, hFA.trans hAE, ?_⟩
   -- Transfer the estimate back to `μ`, then add the null set `N`.
   have hAF : μ (A \ F) < ε := by
     have hmeas : MeasurableSet (A \ F) := hA_meas.diff hF_closed.measurableSet
     rwa [Measure.restrict_apply hmeas,
-      Set.inter_eq_self_of_subset_left (((Set.diff_subset).trans Set.diff_subset))] at hF_lt
+      Set.inter_eq_self_of_subset_left (Set.sdiff_subset.trans Set.sdiff_subset)] at hF_lt
   have hsub : E \ F ⊆ (A \ F) ∪ N := by
-    intro x hx
+    rintro x ⟨hxE, hxF⟩
     by_cases hxN : x ∈ N
     · exact Or.inr hxN
-    · exact Or.inl ⟨⟨hEB hx.1, hxN⟩, hx.2⟩
+    · exact Or.inl ⟨⟨hEB hxE, hxN⟩, hxF⟩
   calc μ (E \ F) ≤ μ ((A \ F) ∪ N) := measure_mono hsub
     _ ≤ μ (A \ F) + μ N := measure_union_le _ _
     _ < ε := by rw [hN_null, add_zero]; exact hAF
@@ -125,7 +121,7 @@ theorem open_approx_of_isBorelRegular
   -- For each `i` the restriction of `μ` to `V i` is regular, hence outer regular.
   have key : ∀ i, ∃ U : Set X, IsOpen U ∧ E ∩ V i ⊆ U ∧ μ ((U ∩ V i) \ E) < δ i := by
     intro i
-    haveI : (μ.restrict (V i)).Regular :=
+    let _ : (μ.restrict (V i)).Regular :=
       BorelRegularOuterMeasure.restrict_isRadon (V i) (hVfin i)
     have hfin : (μ.restrict (V i)) (E ∩ V i) ≠ ⊤ := by
       rw [Measure.restrict_apply' (hV_open i).measurableSet]
@@ -138,9 +134,8 @@ theorem open_approx_of_isBorelRegular
       rw [Measure.restrict_apply' (hV_open i).measurableSet]
       congr 1
       ext x
-      constructor
-      · rintro ⟨⟨hxE, _⟩, hxV⟩; exact ⟨⟨hEU ⟨hxE, hxV⟩, hxV⟩, hxE⟩
-      · rintro ⟨⟨_, hxV⟩, hxE⟩; exact ⟨⟨hxE, hxV⟩, hxV⟩
+      simp only [mem_inter_iff]
+      aesop
     have hUV : (μ.restrict (V i)) U = μ (U ∩ V i) := by
       rw [Measure.restrict_apply' (hV_open i).measurableSet]
     -- Carathéodory measurability of `E`, tested against `U ∩ V i`.
@@ -154,12 +149,9 @@ theorem open_approx_of_isBorelRegular
   choose U hU_open hEU hU_lt using key
   refine ⟨⋃ i, U i ∩ V i, isOpen_iUnion fun i => (hU_open i).inter (hV_open i), ?_, ?_⟩
   · intro x hx
-    obtain ⟨i, hi⟩ := Set.mem_iUnion.1 (hEV hx)
-    exact Set.mem_iUnion.2 ⟨i, hEU i ⟨hx, hi⟩, hi⟩
-  · have hsub : (⋃ i, U i ∩ V i) \ E ⊆ ⋃ i, (U i ∩ V i) \ E := by
-      rintro x ⟨hx, hxE⟩
-      obtain ⟨i, hi⟩ := Set.mem_iUnion.1 hx
-      exact Set.mem_iUnion.2 ⟨i, hi, hxE⟩
+    obtain ⟨i, hi⟩ := mem_iUnion.1 (hEV hx)
+    exact mem_iUnion.2 ⟨i, hEU i ⟨hx, hi⟩, hi⟩
+  · have hsub : (⋃ i, U i ∩ V i) \ E ⊆ ⋃ i, (U i ∩ V i) \ E := by simp [iUnion_sdiff]
     calc μ ((⋃ i, U i ∩ V i) \ E) ≤ μ (⋃ i, (U i ∩ V i) \ E) := measure_mono hsub
       _ ≤ ∑' i, μ ((U i ∩ V i) \ E) := measure_iUnion_le _
       _ ≤ ∑' i, δ i := ENNReal.tsum_le_tsum fun i => (hU_lt i).le
