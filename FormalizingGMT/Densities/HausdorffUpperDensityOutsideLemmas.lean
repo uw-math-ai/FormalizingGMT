@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import Mathlib.MeasureTheory.Measure.Hausdorff
 import Mathlib.MeasureTheory.Measure.Regular
 import Mathlib.MeasureTheory.Covering.Vitali
@@ -51,12 +56,15 @@ noncomputable abbrev Hs_restrict (s : ℝ) (E : Set X) : OuterMeasure X :=
 def A_set (s : ℝ) (E : Set X) (t : ℝ≥0∞) : Set X :=
   {x ∈ Eᶜ | dimensional_upper_density (Hs_restrict s E) s x > t}
 
+omit [LocallyCompactSpace X] [SecondCountableTopology X] [MeasurableSpace X]
+  [BorelSpace X] in
 lemma A_set_subset_compl {s : ℝ} {E : Set X} {t : ℝ≥0∞} :
     A_set s E t ⊆ Eᶜ :=
   fun _ hx => hx.1
 
 /-! ## Hausdorff measure equals outer measure -/
 
+omit [LocallyCompactSpace X] [SecondCountableTopology X] in
 lemma hausdorff_measure_eq_outer (s : ℝ) (S : Set X) :
     μH[s] S = (Hs_outer (X := X) s) S := by
   change (MeasureTheory.Measure.hausdorffMeasure s).toOuterMeasure S = _
@@ -80,7 +88,7 @@ second countable, the hypotheses of that theorem.
 The hypothesis `0 ≤ s` is part of the standard statement and is kept, but the proof does not
 need it. -/
 lemma approx_by_closed_inside
-    {s : ℝ} (hs : 0 ≤ s) {E : Set X}
+    {s : ℝ} (_hs : 0 ≤ s) {E : Set X}
     (hE_meas : MeasurableSet[(Hs_outer (X := X) s).caratheodory] E)
     (hE_fin : (Hs_outer (X := X) s) E < ⊤)
     {ε : ℝ≥0∞} (hε : 0 < ε) :
@@ -114,6 +122,8 @@ lemma A_subset_compl_K {s : ℝ} {E : Set X} {t : ℝ≥0∞}
 /-
 For x ∈ A_t, there are arbitrarily small balls where the density exceeds t.
 -/
+omit [LocallyCompactSpace X] [SecondCountableTopology X] [MeasurableSpace X]
+  [BorelSpace X] in
 lemma fine_cover_of_mem_A_set
     {s : ℝ} {E : Set X} {t : ℝ≥0∞}
     {x : X} (hx : x ∈ A_set s E t) :
@@ -153,6 +163,7 @@ lemma fine_cover_in_open
 /-
 Pairwise disjoint closed balls with positive radii are countable in a locally compact, second countable metric space.
 -/
+omit [LocallyCompactSpace X] [MeasurableSpace X] [BorelSpace X] in
 lemma countable_of_pairwise_disjoint_balls
     {ι : Type*} {s : Set ι} {x : ι → X} {r : ι → ℝ}
     (hr_pos : ∀ i ∈ s, 0 < r i)
@@ -197,15 +208,15 @@ lemma density_bound_inv {t : ℝ≥0∞} (ht : 0 < t) (ht_top : t ≠ ⊤)
     the tsum of Hs_restrict values is bounded by Hs(E \ K). -/
 lemma tsum_restrict_le_of_disjoint (s : ℝ)
     {E : Set X}
-    (hE_car : MeasurableSet[(Hs_outer (X := X) s).caratheodory] E)
-    {K : Set X} (hK_sub : K ⊆ E)
+    (_hE_car : MeasurableSet[(Hs_outer (X := X) s).caratheodory] E)
+    {K : Set X} (_hK_sub : K ⊆ E)
     {u : Set X} (hu_count : u.Countable)
     (ρ : X → ℝ)
-    (hρ_pos : ∀ x ∈ u, 0 < ρ x)
+    (_hρ_pos : ∀ x ∈ u, 0 < ρ x)
     (hρ_ball : ∀ x ∈ u, closedBall x (ρ x) ⊆ Kᶜ)
     (hρ_disj : u.PairwiseDisjoint (fun x => closedBall x (ρ x))) :
     ∑' x : u, (Hs_outer s) (E ∩ closedBall (↑x) (ρ ↑x)) ≤ (Hs_outer s) (E \ K) := by
-  haveI := hu_count.to_subtype;
+  have _ := hu_count.to_subtype
   -- Apply the measure_iUnion theorem for the restricted measure.
   have h_measure_iUnion : (MeasureTheory.Measure.restrict (MeasureTheory.Measure.hausdorffMeasure s) E) (⋃ x : u, closedBall (x : X) (ρ x)) = ∑' x : u, (MeasureTheory.Measure.restrict (MeasureTheory.Measure.hausdorffMeasure s) E) (closedBall (x : X) (ρ x)) := by
     rw [ MeasureTheory.measure_iUnion ];
@@ -234,7 +245,7 @@ lemma tsum_restrict_le_of_disjoint (s : ℝ)
       exact hρ_ball x x.2 hx
     _ = (Hs_outer s) (E \ K) := hausdorff_measure_eq_outer s (E \ K)
 
-lemma vitali_cover_at_scale (s : ℝ) (hs : 0 ≤ s)
+lemma vitali_cover_at_scale (s : ℝ) (_hs : 0 ≤ s)
     {E : Set X}
     (hE_meas : MeasurableSet[(Hs_outer (X := X) s).caratheodory] E)
     {t : ℝ≥0∞} (ht : 0 < t) (ht_top : t ≠ ⊤)

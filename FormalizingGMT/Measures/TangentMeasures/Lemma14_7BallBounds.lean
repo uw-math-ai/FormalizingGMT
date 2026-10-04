@@ -1,4 +1,15 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import FormalizingGMT.Measures.TangentMeasures.Basic
+
+/-!
+# Density and ball bounds for Mattila's Lemma 14.7
+
+This file develops the quantitative density and ball-measure estimates used in Lemma 14.7.
+-/
 
 open MeasureTheory Metric Set Filter
 open Topology
@@ -61,7 +72,7 @@ lemma exists_mem_support_of_measure_pos {X : Type*} [TopologicalSpace X]
     [SecondCountableTopology X] [MeasurableSpace X] {μ : Measure X} {V : Set X}
     (h : 0 < μ V) : ∃ y ∈ V, y ∈ Measure.support μ := by
   by_contra hcon
-  push_neg at hcon
+  push Not at hcon
   exact h.ne' (measure_eq_zero_of_disjoint_support hcon)
 /-! ## Blow-ups of balls with arbitrary centres -/
 variable {n : ℕ}
@@ -167,7 +178,7 @@ lemma lintegral_measure_closedBall_le (ν : Measure (EuclideanSpace ℝ (Fin n))
         refine setLIntegral_eq_zero measurableSet_closedBall ?_
         intro x hx
         have hxy : (x, y) ∉ S := by
-          simp only [hSdef, mem_setOf_eq, not_le]
+          simp only [hSdef, mem_ofPred_eq, not_le]
           have h1 : dist x x₀ ≤ R := mem_closedBall.mp hx
           have h2 : R + r < dist y x₀ := by
             simpa [mem_closedBall, not_le] using hy
@@ -292,7 +303,7 @@ theorem support_ne_univ_of_lower_growth {s : ℝ} (hsn : s < n)
       c * ENNReal.ofReal (ρ ^ s) ≤ ν (closedBall x ρ)) :
     Measure.support ν ≠ (univ : Set (EuclideanSpace ℝ (Fin n))) := by
   intro hfull
-  letI : ν.Regular := hν
+  let _ : ν.Regular := hν
   refine MattilaSupportGrowth.no_uniform_lower_bound_of_lt_dim hsn ν hc ?_
   intro x r hr0 _
   exact hlow x (by rw [hfull]; trivial) r hr0
@@ -336,9 +347,9 @@ theorem exists_hole_of_ball_bounds {s p q r₀ : ℝ} (hsn : s < n) (hp : 0 < p)
   refine ⟨κ, hκpos, hκ1, ?_⟩
   intro x hxF δ hδ hδr
   by_contra hcon
-  push_neg at hcon
+  push Not at hcon
   -- the associated Borel measure
-  letI : μ.Regular := hμ
+  let _ : μ.Regular := hμ
   have hr₀ : 0 < r₀ := by linarith
   have hκδ : 0 < κ * δ := by positivity
   have hκδr : κ * δ < r₀ := by nlinarith
@@ -435,7 +446,7 @@ theorem exists_hole_of_ball_bounds {s p q r₀ : ℝ} (hsn : s < n) (hp : 0 < p)
 lemma exists_ball_pos_of_ne_zero {ν : Measure (EuclideanSpace ℝ (Fin n))} (hν0 : ν ≠ 0) :
     ∃ R : ℝ, 1 ≤ R ∧ 0 < ν (ball 0 R) := by
   by_contra hcon
-  push_neg at hcon
+  push Not at hcon
   apply hν0
   have hz : ∀ k : ℕ, ν (ball 0 ((k : ℝ) + 1)) = 0 := by
     intro k
@@ -482,7 +493,7 @@ lemma tangent_exists_nearby_support_point
   have hμpos : 0 < μ (ball (a + rs i • x) (rs i * ε)) := by
     rcases eq_or_lt_of_le (bot_le : 0 ≤ μ (ball (a + rs i • x) (rs i * ε))) with h | h
     · exfalso
-      simpa [h.symm] using hi
+      simp [h.symm] at hi
     · exact h
   obtain ⟨y, hy, hyspt⟩ := exists_mem_support_of_measure_pos hμpos
   exact ⟨y, hyspt, mem_ball.mp hy⟩
@@ -681,7 +692,7 @@ lemma tangent_scaling_lt_top
       _ ≤ ν (closedBall 0 1) := hcompact
   intro hlamtop
   rw [hlamtop] at hle
-  rw [ENNReal.mul_top (by simp [ENNReal.ofReal_eq_zero]; positivity)] at hle
+  rw [ENNReal.mul_top (by simp only [ne_eq, ENNReal.ofReal_eq_zero, not_le]; positivity)] at hle
   exact (regular_measure_closedBall_lt_top hν 0 1).ne (top_le_iff.mp hle)
 /-- The scaling constants of a blow-up sequence do not degenerate, under the uniform upper
 bound. -/
@@ -858,7 +869,7 @@ lemma tangent_exists_nearby_point_of_density
   have hev5 : ∀ᶠ i in atTop, rs i < r₀ := hr0.eventually_lt_const hr₀
   filter_upwards [hev1, hev2, hev3, hev4, hev5] with i h1 h2 h3 h4 h5
   by_contra hcon
-  push_neg at hcon
+  push Not at hcon
   -- if no point of `B` is near `a + r i • x`, the ball `U i` is contained in `B (a, R r i) \ B`
   have hsub : ball (a + rs i • x) (rs i * ε) ⊆ closedBall a (rs i * R) \ B := by
     intro z hz
@@ -966,7 +977,7 @@ lemma tangent_smul_measure_le_of_disjoint
   calc cs i * μ S ≤ cs i * (γ * (K * μ (closedBall a (rs i)))) := by
         gcongr
         calc μ S ≤ μ (closedBall a (rs i * R) \ B) :=
-              measure_mono (subset_diff.2 ⟨hSsub, hSdisj⟩)
+              measure_mono (subset_sdiff.2 ⟨hSsub, hSdisj⟩)
           _ ≤ γ * μ (closedBall a (rs i * R)) := h3
           _ ≤ γ * (K * μ (closedBall a (rs i))) := by gcongr
     _ = γ * K * (cs i * μ (closedBall a (rs i))) := by ring
@@ -1019,7 +1030,7 @@ lemma tangent_closedBall_le_of_ball_bounds {d : ℝ} {lam : ℝ≥0∞}
               rw [ofReal_mul_rpow_mul hd hupos.le (hrpos i).le]
               ring
           _ ≤ _ := le_self_add
-      · push_neg at hmeet
+      · push Not at hmeet
         have hdisj : Disjoint (closedBall (a + rs i • x) (rs i * u)) P := by
           rw [Set.disjoint_right]
           intro z hzP hz
@@ -1185,5 +1196,3 @@ theorem tangent_ball_bounds_of_density_point_of_ball_bounds {s d t r₀ : ℝ}
     refine le_trans hup (le_of_eq ?_)
     rw [ENNReal.ofReal_mul hd.le]
     ring
-
-

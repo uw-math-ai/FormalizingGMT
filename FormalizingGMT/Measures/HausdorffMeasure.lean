@@ -1,17 +1,22 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import Mathlib.MeasureTheory.Measure.Hausdorff
 import FormalizingGMT.Measures.Basic
 import FormalizingGMT.Measures.RestrictionFiniteMeasure
 import FormalizingGMT.Densities.Basic
 
-open scoped BigOperators Real Nat Classical Pointwise
+/-!
+# Hausdorff content and restricted Hausdorff measures
+
+This file defines restricted and unrestricted Hausdorff content, proves stabilization above the
+diameter of a set, and establishes regularity of finite restrictions of Hausdorff measure.
+-/
+
+open scoped BigOperators Real Nat Pointwise
 open MeasureTheory MeasureTheory.OuterMeasure Set
-set_option maxHeartbeats 8000000
-set_option maxRecDepth 4000
-set_option synthInstance.maxHeartbeats 20000
-set_option synthInstance.maxSize 128
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-set_option grind.warning false
 /-!
 ## Hausdorff content
 -/
@@ -69,16 +74,15 @@ suffice for regularity), and we use second countability.  The hypotheses `0 ≤ 
 Carathéodory measurability of `E` are part of the standard statement but are not needed for the
 conclusion, which only uses the finiteness of `μH[s] E`. -/
 theorem HausdorffRestrict.toRadonOuterMeasure [SecondCountableTopology X]
-    (s : ℝ) (hs : 0 ≤ s) (E : Set X)
-    (hE_meas : MeasurableSet[
-      (OuterMeasure.mkMetric (X := X) (fun r => r ^ s)).caratheodory] E)
+    (s : ℝ) (_hs : 0 ≤ s) (E : Set X)
+    (_hE_meas : MeasurableSet[(OuterMeasure.mkMetric (X := X) (fun r => r ^ s)).caratheodory] E)
     (hE_fin : MeasureTheory.Measure.hausdorffMeasure s E < ⊤) :
     ((MeasureTheory.Measure.hausdorffMeasure s : MeasureTheory.Measure X).restrict E).Regular :=
   BorelRegularOuterMeasure.restrict_isRadon E hE_fin
 
 end LocallyCompact
 
-  /-!
+/-!
 
 ## Restricting the diameter bound to `≥ diam E` does not change the content
 
@@ -137,7 +141,7 @@ lemma hausdorffContent_le_hausdorffContentInfty {X : Type*} [EMetricSpace X] {s 
 `δ`-restricted Hausdorff content equals its unrestricted Hausdorff content. The hypothesis
 `0 < δ` is retained in the standard positive-scale statement, though the proof does not need it. -/
 theorem hausdorffContent_eq_hausdorffContentInfty_of_ediam_le {X : Type*} [EMetricSpace X]
-    {s : ℝ} (hs : 0 ≤ s) {δ : ENNReal} (hδ : 0 < δ) {E : Set X} (hE : Metric.ediam E ≤ δ) :
+    {s : ℝ} (hs : 0 ≤ s) {δ : ENNReal} (_hδ : 0 < δ) {E : Set X} (hE : Metric.ediam E ≤ δ) :
     hausdorffContent s δ E = hausdorffContentInfty s E :=
   le_antisymm (hausdorffContent_le_hausdorffContentInfty hs hE)
     (hausdorffContentInfty_le_hausdorffContent s δ E)

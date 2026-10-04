@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
@@ -6,13 +11,19 @@ import Mathlib.Topology.Order.OrderClosed
 import Mathlib.Topology.Algebra.Order.LiminfLimsup
 import Mathlib.Tactic
 
+/-!
+# Dimensional densities
+
+This file defines dimensional density ratios and their upper and lower limits, then proves their
+basic order-theoretic properties.
+-/
+
 open scoped BigOperators Real Nat Pointwise
 open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 
 variable {n : ℕ}
 
-variable {X : Type*} [MeasurableSpace X] [PseudoEMetricSpace X] [BorelSpace X]
-  {μ : OuterMeasure X}
+variable {X : Type*} [PseudoEMetricSpace X] {μ : OuterMeasure X}
 
 -- Section 1: Definitions
 
@@ -126,7 +137,7 @@ lemma frequently_gt_of_upper_density_gt (s : ℝ) (x : X) (α : ℝ≥0∞)
 
 section PseudoMetric
 
-variable {Y : Type*} [MeasurableSpace Y] [PseudoMetricSpace Y] [BorelSpace Y]
+variable {Y : Type*} [PseudoMetricSpace Y]
 
 /-- In a (pseudo) metric space, and for a nonnegative radius, the density ratio is computed
 with the usual closed ball. -/

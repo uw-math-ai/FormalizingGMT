@@ -1,7 +1,7 @@
 /-
-**Note.** The material in this file is purely instructional: it is included to explain how Borel
-regularity of a measure (viewed as an outer measure) is obtained in Mathlib.  None of the code in
-this file is actually used anywhere else in the project.
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
 -/
 
 import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
@@ -12,22 +12,24 @@ import Mathlib.Topology.Order.OrderClosed
 import Mathlib.Topology.Algebra.Order.LiminfLimsup
 import Mathlib.Tactic
 
-open scoped BigOperators Real Nat Pointwise
-open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
-
 /-!
 # Measures on a Borel space, viewed as outer measures
 
+This instructional file explains how Borel regularity of a measure, viewed as an outer measure,
+is obtained in Mathlib. None of its declarations are used elsewhere in the project.
+
 Let `X` be a topological space whose measurable structure is the Borel σ-algebra
-(`BorelSpace X`), and let `μ` be a measure on `X`.  Viewing `μ` as an outer measure
+(`BorelSpace X`), and let `μ` be a measure on `X`. Viewing `μ` as an outer measure
 (`μ.toOuterMeasure`, which agrees with `μ` on every set), we prove:
 
-1. every measurable — equivalently, every Borel — set is Carathéodory measurable for the
-   outer measure `μ.toOuterMeasure`;
+1. every measurable, equivalently Borel, set is Carathéodory measurable for `μ.toOuterMeasure`;
 2. every subset `E ⊆ X` is contained in a Borel set `F` with `μ F = μ E`.
 
 Together these say that a measure on a Borel space is a Borel regular outer measure.
 -/
+
+open scoped BigOperators Real Nat Pointwise
+open MeasureTheory MeasureTheory.Measure Metric Set Filter Topology ENNReal
 
 variable {X : Type*} [MeasurableSpace X] [TopologicalSpace X] [BorelSpace X] {μ : Measure X}
 
@@ -39,7 +41,7 @@ theorem measurableSet_caratheodory_toOuterMeasure {s : Set X} (hs : MeasurableSe
   rw [OuterMeasure.isCaratheodory_iff_le]
   intro t
   simp only [Measure.toOuterMeasure_apply]
-  exact (measure_inter_add_diff t hs).le
+  exact (measure_inter_add_sdiff t hs).le
 
 omit [TopologicalSpace X] [BorelSpace X] in
 /-- **Property 1, restated.** The ambient σ-algebra of `X` is contained in the σ-algebra of

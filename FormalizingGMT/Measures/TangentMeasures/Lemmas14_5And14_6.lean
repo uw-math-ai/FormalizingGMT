@@ -1,4 +1,16 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import FormalizingGMT.Measures.TangentMeasures.Basic
+
+/-!
+# Mattila's Lemmas 14.5 and 14.6
+
+This file proves the compactness and normalization results for tangent measures appearing in
+Mattila's Lemmas 14.5 and 14.6.
+-/
 
 open MeasureTheory Metric Set Filter
 open Topology
@@ -96,7 +108,7 @@ lemma tendsto_mul_measure_diff_zero
   have hpos : μ (ball a (s i)) ≠ 0 := (measure_ball_pos_of_mem_support ha (hspos i)).ne'
   have hfin : μ (ball a (s i)) ≠ ∞ := (regular_measure_ball_lt_top hμ a (s i)).ne
   have hsub : closedBall a (r i * t) \ B ⊆ ball a (s i) \ B := by
-    refine diff_subset_diff_left (closedBall_subset_ball ?_)
+    refine sdiff_subset_sdiff_left (closedBall_subset_ball ?_)
     have := mul_pos (hr i) ht
     simp only [hs]
     linarith
@@ -126,7 +138,7 @@ lemma eventually_measure_ball_le_two_mul_inter
   have hy0 : μ (ball a s) ≠ 0 := (measure_ball_pos_of_mem_support ha hspos).ne'
   have hytop : μ (ball a s) ≠ ∞ := (regular_measure_ball_lt_top hμ a s).ne
   have hsplit : μ (ball a s) = μ (ball a s ∩ B) + μ (ball a s \ B) := by
-    exact (measure_inter_add_diff (μ := μ) (ball a s) hB).symm
+    exact (measure_inter_add_sdiff (μ := μ) (ball a s) hB).symm
   have hx : μ (ball a s \ B) < μ (ball a s) / 2 := by
     rw [ENNReal.div_lt_iff (Or.inl hy0) (Or.inl hytop)] at hs
     have heq : (1 : ℝ≥0∞) / 2 * μ (ball a s) = μ (ball a s) / 2 := by
@@ -174,7 +186,7 @@ lemma tendsto_integral_sub_restrict
         = c i • (μ.restrict B).map (blowUpMap a (r i)) + D := by
       rw [hD, ← smul_add, ← Measure.map_add _ _ hmeas,
         Measure.restrict_add_restrict_compl hB]
-    haveI : (c i • μ.map (blowUpMap a (r i))).Regular := hF i
+    have _ : (c i • μ.map (blowUpMap a (r i))).Regular := hF i
     have hintF : Integrable f (c i • μ.map (blowUpMap a (r i))) :=
       f.continuous.integrable_of_hasCompactSupport f.hasCompactSupport
     have hleG : c i • (μ.restrict B).map (blowUpMap a (r i))
@@ -194,11 +206,11 @@ lemma tendsto_integral_sub_restrict
       rw [hD, Measure.smul_apply, smul_eq_mul,
         Measure.map_apply hmeas measurableSet_closedBall,
         blowUpMap_preimage_closedBall a (hr i), Measure.restrict_apply measurableSet_closedBall,
-        ← Set.diff_eq]
+        ← Set.sdiff_eq]
     have hDfin : D (closedBall 0 t) < ∞ := by
       rw [hDK]
       exact ENNReal.mul_lt_top (hcfin i).lt_top
-        (lt_of_le_of_lt (measure_mono diff_subset) (regular_measure_closedBall_lt_top hμ a _))
+        (lt_of_le_of_lt (measure_mono sdiff_subset) (regular_measure_closedBall_lt_top hμ a _))
     rw [hsplit]
     have hbound : ‖-∫ x, f x ∂D‖
         ≤ ‖f.toBoundedContinuousFunction‖ * (D (closedBall 0 t)).toReal := by
@@ -336,7 +348,7 @@ lemma ae_tendsto_setAverage_norm_sub (μ : Measure (EuclideanSpace ℝ (Fin n)))
     (hφ_loc : LocallyIntegrable φ μ) :
     ∀ᵐ a ∂μ, Tendsto (fun s : ℝ ↦ ⨍ y in closedBall a s, ‖φ y - φ a‖ ∂μ)
       (𝓝[>] (0 : ℝ)) (𝓝 0) := by
-  letI : μ.Regular := hμ
+  let _ : μ.Regular := hμ
   filter_upwards [(Besicovitch.vitaliFamily μ).ae_tendsto_average_norm_sub hφ_loc] with a ha
   exact ha.comp (Besicovitch.tendsto_filterAt μ a)
 
@@ -384,7 +396,7 @@ lemma norm_integral_blowUp_density_sub_le
     refine image_eq_zero_of_notMem_tsupport fun h ↦ hx ?_
     rw [← hpre]
     exact mem_preimage.2 (htsup h)
-  letI : μ.Regular := hμ
+  let _ : μ.Regular := hμ
   have hKcompact : IsCompact K := isCompact_closedBall _ _
   have hmfin : μ K < ∞ := hKcompact.measure_lt_top
   have hφB : IntegrableOn φ K μ := hφ_loc.integrableOn_isCompact hKcompact
@@ -447,7 +459,7 @@ lemma tendsto_mul_setIntegral_norm_sub_zero
     (hbdd : ∀ᶠ i in atTop, c i * μ (closedBall a (r i * t)) ≤ M) :
     Tendsto (fun i ↦ (c i).toReal * ∫ y in closedBall a (r i * t), ‖φ y - φ a‖ ∂μ)
       atTop (𝓝 0) := by
-  letI : μ.Regular := hμ
+  let _ : μ.Regular := hμ
   have hs : Tendsto (fun i ↦ r i * t) atTop (𝓝[>] (0 : ℝ)) :=
     tendsto_nhdsGT_zero_of_pos (fun i ↦ mul_pos (hr i) ht) (by simpa using hr0.mul_const t)
   have heps : Tendsto (fun i ↦ ⨍ y in closedBall a (r i * t), ‖φ y - φ a‖ ∂μ)
@@ -494,7 +506,7 @@ lemma eventually_ofReal_mul_measure_closedBall_le
       (𝓝[>] (0 : ℝ)) (𝓝 0)) :
     ∀ᶠ s in 𝓝[>] (0 : ℝ),
       ENNReal.ofReal (φ a / 2) * μ (closedBall a s) ≤ L (closedBall a s) := by
-  letI : μ.Regular := hμ
+  let _ : μ.Regular := hμ
   have hev : ∀ᶠ s : ℝ in 𝓝[>] (0 : ℝ),
       ⨍ y in closedBall a s, ‖φ y - φ a‖ ∂μ < φ a / 2 :=
     hleb (Iio_mem_nhds (by positivity))
@@ -709,4 +721,3 @@ theorem isTangentMeasure_iff_ae_of_density
 
 
 -- 14.7 stuff starts here
-

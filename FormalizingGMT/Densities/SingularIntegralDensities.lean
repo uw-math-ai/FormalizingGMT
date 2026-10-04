@@ -1,7 +1,19 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import Mathlib.MeasureTheory.Covering.DensityTheorem
 import Mathlib.MeasureTheory.Measure.Hausdorff
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+
+/-!
+# Densities obtained from singular integrals
+
+This file develops density results for measures using Vitali families associated to locally
+doubling measures and singular-integral estimates.
+-/
 
 open MeasureTheory Measure Metric Filter Set Topology
 open scoped NNReal ENNReal MeasureTheory
@@ -442,7 +454,7 @@ theorem integralDensitySet_hausdorffMeasure_zero_of_ae_zero_sDensity
     exact fun ε a => hausdorff_measure_integralDensitySetAbove_zero hμ hf hs hdim a
   refine' MeasureTheory.measure_mono_null _ ( MeasureTheory.measure_iUnion_null fun n : ℕ => h_zero_hausdorff_measure ( 1 / ( n + 1 ) ) ( by simp +decide ) )
   intro x hx
-  simp_all +decide only [one_div, mem_iUnion, mem_setOf_eq]
+  simp_all +decide only [one_div, mem_iUnion, mem_ofPred_eq]
   rcases ENNReal.exists_inv_nat_lt hx.ne' with ⟨ n, hn ⟩
   exact ⟨ n, lt_of_le_of_lt ( by gcongr ; norm_num ) hn ⟩
 

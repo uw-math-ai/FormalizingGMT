@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import FormalizingGMT.Measures.TangentMeasures
 import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
 import Mathlib.MeasureTheory.Function.L2Space
@@ -126,7 +131,7 @@ lemma exists_isTangentMeasure {s : ℝ} {ν : Measure (EuclideanSpace ℝ (Fin n
 lemma not_isSUniform_of_lt {s : ℝ} (hs : (n : ℝ) < s) (ν : Measure (EuclideanSpace ℝ (Fin n))) :
     ¬ IsSUniform s ν := by
   rintro ⟨hs, hreg, hne, c, hc, hball⟩
-  letI : ν.Regular := hreg
+  let _ : ν.Regular := hreg
   apply hne
   set ω := volume (ball (0 : EuclideanSpace ℝ (Fin n)) 1) with hω
   have hω0 : ω ≠ 0 := (measure_ball_pos volume 0 one_pos).ne'
@@ -237,7 +242,7 @@ lemma exists_halfSpace {s : ℝ} {ν : Measure (EuclideanSpace ℝ (Fin n))} (h�
   refine ⟨e, lam, he, hlam, h0, ?_⟩
   intro x hx
   by_contra hneg
-  simp only [mem_setOf_eq, not_le] at hneg
+  simp only [mem_ofPred_eq, not_le] at hneg
   set η := -inner ℝ x e with hη
   have hηpos : 0 < η := by linarith
   have henorm : 0 < ‖e‖ := norm_pos_iff.2 he
@@ -327,10 +332,10 @@ lemma setIntegral_comp_dist_eq {s : ℝ} {ν : Measure (EuclideanSpace ℝ (Fin 
     (hν : IsSUniform s ν) {x y : EuclideanSpace ℝ (Fin n)} (hx : x ∈ ν.support)
     (hy : y ∈ ν.support) (r : ℝ) {g : ℝ → ℝ} (hg : Continuous g) :
     ∫ z in closedBall y r, g (dist z y) ∂ν = ∫ z in closedBall x r, g (dist z x) ∂ν := by
-  letI : ν.Regular := hν.2.1
+  let _ : ν.Regular := hν.2.1
   have hmeas : ∀ p : EuclideanSpace ℝ (Fin n), Measurable (fun z ↦ dist z p) :=
     fun p ↦ (continuous_id.dist continuous_const).measurable
-  haveI : IsFiniteMeasure (ν.restrict (closedBall y r)) :=
+  have _ : IsFiniteMeasure (ν.restrict (closedBall y r)) :=
     isFiniteMeasure_restrict.2 measure_closedBall_lt_top.ne
   have hmapeq : (ν.restrict (closedBall y r)).map (fun z ↦ dist z y) =
       (ν.restrict (closedBall x r)).map (fun z ↦ dist z x) := by
@@ -354,7 +359,7 @@ lemma support_subset_of_integral_inner_eq_zero {s : ℝ} {ν : Measure (Euclidea
     (hH : ν.support ⊆ {x | 0 ≤ inner ℝ x e})
     (h : ∀ r : ℝ, 0 < r → ∫ z in closedBall 0 r, inner ℝ z e ∂ν = 0) :
     ν.support ⊆ {x | inner ℝ x e = 0} := by
-  letI : ν.Regular := hν.2.1
+  let _ : ν.Regular := hν.2.1
   intro x₀ hx₀
   by_contra hne
   have hpos : 0 < inner ℝ x₀ e := lt_of_le_of_ne (hH hx₀) (Ne.symm hne)
@@ -371,15 +376,15 @@ lemma support_subset_of_integral_inner_eq_zero {s : ℝ} {ν : Measure (Euclidea
   set U := ball (0 : EuclideanSpace ℝ (Fin n)) r ∩ {z | inner ℝ x₀ e / 2 < inner ℝ z e} with hU
   have hUopen : IsOpen U := isOpen_ball.inter (isOpen_lt continuous_const hcont)
   have hxU : x₀ ∈ U := ⟨by rw [mem_ball_zero_iff]; linarith, by
-    simp only [mem_setOf_eq]; linarith⟩
+    simp only [mem_ofPred_eq]; linarith⟩
   have hUpos : 0 < ν U := (Measure.mem_support_iff_forall x₀).1 hx₀ U (hUopen.mem_nhds hxU)
   have hU0 : ν U = 0 := by
     rw [Filter.EventuallyEq, ae_restrict_iff' measurableSet_closedBall, ae_iff] at hzero
     refine measure_mono_null (fun z hz ↦ ?_) hzero
-    simp only [mem_setOf_eq, Classical.not_imp, Pi.zero_apply]
+    simp only [mem_ofPred_eq, Classical.not_imp, Pi.zero_apply]
     refine ⟨ball_subset_closedBall hz.1, ?_⟩
     have := hz.2
-    simp only [mem_setOf_eq] at this
+    simp only [mem_ofPred_eq] at this
     linarith
   exact hUpos.ne' hU0
 
@@ -406,8 +411,8 @@ lemma support_tangent_subset_of_estimate {s : ℝ} {ν : Measure (EuclideanSpace
     (isOpen_lt continuous_norm continuous_const).inter
       (isOpen_lt (continuous_const.mul continuous_norm) (continuous_id.inner continuous_const).abs)
   have hxG : x ∈ G := by
-    refine ⟨by simp only [mem_setOf_eq]; linarith, ?_⟩
-    simp only [mem_setOf_eq]
+    refine ⟨by simp only [mem_ofPred_eq]; linarith, ?_⟩
+    simp only [mem_ofPred_eq]
     have : η * ‖x‖ = |inner ℝ x m| / 2 := by rw [hη]; field_simp
     linarith
   have hzero : lam G = 0 := by
@@ -416,7 +421,7 @@ lemma support_tangent_subset_of_estimate {s : ℝ} {ν : Measure (EuclideanSpace
     have hT : blowUpMap 0 r z = r⁻¹ • z := by simp [blowUpMap]
     rw [hT] at hzG
     obtain ⟨h1, h2⟩ := hzG
-    simp only [mem_setOf_eq, norm_smul, real_inner_smul_left, Real.norm_eq_abs, abs_inv,
+    simp only [mem_ofPred_eq, norm_smul, real_inner_smul_left, Real.norm_eq_abs, abs_inv,
       abs_of_pos hr, abs_mul] at h1 h2
     have hr1 : r < δ / R := lt_of_lt_of_le hrρ (min_le_left _ _)
     have hr2 : r < η / (C * R + 1) := lt_of_lt_of_le hrρ (min_le_right _ _)
@@ -474,7 +479,7 @@ lemma abs_inner_integral_le {s : ℝ} {ν : Measure (EuclideanSpace ℝ (Fin n))
     (hν : IsSUniform s ν) (h0 : (0 : EuclideanSpace ℝ (Fin n)) ∈ ν.support) {r : ℝ} (hr : 0 < r) :
     ∃ C : ℝ, 0 ≤ C ∧ ∀ y ∈ ν.support, ‖y‖ ≤ r →
       |inner ℝ y (∫ z in closedBall 0 r, z ∂ν)| ≤ C * ‖y‖ ^ 2 := by
-  letI : ν.Regular := hν.2.1
+  let _ : ν.Regular := hν.2.1
   obtain ⟨hs, -, -, c, hc, hball⟩ := id hν
   obtain ⟨L, hL0, hL⟩ := rpow_add_sub_rpow_le hs hr
   set B0 := closedBall (0 : EuclideanSpace ℝ (Fin n)) r with hB0
@@ -514,9 +519,9 @@ lemma abs_inner_integral_le {s : ℝ} {ν : Measure (EuclideanSpace ℝ (Fin n))
       setIntegral_const,
       smul_eq_mul]
     ring
-  have hsplit0 := integral_inter_add_diff (μ := ν) (f := fy) (s := B0) (t := By)
+  have hsplit0 := integral_inter_add_sdiff (μ := ν) (f := fy) (s := B0) (t := By)
     measurableSet_closedBall (hint _ hK0 _ hfyc)
-  have hsplity := integral_inter_add_diff (μ := ν) (f := fy) (s := By) (t := B0)
+  have hsplity := integral_inter_add_sdiff (μ := ν) (f := fy) (s := By) (t := B0)
     measurableSet_closedBall (hint _ hKy _ hfyc)
   rw [inter_comm] at hsplity
   have hbd1 : ∀ z ∈ B0 \ By, ‖fy z‖ ≤ 3 * r * t := by
@@ -541,22 +546,22 @@ lemma abs_inner_integral_le {s : ℝ} {ν : Measure (EuclideanSpace ℝ (Fin n))
       S ⊆ closedBall p ρ → ν S < ⊤ :=
     fun S p ρ hS ↦ (measure_mono hS).trans_lt measure_closedBall_lt_top
   have hI1 : |∫ z in B0 \ By, fy z ∂ν| ≤ 3 * r * t * ν.real (B0 \ By) := by
-    have := norm_setIntegral_le_of_norm_le_const (hfin _ 0 r diff_subset) hbd1
+    have := norm_setIntegral_le_of_norm_le_const (hfin _ 0 r sdiff_subset) hbd1
     simpa [Real.norm_eq_abs] using this
   have hI2 : |∫ z in By \ B0, fy z ∂ν| ≤ 3 * r * t * ν.real (By \ B0) := by
-    have := norm_setIntegral_le_of_norm_le_const (hfin _ y r diff_subset) hbd2
+    have := norm_setIntegral_le_of_norm_le_const (hfin _ y r sdiff_subset) hbd2
     simpa [Real.norm_eq_abs] using this
   have hmass : ∀ p q : EuclideanSpace ℝ (Fin n), p ∈ ν.support → dist q p ≤ t →
       ν.real (closedBall q r \ closedBall p r) ≤ c * L * t := by
     intro p q hp hqp
     have hsub : closedBall q r \ closedBall p r ⊆ closedBall p (r + t) \ closedBall p r :=
-      diff_subset_diff_left (closedBall_subset_closedBall' (by linarith))
+      sdiff_subset_sdiff_left (closedBall_subset_closedBall' (by linarith))
     have hLt := mul_le_mul_of_nonneg_left (hL t ht0 hyr) hc.le
     calc ν.real (closedBall q r \ closedBall p r)
         ≤ ν.real (closedBall p (r + t) \ closedBall p r) :=
-          measureReal_mono hsub (hfin _ p (r + t) diff_subset).ne
+          measureReal_mono hsub (hfin _ p (r + t) sdiff_subset).ne
       _ = ν.real (closedBall p (r + t)) - ν.real (closedBall p r) :=
-          measureReal_diff (closedBall_subset_closedBall (by linarith)) measurableSet_closedBall
+          measureReal_sdiff (closedBall_subset_closedBall (by linarith)) measurableSet_closedBall
             measure_closedBall_lt_top.ne
       _ = c * (r + t) ^ s - c * r ^ s := by
           rw [hreal p hp _ (by linarith), hreal p hp r hr]
@@ -584,7 +589,7 @@ lemma exists_hyperplane {s : ℝ} {ν : Measure (EuclideanSpace ℝ (Fin n))} (h
     (he : e ≠ 0) (hH : ν.support ⊆ {x | 0 ≤ inner ℝ x e}) :
     ∃ (w : EuclideanSpace ℝ (Fin n)) (lam : Measure (EuclideanSpace ℝ (Fin n))),
       w ≠ 0 ∧ IsSUniform s lam ∧ lam.support ⊆ {x | inner ℝ x w = 0} := by
-  letI : ν.Regular := hν.2.1
+  let _ : ν.Regular := hν.2.1
   by_cases hA : ∀ r : ℝ, 0 < r → ∫ z in closedBall (0 : EuclideanSpace ℝ (Fin n)) r, z ∂ν = 0
   · refine ⟨e, ν, he, hν, support_subset_of_integral_inner_eq_zero hν hH fun r hr ↦ ?_⟩
     have hi : Integrable (fun z ↦ z) (ν.restrict (closedBall 0 r)) :=
@@ -592,7 +597,7 @@ lemma exists_hyperplane {s : ℝ} {ν : Measure (EuclideanSpace ℝ (Fin n))} (h
     have := integral_inner (𝕜 := ℝ) hi e
     simp_rw [real_inner_comm e]
     rw [this, hA r hr, inner_zero_right]
-  · push_neg at hA
+  · push Not at hA
     obtain ⟨r, hr, hm⟩ := hA
     obtain ⟨C, hC, hest⟩ := abs_inner_integral_le hν h0 hr
     obtain ⟨lam, htan⟩ := exists_isTangentMeasure hν h0
@@ -607,18 +612,18 @@ lemma exists_isSUniform_of_hyperplane {s : ℝ} {ν : Measure (EuclideanSpace �
     ∃ ν' : Measure (EuclideanSpace ℝ (Fin n)), IsSUniform s ν' := by
   classical
   obtain ⟨hs, hreg, hne, c, hc, hball⟩ := hν
-  letI : ν.Regular := hreg
+  let _ : ν.Regular := hreg
   set V : Submodule ℝ (EuclideanSpace ℝ (Fin (n + 1))) := (ℝ ∙ w)ᗮ with hVdef
-  haveI : Fact (Module.finrank ℝ (EuclideanSpace ℝ (Fin (n + 1))) = n + 1) :=
+  have _ : Fact (Module.finrank ℝ (EuclideanSpace ℝ (Fin (n + 1))) = n + 1) :=
     ⟨finrank_euclideanSpace_fin⟩
   have hfin : Module.finrank ℝ V = n := Submodule.finrank_orthogonal_span_singleton hw
   set L : V ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin n) :=
     ((stdOrthonormalBasis ℝ V).reindex (finCongr hfin)).repr with hL
   set f : EuclideanSpace ℝ (Fin (n + 1)) → EuclideanSpace ℝ (Fin n) :=
-    fun x ↦ L (V.orthogonalProjection x) with hf
+    fun x ↦ L (V.orthogonalProjectionOnto x) with hf
   set h : EuclideanSpace ℝ (Fin n) → EuclideanSpace ℝ (Fin (n + 1)) :=
     fun y ↦ (L.symm y : EuclideanSpace ℝ (Fin (n + 1))) with hh
-  have hf_cont : Continuous f := L.continuous.comp (V.orthogonalProjection).continuous
+  have hf_cont : Continuous f := L.continuous.comp (V.orthogonalProjectionOnto).continuous
   have hh_iso : Isometry h := isometry_subtype_coe.comp L.symm.isometry
   have hsptV : ∀ z ∈ ν.support, z ∈ V := fun z hz ↦ by
     rw [hVdef, Submodule.mem_orthogonal_singleton_iff_inner_right, real_inner_comm]
@@ -626,8 +631,8 @@ lemma exists_isSUniform_of_hyperplane {s : ℝ} {ν : Measure (EuclideanSpace �
   have hhf : ∀ z ∈ ν.support, h (f z) = z := by
     intro z hz
     simp only [hh, hf, LinearIsometryEquiv.symm_apply_apply]
-    rw [show V.orthogonalProjection z = ⟨z, hsptV z hz⟩ from
-      Submodule.orthogonalProjection_mem_subspace_eq_self ⟨z, hsptV z hz⟩]
+    rw [show V.orthogonalProjectionOnto z = ⟨z, hsptV z hz⟩ from
+      Submodule.orthogonalProjectionOnto_mem_subspace_eq_self ⟨z, hsptV z hz⟩]
   have hdist : ∀ z ∈ ν.support, ∀ y, dist (f z) y = dist z (h y) := by
     intro z hz y
     rw [← hh_iso.dist_eq, hhf z hz]
@@ -722,7 +727,7 @@ lemma eq_smul_volume_of_forall_closedBall {ν : Measure (EuclideanSpace ℝ (Fin
     (hball : ∀ (x : EuclideanSpace ℝ (Fin n)) (r : ℝ), 0 < r →
       ν (closedBall x r) = ENNReal.ofReal (c * r ^ (n : ℝ))) :
     ∃ K : ℝ≥0∞, 0 < K ∧ K ≠ ∞ ∧ ν = K • volume := by
-  letI : ν.Regular := hν
+  let _ : ν.Regular := hν
   set ω := volume (ball (0 : EuclideanSpace ℝ (Fin n)) 1) with hω
   have hω0 : ω ≠ 0 := (measure_ball_pos volume 0 one_pos).ne'
   have hωtop : ω ≠ ∞ := measure_ball_lt_top.ne
@@ -844,7 +849,7 @@ theorem mattila_14_10 {s : ℝ} (hs : 0 < s) (μ : Measure (EuclideanSpace ℝ (
   have hne : (positiveFiniteDensityExistsSet s μ \ E).Nonempty := by
     rw [nonempty_iff_ne_empty]
     intro h
-    have := measure_diff_null (s := positiveFiniteDensityExistsSet s μ) hE0
+    have := measure_sdiff_null (s := positiveFiniteDensityExistsSet s μ) hE0
     rw [h, measure_empty] at this
     exact hA.ne this
   obtain ⟨a, ha⟩ := hne

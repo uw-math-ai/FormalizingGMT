@@ -1,8 +1,16 @@
-/- This file contains Theorem 1.25 in [EG] -/
-
-
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import Mathlib.MeasureTheory.Covering.Vitali
 import Mathlib.Tactic
+
+/-!
+# A variant of Vitali's covering theorem
+
+This file proves Theorem 1.25 from [EG].
+-/
 
 open Set Metric
 open scoped Topology

@@ -109,7 +109,7 @@ private lemma weightCoefficient_mul_bound_le (B : ℕ → ℝ≥0) (m : ℕ) :
 
 private lemma tsum_geometricWeight_eq_one : ∑' m, geometricWeight m = 1 := by
   simp only [geometricWeight, pow_succ']
-  rw [NNReal.tsum_mul_left, tsum_geometric_nnreal (by norm_num)]
+  rw [NNReal.tsum_mul_left, NNReal.tsum_geometric (by norm_num)]
   apply NNReal.eq
   norm_num
 
@@ -347,7 +347,7 @@ private theorem exists_tendsto_subseq_of_mass_le_of_compl_le
         _ = u' n := by simp [u', div_eq_mul_inv, mul_comm]
     have hcompact :
         IsCompact {ρ : ProbabilityMeasure E | ∀ n, ρ (K n)ᶜ ≤ u' n} :=
-      isCompact_setOf_probabilityMeasure_mass_eq_compl_isCompact_le hu' hK
+      isCompact_setOfPred_probabilityMeasure_mass_eq_compl_isCompact_le hu' hK
         (Or.inr hK_mono)
     obtain ⟨ρ, hρ, θ, hθ, hρ_lim⟩ :=
       hcompact.tendsto_subseq (fun j ↦ htail_normalize j)
@@ -398,7 +398,7 @@ private theorem inverse_density_transfer
     dsimp only [μlim]
     exact IsLocallyFiniteMeasure.withDensity_coe hwinv
   have hμlim_regular : μlim.Regular := by
-    letI := hμlim_local
+    let _ := hμlim_local
     infer_instance
   have hrecover :
       μlim.withDensity (fun x ↦ (w x : ℝ≥0∞)) = (νlim : Measure X) := by

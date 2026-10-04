@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import FormalizingGMT.Densities.HausdorffUpperDensityInsideLemmas
 
 /-!
@@ -50,7 +55,7 @@ theorem hausdorffContentInfty_upperDensity_ge_ae_mem {s : ℝ} (hs : 0 ≤ s)
         (OuterMeasure.restrict E (hausdorffContentInftyOuter s)) s x
         < ENNReal.ofReal (1 / 2 ^ s)} = ∅ := by
       ext x
-      simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false, not_and, not_lt]
+      simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_and, not_lt]
       intro hxE
       have hone : ENNReal.ofReal (1 / 2 ^ s) = 1 := by
         rw [← h0]; norm_num

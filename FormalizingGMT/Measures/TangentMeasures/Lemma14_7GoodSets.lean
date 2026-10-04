@@ -1,5 +1,17 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import FormalizingGMT.Measures.TangentMeasures.Thm14_3
 import FormalizingGMT.Measures.TangentMeasures.Lemma14_7BallBounds
+
+/-!
+# Good sets for Mattila's Lemma 14.7
+
+This file constructs sets on which ball measures are uniformly comparable and proves the
+approximation results used in Lemma 14.7.
+-/
 
 open MeasureTheory Metric Set Filter
 open Topology
@@ -307,7 +319,7 @@ lemma exists_null_of_not_density_point (μ : Measure (EuclideanSpace ℝ (Fin n)
     ∃ N : Set (EuclideanSpace ℝ (Fin n)), μ N = 0 ∧
       ∀ a ∈ B \ N, ∀ γ : ℝ≥0∞, 0 < γ →
         ∀ᶠ ρ in 𝓝[>] (0 : ℝ), μ (closedBall a ρ \ B) ≤ γ * μ (closedBall a ρ) := by
-  letI : μ.Regular := hμ
+  let _ : μ.Regular := hμ
   set P : EuclideanSpace ℝ (Fin n) → Prop := fun x ↦
     Tendsto (fun r ↦ μ (B ∩ closedBall x r) / μ (closedBall x r)) (𝓝[>] (0 : ℝ)) (𝓝 1)
     with hP
@@ -335,7 +347,7 @@ lemma exists_null_of_not_density_point (μ : Measure (EuclideanSpace ℝ (Fin n)
   have hAtop : A ≠ ∞ := (isCompact_closedBall a ρ).measure_lt_top.ne
   have hsum : Ai + Ac = A := by
     rw [hAi, hAc, hA, Set.inter_comm]
-    exact measure_inter_add_diff _ hB
+    exact measure_inter_add_sdiff _ hB
   rcases eq_or_ne A 0 with hA0 | hA0
   · have : Ac ≤ A := by rw [← hsum]; exact le_add_self
     rw [hA0] at this ⊢
@@ -478,7 +490,7 @@ lemma isClosed_farFromTouching {F : Set (EuclideanSpace ℝ (Fin n))} (hF : IsCl
       (z : EuclideanSpace ℝ (Fin n)) (_ : dist z y = infDist z F) (_ : 0 < infDist z F)
       (_ : infDist z F ≤ d₀), {a | ε * infDist z F ≤ dist y a} := by
     ext a
-    simp only [farFromTouching, mem_setOf_eq, mem_inter_iff, mem_iInter]
+    simp only [farFromTouching, mem_ofPred_eq, mem_inter_iff, mem_iInter]
   rw [hrw]
   refine hF.inter (isClosed_iInter fun y ↦ isClosed_iInter fun _ ↦ isClosed_iInter fun z ↦
     isClosed_iInter fun _ ↦ isClosed_iInter fun _ ↦ isClosed_iInter fun _ ↦ ?_)
@@ -630,14 +642,14 @@ theorem exists_touching_points_ae {s p q r₀ : ℝ} (hsn : s < n)
     obtain ⟨j, hj⟩ := exists_nat_one_div_lt hd₀
     have hnot : a ∉ farFromTouching F (1 / (i + 1)) (1 / (j + 1)) := fun h ↦
       haN (mem_iUnion.2 ⟨(i, j), h⟩)
-    rw [farFromTouching, mem_setOf_eq, not_and_or] at hnot
+    rw [farFromTouching, mem_ofPred_eq, not_and_or] at hnot
     have hfail : ¬ ∀ y ∈ F, ∀ z : EuclideanSpace ℝ (Fin n), dist z y = infDist z F →
         0 < infDist z F → infDist z F ≤ 1 / (j + 1) →
         1 / ((i : ℝ) + 1) * infDist z F ≤ dist y a := by
       rcases hnot with h | h
       · exact absurd haF h
       · exact h
-    push_neg at hfail
+    push Not at hfail
     obtain ⟨y, hyF, z, hz1, hz2, hz3, hz4⟩ := hfail
     refine ⟨y, z, hyF, hz1, hz2, le_trans hz3 hj.le, lt_of_lt_of_le hz4 ?_⟩
     exact mul_le_mul_of_nonneg_right hi.le hz2.le
@@ -754,7 +766,7 @@ theorem exists_halfSpace_tangentMeasure_of_touching {s p q r₀ : ℝ}
     have h : (1 : ℝ) ≤ (j : ℝ) + 1 := by
       have := Nat.cast_nonneg (α := ℝ) j
       linarith
-    show (1 : ℝ) ≤ Real.sqrt ((j : ℝ) + 1)
+    change (1 : ℝ) ≤ Real.sqrt ((j : ℝ) + 1)
     calc (1 : ℝ) = Real.sqrt 1 := Real.sqrt_one.symm
       _ ≤ Real.sqrt ((j : ℝ) + 1) := Real.sqrt_le_sqrt h
   have hSpos : ∀ j, 0 < S j := fun j ↦ lt_of_lt_of_le one_pos (hS1 j)
@@ -797,7 +809,7 @@ theorem exists_halfSpace_tangentMeasure_of_touching {s p q r₀ : ℝ}
   refine ⟨e, ν, henorm, htan, ?_⟩
   intro x hx
   by_contra hcon
-  simp only [mem_setOf_eq, not_le] at hcon
+  simp only [mem_ofPred_eq, not_le] at hcon
   set β : ℝ := -inner ℝ x e with hβdef
   have hxe : inner ℝ x e = -β := by rw [hβdef]; ring
   have hβ : 0 < β := by rw [hβdef]; linarith
@@ -879,6 +891,3 @@ theorem exists_halfSpace_tangentMeasure_of_touching {s p q r₀ : ℝ}
   obtain ⟨j, hj1, hj2⟩ := (hnear.and (hφ.tendsto_atTop.eventually hfar)).exists
   obtain ⟨y', hy'F, hy'lt⟩ := hj1
   exact absurd hy'lt (not_lt.2 (hj2 y' hy'F))
-
-
-

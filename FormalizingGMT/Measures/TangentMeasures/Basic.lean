@@ -1,9 +1,22 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import Mathlib.MeasureTheory.Measure.Support
 import Mathlib.MeasureTheory.Covering.Besicovitch
 import Mathlib.MeasureTheory.Covering.BesicovitchVectorSpace
 import Mathlib.MeasureTheory.Covering.Differentiation
 import FormalizingGMT.Measures.WeakCompactness
 import FormalizingGMT.Densities.Basic
+
+/-!
+# Basic definitions for tangent measures
+
+This file defines blow-up maps, rescaled measures, tangent measures, and the basic facts used by
+the Chapter 14 results.
+-/
+
 open MeasureTheory Metric Set Filter
 open Topology
 open scoped ENNReal NNReal
@@ -139,7 +152,7 @@ def blowUpHomeomorph (a : EuclideanSpace ℝ (Fin n)) {r : ℝ} (hr : r ≠ 0) :
 lemma regular_map_blowUp {μ : Measure (EuclideanSpace ℝ (Fin n))}
     (hμ : μ.Regular) (a : EuclideanSpace ℝ (Fin n)) {r : ℝ} (hr : r ≠ 0) :
     (μ.map (blowUpMap a r)).Regular := by
-  letI : μ.Regular := hμ
+  let _ : μ.Regular := hμ
   have hmap : μ.map (blowUpMap a r) = μ.map ⇑(blowUpHomeomorph a hr) := rfl
   rw [hmap]
   exact Measure.Regular.map (blowUpHomeomorph a hr)
@@ -150,7 +163,7 @@ lemma regular_smul_map_blowUp {μ : Measure (EuclideanSpace ℝ (Fin n))}
     (hμ : μ.Regular) (a : EuclideanSpace ℝ (Fin n)) {r : ℝ} (hr : r ≠ 0) {c : ℝ≥0∞}
     (hc : c ≠ ∞) :
     (c • μ.map (blowUpMap a r)).Regular := by
-  letI : (μ.map (blowUpMap a r)).Regular := regular_map_blowUp hμ a hr
+  let _ : (μ.map (blowUpMap a r)).Regular := regular_map_blowUp hμ a hr
   exact Measure.Regular.smul hc
 
 lemma map_blowUp_apply_ball (μ : Measure (EuclideanSpace ℝ (Fin n)))
@@ -181,7 +194,7 @@ lemma measure_ball_pos_of_mem_support {μ : Measure (EuclideanSpace ℝ (Fin n))
 lemma regular_measure_closedBall_lt_top {μ : Measure (EuclideanSpace ℝ (Fin n))}
     (hμ : μ.Regular) (a : EuclideanSpace ℝ (Fin n)) (ρ : ℝ) :
     μ (closedBall a ρ) < ∞ := by
-  letI : μ.Regular := hμ
+  let _ : μ.Regular := hμ
   exact (isCompact_closedBall a ρ).measure_lt_top
 
 lemma regular_measure_ball_lt_top {μ : Measure (EuclideanSpace ℝ (Fin n))}
@@ -191,4 +204,3 @@ lemma regular_measure_ball_lt_top {μ : Measure (EuclideanSpace ℝ (Fin n))}
     (regular_measure_closedBall_lt_top hμ a ρ)
 
 end Balls
-

@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import Mathlib.MeasureTheory.Measure.Hausdorff
 import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
@@ -333,6 +338,7 @@ section Density
 
 variable {X : Type*} [MetricSpace X] [MeasurableSpace X] [BorelSpace X]
 
+omit [MeasurableSpace X] [BorelSpace X] in
 /-- The `s`-dimensional density ratio of `H^s_∞` restricted to `E`, written out explicitly. -/
 lemma dimensional_density_ratio_contentInfty (s : ℝ) (E : Set X) (x : X) {r : ℝ} (hr : 0 ≤ r) :
     dimensional_density_ratio (OuterMeasure.restrict E (hausdorffContentInftyOuter s)) s x r
@@ -347,6 +353,7 @@ lemma density_ratio_apply (s : ℝ) (E : Set X) (x : X) {r : ℝ} (hr : 0 ≤ r)
   rw [dimensional_density_ratio_closedBall _ _ _ hr, Measure.toOuterMeasure_apply,
     Measure.restrict_apply Metric.isClosed_closedBall.measurableSet]
 
+omit [MeasurableSpace X] [BorelSpace X] in
 /-- **Lemma 0.5 (from small density to small density ratio).** -/
 lemma exists_delta_of_upper_density_lt {s : ℝ} (E : Set X) (x : X)
     (hx : dimensional_upper_density (OuterMeasure.restrict E (hausdorffContentInftyOuter s)) s x
@@ -375,7 +382,7 @@ lemma exists_delta_of_upper_density_lt {s : ℝ} (E : Set X) (x : X)
   intro r hr0 hrle
   have hrmem : r ∈ Set.Ioc (0 : ℝ) u := ⟨hr0, hrle.trans (min_le_right _ _)⟩
   have hlt := hsub hrmem
-  simp only [Set.mem_setOf_eq, dimensional_density_ratio_contentInfty _ _ _ hr0.le] at hlt
+  simp only [Set.mem_ofPred_eq, dimensional_density_ratio_contentInfty _ _ _ hr0.le] at hlt
   refine hlt.trans_le (ENNReal.ofReal_le_ofReal ?_)
   rw [hbeq]
   gcongr
@@ -441,6 +448,7 @@ lemma mem_cover_set_of_density_lt {s : ℝ} (hs : 0 < s) (E : Set X) (x : X) {δ
   rwa [show (1 : ℝ≥0∞) - ENNReal.ofReal δ = ENNReal.ofReal (1 - δ) by
     rw [ENNReal.ofReal_sub _ hδ.le, ENNReal.ofReal_one]]
 
+omit [MeasurableSpace X] [BorelSpace X] in
 /-- Step (l): a point of `E` with small upper density lies in one of the sets `E(1/k, 1 - 1/k)`. -/
 lemma mem_iUnion_cover_set_of_upper_density_lt {s : ℝ} (hs : 0 < s) (E : Set X) (x : X)
     (hxE : x ∈ E)
@@ -537,7 +545,7 @@ lemma exists_open_superset_measure_lt {s : ℝ} (hs : 0 ≤ s) {E : Set X}
     (hEfin : μH[s] E ≠ ⊤) (A : Set X) (hAE : A ⊆ E) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
     ∃ U : Set X, IsOpen U ∧ A ⊆ U ∧ μH[s] (U ∩ E) < μH[s] A + ε := by
   -- The restriction of the Hausdorff measure to `E` is regular.
-  haveI : ((μH[s] : Measure X).restrict E).Regular := by
+  have _ : ((μH[s] : Measure X).restrict E).Regular := by
     have hborel : ‹MeasurableSpace X› = borel X := BorelSpace.measurable_eq
     subst hborel
     exact HausdorffRestrict.toRadonOuterMeasure s hs E hEmeas (lt_top_iff_ne_top.2 hEfin)
@@ -589,7 +597,7 @@ lemma exists_finset_tsum_compl_le {ι : Type*} (f : ι → ℝ≥0∞) (hf : ∑
     have := ENNReal.sum_add_tsum_compl (s := (∅ : Finset ι)) (f := f)
     simp only [Finset.sum_empty, zero_add] at this
     exact le_of_eq this
-  · push_neg at hle
+  · push Not at hle
     have hsub : ∑' i, f i - ε < ∑' i, f i := ENNReal.sub_lt_self hf (by
       intro h; rw [h] at hle; exact absurd hle (by simp)) hε
     rw [ENNReal.tsum_eq_iSup_sum] at hsub
@@ -637,7 +645,7 @@ lemma exists_cover_le {s : ℝ} (hs : 0 ≤ s) {E : Set X}
   have hpos : ∀ a ∈ T, 0 < a.2 := fun _ ha => ha.2.1
   obtain ⟨u, hut, hucount, hudisj, hucov⟩ :=
     vitali_variant_classical (X := A) T Prod.fst Prod.snd hfine hrad hpos
-  haveI : Countable ↥u := hucount.to_subtype
+  have _ : Countable ↥u := hucount.to_subtype
   -- the mass of `E` inside each selected ball
   set f : X × ℝ → ℝ≥0∞ := fun b => μH[s] (E ∩ Metric.closedBall b.1 b.2) with hf
   set nu : Measure X := (μH[s]).restrict E with hnu
@@ -686,25 +694,25 @@ lemma exists_cover_le {s : ℝ} (hs : 0 ≤ s) {E : Set X}
     have hb2pos : 0 < b.2 := (hut hb).2.1
     by_cases hbw : b ∈ w
     · rw [hC]
-      simp only [if_pos hbw]
+      simp only [ite_eq_left hbw]
       exact le_trans (ediam_closedBall_le _ _) (ENNReal.ofReal_le_ofReal (by linarith))
     · rw [hC]
-      simp only [if_neg hbw]
+      simp only [ite_eq_right hbw]
       refine le_trans (ediam_closedBall_le _ _) (ENNReal.ofReal_le_ofReal (by linarith))
   · -- the cover property, from the conclusion of Vitali's theorem
     intro x hx
     by_cases hcase : ∃ a ∈ w, x ∈ Metric.closedBall a.1 a.2
     · obtain ⟨a, haw, hxa⟩ := hcase
       refine Set.mem_biUnion (hwu haw) ?_
-      rw [hC]; simpa only [if_pos haw] using hxa
-    · push_neg at hcase
+      rw [hC]; simpa only [ite_eq_left haw] using hxa
+    · push Not at hcase
       have hxdiff : x ∈ A \ ⋃ a ∈ w, Metric.closedBall a.1 a.2 := by
         refine ⟨hx, ?_⟩
         simpa using hcase
       obtain ⟨b, hb, hxb⟩ := Set.mem_iUnion₂.mp (hucov w hwT hxdiff)
       have hbw : b ∉ w := fun h => hb.2 (Finset.mem_coe.mpr h)
       refine Set.mem_biUnion hb.1 ?_
-      rw [hC]; simpa only [if_neg hbw] using hxb
+      rw [hC]; simpa only [ite_eq_right hbw] using hxb
   · -- **(h)** the gauge sum estimate
     have hbound : ∀ b : ↥u, Metric.ediam (C ↑b) ^ s ≤
         (if (↑b : X × ℝ) ∈ w then t⁻¹ * f ↑b
@@ -719,7 +727,7 @@ lemma exists_cover_le {s : ℝ} (hs : 0 ≤ s) {E : Set X}
           _ ≤ t⁻¹ * f ↑b := by gcongr; exact hbT.2.2.2.le
       by_cases hbw : (↑b : X × ℝ) ∈ w
       · rw [hC]
-        simp only [if_pos hbw]
+        simp only [ite_eq_left hbw]
         refine le_trans ?_ hkey
         calc Metric.ediam (Metric.closedBall (↑b : X × ℝ).1 (↑b : X × ℝ).2) ^ s
             ≤ ENNReal.ofReal (2 * (↑b : X × ℝ).2) ^ s :=
@@ -727,7 +735,7 @@ lemma exists_cover_le {s : ℝ} (hs : 0 ≤ s) {E : Set X}
           _ = ENNReal.ofReal ((2 * (↑b : X × ℝ).2) ^ s) :=
               ENNReal.ofReal_rpow_of_nonneg (by positivity) hs
       · rw [hC]
-        simp only [if_neg hbw]
+        simp only [ite_eq_right hbw]
         have h10 : (2 : ℝ) * (5 * (↑b : X × ℝ).2) = 5 * (2 * (↑b : X × ℝ).2) := by ring
         calc Metric.ediam (Metric.closedBall (↑b : X × ℝ).1 (5 * (↑b : X × ℝ).2)) ^ s
             ≤ ENNReal.ofReal (2 * (5 * (↑b : X × ℝ).2)) ^ s :=
@@ -744,7 +752,7 @@ lemma exists_cover_le {s : ℝ} (hs : 0 ≤ s) {E : Set X}
           else ENNReal.ofReal (5 ^ s) * (t⁻¹ * f ↑b)) = t⁻¹ * ∑ b ∈ W, f ↑b := by
         rw [Finset.mul_sum]
         refine Finset.sum_congr rfl fun b hb => ?_
-        rw [if_pos ((hmemw b).mpr hb)]
+        rw [ite_eq_left ((hmemw b).mpr hb)]
       rw [h1]
       have h2 : ∑ b ∈ W, f ↑b
           = nu (⋃ b ∈ W, Metric.closedBall (b : X × ℝ).1 (b : X × ℝ).2) := by
@@ -769,7 +777,7 @@ lemma exists_cover_le {s : ℝ} (hs : 0 ≤ s) {E : Set X}
           = ENNReal.ofReal (5 ^ s) * t⁻¹ * f ↑(b : ↥u) := by
         intro b
         have hb : ((b : ↥u) : X × ℝ) ∉ w := fun h => b.2 ((hmemw _).mp h)
-        rw [if_neg hb, mul_assoc]
+        rw [ite_eq_right hb, mul_assoc]
       rw [tsum_congr h1, ENNReal.tsum_mul_left]
       gcongr
     calc ∑' b : ↥u, Metric.ediam (C ↑b) ^ s
@@ -805,7 +813,7 @@ theorem superlevelSet_null {s : ℝ} (hs : 0 ≤ s) {E : Set X}
     choose u C hcount hdiam hcov hsum using
       fun n : ℕ => exists_cover_le hs hEmeas hEfin ht0 httop
         (δ := 1 / (n + 1 : ℝ)) (by positivity) hε0
-    haveI : ∀ n : ℕ, Countable ↥(u n) := fun n => (hcount n).to_subtype
+    have _ : ∀ n : ℕ, Countable ↥(u n) := fun n => (hcount n).to_subtype
     have htend : Tendsto (fun n : ℕ => ENNReal.ofReal (10 * (1 / (n + 1 : ℝ)))) atTop (𝓝 0) := by
       have h : Tendsto (fun n : ℕ => 10 * (1 / (n + 1 : ℝ))) atTop (𝓝 0) := by
         simpa using (tendsto_one_div_add_atTop_nhds_zero_nat).const_mul (10 : ℝ)

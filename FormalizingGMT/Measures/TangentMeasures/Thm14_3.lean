@@ -1,4 +1,16 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import FormalizingGMT.Measures.TangentMeasures.Basic
+
+/-!
+# Consequences of Mattila's condition 14.3
+
+This file derives doubling and compactness consequences from the small-scale hypothesis in
+Mattila's condition 14.3.
+-/
 
 open MeasureTheory Metric Set Filter
 open Topology
@@ -118,7 +130,7 @@ lemma exists_le_normalizing {μ ν : Measure (EuclideanSpace ℝ (Fin n))}
     ∃ δ : ℝ≥0∞, 0 < δ ∧ ∀ᶠ i in atTop, δ ≤ c i * μ (ball a (r i)) := by
   obtain ⟨R, hR1, hRpos⟩ : ∃ R : ℝ, 1 ≤ R ∧ 0 < ν (ball 0 R) := by
     by_contra hcon
-    push_neg at hcon
+    push Not at hcon
     apply hν0
     have hz : ∀ k : ℕ, ν (ball 0 ((k : ℝ) + 1)) = 0 := by
       intro k
@@ -397,4 +409,3 @@ theorem exists_subseq_blowUp_weaklyConverges_tangentMeasure {n : ℕ}
   exact ⟨hν_regular, hν0, fun j ↦ r (φ j), fun j ↦ (μ (ball a (r (φ j))))⁻¹,
     fun j ↦ hr_pos _, fun j ↦ ENNReal.inv_pos.2 (hball_top _),
     fun j ↦ ENNReal.inv_ne_top.2 (hball_pos _), hr.comp hφ.tendsto_atTop, hconv⟩
-

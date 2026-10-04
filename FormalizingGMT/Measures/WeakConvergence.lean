@@ -128,7 +128,7 @@ private theorem weaklyConverges_imp_compactOpenBounds
     (hμ : ∀ k, (μ k).Regular) (hν : ν.Regular)
     (h : Measure.WeaklyConverges μ ν) :
     Measure.WeaklyConvergesByCompactOpenBounds μ ν := by
-  letI : ν.Regular := hν
+  let _ : ν.Regular := hν
   constructor
   · intro K hK
     rw [hK.measure_eq_biInf_integral_hasCompactSupport ν]
@@ -147,7 +147,7 @@ private theorem weaklyConverges_imp_compactOpenBounds
           atTop.limsup (fun k ↦ ENNReal.ofReal (∫ x, f x ∂μ k)) := by
         apply limsup_le_limsup _ (by isBoundedDefault) (by isBoundedDefault)
         filter_upwards [] with k
-        letI : (μ k).Regular := hμ k
+        let _ : (μ k).Regular := hμ k
         exact (hf_cont.integrable_of_hasCompactSupport hf_compact).measure_le_integral
           (.of_forall hf_nonneg) fun x hx ↦ (hf_one hx).ge
       _ = ENNReal.ofReal (∫ x, f x ∂ν) := htendsto.limsup_eq
@@ -198,8 +198,8 @@ private lemma exists_bounded_open_null_frontier_between
     (hK : IsCompact K) (hU : IsOpen U) (hKU : K ⊆ U) :
     ∃ B : Set (EuclideanSpace ℝ (Fin n)),
       K ⊆ B ∧ B ⊆ U ∧ IsOpen B ∧ Bornology.IsBounded B ∧ ν (frontier B) = 0 := by
-  letI : ν.Regular := hν
-  letI : SFinite ν := inferInstance
+  let _ : ν.Regular := hν
+  let _ : SFinite ν := inferInstance
   obtain ⟨δ, hδ, hδU⟩ := hK.exists_cthickening_subset_open hU hKU
   obtain ⟨r, hr, hnull⟩ := exists_null_frontier_thickening ν K hδ
   refine ⟨Metric.thickening r K, Metric.self_subset_thickening hr.1 K,
@@ -211,7 +211,7 @@ private theorem boundedContinuitySets_imp_compactOpenBounds
     (ν : Measure (EuclideanSpace ℝ (Fin n))) (hν : ν.Regular)
     (h : Measure.WeaklyConvergesOnBoundedContinuitySets μ ν) :
     Measure.WeaklyConvergesByCompactOpenBounds μ ν := by
-  letI : ν.Regular := hν
+  let _ : ν.Regular := hν
   constructor
   · intro K hK
     rw [K.measure_eq_iInf_isOpen ν]
@@ -246,14 +246,14 @@ private theorem compactOpenBounds_imp_weaklyConverges
     (hμ : ∀ k, (μ k).Regular) (hν : ν.Regular)
     (h : Measure.WeaklyConvergesByCompactOpenBounds μ ν) :
     Measure.WeaklyConverges μ ν := by
-  letI : ν.Regular := hν
+  let _ : ν.Regular := hν
   intro f
   obtain ⟨O, hfO, -, hO_open, hO_bounded, hO_frontier⟩ :=
     exists_bounded_open_null_frontier_between ν hν f.hasCompactSupport isOpen_univ
       (subset_univ _)
   have hO_meas : MeasurableSet O := hO_open.measurableSet
   have hμO_lt_top (k : ℕ) : μ k O < ∞ := by
-    letI : (μ k).Regular := hμ k
+    let _ : (μ k).Regular := hμ k
     exact hO_bounded.measure_lt_top
   have hνO_lt_top : ν O < ∞ := hO_bounded.measure_lt_top
   let μO : ℕ → FiniteMeasure (EuclideanSpace ℝ (Fin n)) := fun k ↦

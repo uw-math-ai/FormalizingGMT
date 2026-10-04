@@ -1,5 +1,17 @@
+/-
+Copyright (c) 2026 FormalizingGMT contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: FormalizingGMT contributors
+-/
 import FormalizingGMT.Measures.TangentMeasures.Thm14_3
 import FormalizingGMT.Measures.TangentMeasures.Lemma14_7GoodSets
+
+/-!
+# Mattila's Lemma 14.7
+
+This file assembles the ball-bound and good-set machinery into the three statements of
+Mattila's Lemma 14.7.
+-/
 
 open MeasureTheory Metric Set Filter
 open Topology
