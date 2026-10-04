@@ -1,12 +1,12 @@
 import FormalizingGMT.Densities.HausdorffUpperDensityInsideLemmas
 
 /-!
-# Theorem 2.7: upper densities at points of E
+# Density bounds for Hausdorff measure restricted to a set for points in the set
 
-Let `X` be a metric space (with its Borel σ-algebra), `s ≥ 0`, and let `E ⊆ X` with
+Let `X` be a metric space, `s ≥ 0`, and let `E ⊆ X` with
 `H^s(E) < ∞`, where `H^s` is the `s`-dimensional Hausdorff measure.
 
-* **Part I** (no further assumptions on `X` or `E`). For `H^s`-almost every `x ∈ E`,
+* **Part I**. For `H^s`-almost every `x ∈ E`,
 
     `limsup_{r ↘ 0} H^s_∞(E ∩ B(x,r)) / (2r)^s ≥ 1 / 2^s`
 

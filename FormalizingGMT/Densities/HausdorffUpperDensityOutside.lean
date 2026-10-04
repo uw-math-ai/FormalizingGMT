@@ -2,7 +2,7 @@ import FormalizingGMT.Densities.HausdorffUpperDensityOutsideLemmas
 
 
 /-!
-# Theorem 2.6: Density at points not in E
+# Density bound for Hausdorff measure restricted to a set for points not in the set
 
 Let X be a locally compact, second countable metric space (equipped with its Borel σ-algebra),
 let s ≥ 0, and let E ⊆ X be measurable in the sense of Carathéodory with respect to the

@@ -13,7 +13,7 @@ import FormalizingGMT.Densities.Basic
 
 
 /-!
-# Technical lemmas for Theorem 2.6 (density at points not in E)
+# Technical lemmas for density bound for Hausdorff measure restricted to a set for points not in the set
 
 This file contains the definitions and technical lemmas used in the proof of
 `hausdorffMeasure_upperDensity_eq_zero_ae_notMem` (see
@@ -28,7 +28,6 @@ This file contains the definitions and technical lemmas used in the proof of
 
 open MeasureTheory Measure Metric Set Filter ENNReal
 open scoped NNReal Topology
-
 
 
 

@@ -14,7 +14,7 @@ import FormalizingGMT.Measures.HausdorffMeasure
 import FormalizingGMT.Thm1_25_VariantVitali
 
 /-!
-# Technical lemmas for Theorem 2.7 (upper densities at points of E)
+# Technical lemmas for density bounds for Hausdorff measure restricted to a set for points in the set
 
 This file contains the definitions and technical lemmas used in the proofs of the main results
 of `FormalizingGMT/Densities/HausdorffUpperDensityInside.lean`:
