@@ -1,3 +1,12 @@
+This project was edited by [Aristotle](https://aristotle.harmonic.fun).
+
+To cite Aristotle:
+- Tag @Aristotle-Harmonic on GitHub PRs/issues
+- Add as co-author to commits:
+```
+Co-authored-by: Aristotle (Harmonic) <aristotle-harmonic@harmonic.fun>
+```
+
 # FormalizingGMT
 
 A Lean 4 project dedicated to formalizing core results from **Geometric Measure Theory (GMT)**, with an emphasis on measure‑theoretic foundations, rectifiability, and the structure of sets and measures in Euclidean spaces. This repository contributes to the growing ecosystem of mathematical formalization in Lean’s `mathlib`.

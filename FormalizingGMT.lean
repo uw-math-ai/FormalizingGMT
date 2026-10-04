@@ -1,7 +1,8 @@
 import FormalizingGMT.Densities.Basic
-import FormalizingGMT.Densities.Thm2_6
-import FormalizingGMT.Densities.Thm2_7Part1
-import FormalizingGMT.Densities.Thm2_7Part2
+import FormalizingGMT.Densities.HausdorffUpperDensityOutside
+import FormalizingGMT.Densities.HausdorffUpperDensityOutsideLemmas
+import FormalizingGMT.Densities.HausdorffUpperDensityInside
+import FormalizingGMT.Densities.HausdorffUpperDensityInsideLemmas
 import FormalizingGMT.Measures.Basic
 import FormalizingGMT.Measures.HausdorffMeasure
 import FormalizingGMT.Measures.MarstrandTheorem
