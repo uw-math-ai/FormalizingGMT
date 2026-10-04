@@ -11,4 +11,4 @@ import FormalizingGMT.Measures.TangentMeasures
 import FormalizingGMT.Measures.WeakCompactness
 import FormalizingGMT.Measures.WeakConvergence
 import FormalizingGMT.SingularIntegralDensities
-import FormalizingGMT.Thm1_25_VariantVitali
+import FormalizingGMT.Covering.VariantVitali

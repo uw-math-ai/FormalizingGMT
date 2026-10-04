@@ -62,7 +62,7 @@ The statements of all four main theorems are unchanged. They still build, and `#
   - **Part I** covers the Hausdorff contents as outer measures, `cover_set`, the vanishing lemmas and the density-to-`cover_set` step.
   - **Part II**, in `namespace HausdorffDensity`, covers `superlevelSet`, `ballFamily`, the outer approximation, `exists_cover_le`, `superlevelSet_null` and `exists_nat_one_add_inv_lt`.
 
-  As you asked, I kept everything and removed nothing as a duplicate. No two declarations ended up with the same name, because the Part II lemmas sit inside the `HausdorffDensity` namespace. I added one new import (`FormalizingGMT.Thm1_25_VariantVitali`), which Part II needs. I only edited the module docstrings and one section heading.
+  As you asked, I kept everything and removed nothing as a duplicate. No two declarations ended up with the same name, because the Part II lemmas sit inside the `HausdorffDensity` namespace. I added one new import (`FormalizingGMT.Covering.VariantVitali`), which Part II needs. I only edited the module docstrings and one section heading.
 - I deleted `Thm2_7Part1.lean` and `Thm2_7Part2.lean`. `FormalizingGMT.lean` now imports the two new files instead.
 
 **Check results:**

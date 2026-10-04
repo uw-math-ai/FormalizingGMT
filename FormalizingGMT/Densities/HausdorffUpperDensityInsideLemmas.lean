@@ -11,7 +11,7 @@ import Mathlib.Tactic
 import FormalizingGMT.Measures.Basic
 import FormalizingGMT.Densities.Basic
 import FormalizingGMT.Measures.HausdorffMeasure
-import FormalizingGMT.Thm1_25_VariantVitali
+import FormalizingGMT.Covering.VariantVitali
 
 /-!
 # Technical lemmas for density bounds for Hausdorff measure restricted to a set for points in the set
