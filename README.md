@@ -1,15 +1,8 @@
-This project was edited by [Aristotle](https://aristotle.harmonic.fun).
-
-To cite Aristotle:
-- Tag @Aristotle-Harmonic on GitHub PRs/issues
-- Add as co-author to commits:
-```
-Co-authored-by: Aristotle (Harmonic) <aristotle-harmonic@harmonic.fun>
-```
-
 # FormalizingGMT
 
-A Lean 4 project dedicated to formalizing core results from **Geometric Measure Theory (GMT)**, with an emphasis on measure‑theoretic foundations, rectifiability, and the structure of sets and measures in Euclidean spaces. This repository contributes to the growing ecosystem of mathematical formalization in Lean’s `mathlib`.
+A Lean 4 project dedicated to formalizing core results from **Geometric Measure Theory (GMT)**, specifically a formalization of Marstrand's Theorem. This repository contributes to the growing ecosystem of mathematics in Lean.
+
+We are supported by the UW Math AI Lab. [Click here](https://ai.math.uw.edu/) to learn more about us.
 
 ---
 
@@ -18,11 +11,9 @@ A Lean 4 project dedicated to formalizing core results from **Geometric Measure 
 This project aims to:
 
 - Upstream foundational components to `mathlib`  
-- Formalize classical results from Falconer's and Evan's GMT books.
+- Formalize Marstrand's Theorem and add other GMT results
 
-The codebase is organized to keep mathlib‑ready components clean and modular.
-
-Here is a poster we presented, it is not up to date, but gives a glimpse into our project structure.
+Here is a poster we presented; it is not up to date, but gives a glimpse into our project structure. We will replace this with our paper when it is done.
 ![GMT Poster Presentation](.github/Assets/URS%20Formalizing%20GMTpng.png)
 
 
@@ -30,19 +21,12 @@ Here is a poster we presented, it is not up to date, but gives a glimpse into ou
 
 ## Current Stage of the Project
 
-> In Progress
+> Wrapping up
 
-Suggested structure:
-
-- **Foundational components completed:**  
-  - Proofs of 10 / 11 Lemmas
-
-- **Actively in progress:**  
-  - Cleaning of Lemma 3.3
-
-- **Upcoming milestones:**  
-  - Full Proof of the Theorem
-  - More submissions to `mathlib`
+Further work:
+- Write our paper
+- Add more of our content to `mathlib`
+- `LeanPool` submission
 
 ---
 
@@ -52,12 +36,6 @@ Suggested structure:
 |----|--------|-------------|
 | #32824 | Merged | Prove that the diameter of a Euclidean ball is twice its radius |
 | #32851 | Merged | Introduces Theorem `exists_accPt_of_noAtoms` and lemma `discreteTopology_of_noAccPts ` |
-| #00000 | Draft | Work in progress on `lemma_zero_of_pre_zero` : If at every sufficiently fine scale (all r ≤ δ), the set S appears to have zero size when measured at that resolution, then the set actually has zero size when measured with perfect resolution.|
-
----
-
-## To-Do for Repo
-
-- Fix versions of Lean and Mathlib in the Aristotle proofs
-- Comment on the connection between `mathlib` PRs and proofs we will use
+| #42042 | Merged | Caratheodory measurability of measure-zero sets and complement lemmas |
+| #TBA   | Todo   | Add API about densities to mathlib |
 
