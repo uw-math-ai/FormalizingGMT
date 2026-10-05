@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
-      - uses: leanprover-community/docgen-action@v1
+      - uses: leanprover-community/docgen-action@90cab778600b5fe01899f61a640ead757388cfd2
         with:
           # Keep documentation generation in CI, but do not attempt a Pages
           # deployment until Pages is enabled for this repository.
